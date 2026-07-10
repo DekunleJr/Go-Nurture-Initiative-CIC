@@ -1,0 +1,108 @@
+import React from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Heart, ExternalLink, Mail, MapPin } from "lucide-react";
+import { NAV_LINKS, SITE_CONFIG, COMMERCIAL_SITE_URL } from "@/lib/constants";
+
+export function Footer() {
+  const currentYear = new Date().getFullYear();
+
+  return (
+    <footer className="border-t border-(--color-border) bg-white">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Brand Column */}
+          <div className="space-y-4">
+            <Link href="/" className="flex items-center shrink-0">
+              <div className="relative h-20 w-20 sm:h-24 sm:w-24">
+                <Image
+                  src="/LOGO_v1.png"
+                  alt={`${SITE_CONFIG.name} logo`}
+                  width={200}
+                  height={200}
+                  className="object-contain"
+                  style={{ width: "auto", height: "100%" }}
+                />
+              </div>
+            </Link>
+            <p className="text-sm leading-relaxed text-(--color-text-muted)">
+              {SITE_CONFIG.tagline}
+            </p>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-(--color-primary)">
+              Quick Links
+            </h3>
+            <ul className="space-y-2">
+              {NAV_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-(--color-text-muted) hover:text-(--color-accent) transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Contact */}
+          <div>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-(--color-primary)">
+              Contact
+            </h3>
+            <ul className="space-y-2">
+              <li>
+                <a
+                  href={`mailto:${SITE_CONFIG.email}`}
+                  className="flex items-center gap-2 text-sm text-(--color-text-muted) hover:text-(--color-accent) transition-colors"
+                >
+                  <Mail size={14} />
+                  {SITE_CONFIG.email}
+                </a>
+              </li>
+              <li className="flex items-start gap-2 text-sm text-(--color-text-muted)">
+                <MapPin size={14} className="mt-0.5 shrink-0" />
+                <span>Norfolk, United Kingdom</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Commercial Link */}
+          <div>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-(--color-primary)">
+              Our Commercial Arm
+            </h3>
+            <p className="mb-4 text-sm leading-relaxed text-(--color-text-muted)">
+              Purchases from our parent company fund these free community services.
+            </p>
+            <a
+              href={COMMERCIAL_SITE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-(--color-accent) hover:text-(--color-accent-light) transition-colors"
+            >
+              Nurtured & Nourished
+              <ExternalLink size={14} />
+            </a>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="mt-10 border-t border-(--color-border) pt-6">
+          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+            <p className="text-xs text-(--color-text-muted)">
+              &copy; {currentYear} {SITE_CONFIG.name}. All rights reserved.
+            </p>
+            <p className="flex items-center gap-1 text-xs text-(--color-text-muted)">
+              Made with <Heart size={12} className="text-red-500" /> for every mother
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
