@@ -1,40 +1,43 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
 import { Heart } from "lucide-react";
+import { useLanguage } from "@/lib/LanguageContext";
 
 const photos = [
   {
     src: "/hero_2.jfif",
     alt: "Community support gathering",
-    caption: "Community connection and support",
+    captionKey: "gallery.caption1",
   },
   {
     src: "/hero_3.jfif",
     alt: "Mother and child care",
-    caption: "Culturally adapted care",
+    captionKey: "gallery.caption2",
   },
   {
     src: "/hero_4.jfif",
     alt: "Perinatal education session",
-    caption: "Perinatal education and preparation",
+    captionKey: "gallery.caption3",
   },
 ];
 
 export function PhotoGallery() {
+  const { t } = useLanguage();
   return (
     <section className="bg-white py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="mx-auto max-w-2xl text-center">
           <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-(--color-accent)">
-            Our Community
+            {t("gallery.sectionLabel")}
           </p>
           <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl">
-            Care That Connects Communities
+            {t("gallery.sectionTitle")}
           </h2>
           <p className="mt-4 text-lg text-(--color-text-muted)">
-            Every mother deserves access to culturally sensitive perinatal support,
-            regardless of background or circumstance.
+            {t("gallery.sectionDesc")}
           </p>
         </div>
 
@@ -60,7 +63,7 @@ export function PhotoGallery() {
               <div className="absolute bottom-0 left-0 right-0 p-6">
                 <p className="flex items-center gap-2 text-sm font-medium text-white">
                   <Heart size={14} className="text-(--color-accent-light)" fill="currentColor" />
-                  {photo.caption}
+                  {t(photo.captionKey)}
                 </p>
               </div>
             </div>
@@ -70,9 +73,7 @@ export function PhotoGallery() {
         {/* Bottom text */}
         <div className="mx-auto mt-12 max-w-2xl text-center">
           <p className="text-sm text-(--color-text-muted)">
-            Go Nurture Initiative CIC is a Norfolk-based Community Interest Company providing
-            free, referral-led perinatal support to vulnerable, Minority Ethnic, migrant,
-            refugee, and displaced women.
+            {t("gallery.bottomText")}
           </p>
         </div>
       </div>

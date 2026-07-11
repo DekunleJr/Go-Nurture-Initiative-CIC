@@ -1,11 +1,25 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Heart, ExternalLink, Mail, MapPin } from "lucide-react";
+import { ExternalLink, Mail, MapPin } from "lucide-react";
 import { NAV_LINKS, SITE_CONFIG, COMMERCIAL_SITE_URL } from "@/lib/constants";
+import { useLanguage } from "@/lib/LanguageContext";
+
+const navTranslationMap: Record<string, string> = {
+  "Home": "nav.home",
+  "About": "nav.about",
+  "Our Programmes": "nav.ourProgrammes",
+  "Community Support": "nav.communitySupport",
+  "Venues": "nav.venues",
+  "Donate": "nav.donate",
+  "Contact": "nav.contact",
+};
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const { t } = useLanguage();
 
   return (
     <footer className="border-t border-(--color-border) bg-white">
@@ -33,7 +47,7 @@ export function Footer() {
           {/* Quick Links */}
           <div>
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-(--color-primary)">
-              Quick Links
+              {t("footer.quickLinks")}
             </h3>
             <ul className="space-y-2">
               {NAV_LINKS.map((link) => (
@@ -42,7 +56,7 @@ export function Footer() {
                     href={link.href}
                     className="text-sm text-(--color-text-muted) hover:text-(--color-accent) transition-colors"
                   >
-                    {link.label}
+                    {t(navTranslationMap[link.label] || link.label)}
                   </Link>
                 </li>
               ))}
@@ -52,7 +66,7 @@ export function Footer() {
           {/* Contact */}
           <div>
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-(--color-primary)">
-              Contact
+              {t("footer.contact")}
             </h3>
             <ul className="space-y-2">
               <li>
@@ -74,10 +88,10 @@ export function Footer() {
           {/* Commercial Link */}
           <div>
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-(--color-primary)">
-              Our Commercial Arm
+              {t("footer.commercialTitle")}
             </h3>
             <p className="mb-4 text-sm leading-relaxed text-(--color-text-muted)">
-              Purchases from our parent company fund these free community services.
+              {t("footer.commercialDesc")}
             </p>
             <a
               href={COMMERCIAL_SITE_URL}
@@ -85,7 +99,7 @@ export function Footer() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-(--color-accent) hover:text-(--color-accent-light) transition-colors"
             >
-              Nurtured & Nourished
+              {t("footer.commercialLink")}
               <ExternalLink size={14} />
             </a>
           </div>
@@ -95,10 +109,10 @@ export function Footer() {
         <div className="mt-10 border-t border-(--color-border) pt-6">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <p className="text-xs text-(--color-text-muted)">
-              &copy; {currentYear} {SITE_CONFIG.name}. All rights reserved.
+              &copy; {currentYear} {SITE_CONFIG.name}. {t("footer.copyright")}
             </p>
             <p className="flex items-center gap-1 text-xs text-(--color-text-muted)">
-              Made with <Heart size={12} className="text-red-500" /> for every mother
+              {t("footer.madeWith")}
             </p>
           </div>
         </div>

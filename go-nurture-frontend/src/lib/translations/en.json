@@ -1,0 +1,71 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "ourProgrammes": "Our Programmes",
+    "communitySupport": "Community Support",
+    "venues": "Venues",
+    "donate": "Donate",
+    "contact": "Contact",
+    "partnerPortal": "Partner Portal"
+  },
+  "hero": {
+    "badge": "Asset-Locked Community Interest Company",
+    "headline1": "Empowering Communities,",
+    "headline2": "Bridging Birthing Gaps.",
+    "subheadline": "Free, referral-led, culturally adapted perinatal education and community support for vulnerable, Minority Ethnic, migrant, refugee, and displaced women across Norfolk.",
+    "ctaReferral": "Partner Portal — Make a Referral",
+    "ctaSupport": "Support Our Mission"
+  },
+  "impact": {
+    "sectionLabel": "Year 1 Pilot Impact",
+    "sectionTitle": "Supporting Vulnerable Mothers in Norfolk",
+    "sectionDesc": "Through referral-led, culturally adapted perinatal education across three annual cohorts, we are reaching the women who need support the most.",
+    "stat1Label": "Women Supported",
+    "stat1Sub": "Year 1 pilot target",
+    "stat2Label": "Annual Cohorts",
+    "stat2Sub": "Free community programmes",
+    "stat3Label": "Referral Partners",
+    "stat3Sub": "NHS, faith & community groups",
+    "stat4Label": "Languages Supported",
+    "stat4Sub": "Culturally adapted care"
+  },
+  "gallery": {
+    "sectionLabel": "Our Community",
+    "sectionTitle": "Care That Connects Communities",
+    "sectionDesc": "Every mother deserves access to culturally sensitive perinatal support, regardless of background or circumstance.",
+    "caption1": "Community connection and support",
+    "caption2": "Culturally adapted care",
+    "caption3": "Perinatal education and preparation",
+    "bottomText": "Go Nurture Initiative CIC is a Norfolk-based Community Interest Company providing free, referral-led perinatal support to vulnerable, Minority Ethnic, migrant, refugee, and displaced women."
+  },
+  "fundingBridge": {
+    "sectionLabel": "Our Funding Model",
+    "sectionTitle": "How Your Support ",
+    "sectionTitleHighlight": "Creates Impact",
+    "sectionDesc": "Every purchase from our commercial arm directly funds free community perinatal support for women who need it most.",
+    "step1Title": "You Purchase",
+    "step1Desc": "Buy maternity education packages from Nurtured and Nourished Health Ltd",
+    "step2Title": "CSR Funding",
+    "step2Desc": "A portion of profits transfers as Corporate Social Responsibility to Go Nurture CIC",
+    "step3Title": "Free Support",
+    "step3Desc": "Funds provide free culturally adapted perinatal education to vulnerable women in Norfolk",
+    "bridgeLabel": "THE BRIDGE",
+    "ctaTitle": "See the Full Picture",
+    "ctaDesc": "Our transparency dashboard shows exactly how every pound creates community impact.",
+    "ctaDashboard": "View Transparency Dashboard",
+    "ctaCommercial": "Visit Nurtured and Nourished"
+  },
+  "footer": {
+    "quickLinks": "Quick Links",
+    "contact": "Contact",
+    "commercialTitle": "Our Commercial Arm",
+    "commercialDesc": "Purchases from our parent company fund these free community services.",
+    "commercialLink": "Nurtured & Nourished",
+    "copyright": "All rights reserved.",
+    "madeWith": "Made with ❤️ for every mother"
+  },
+  "languageSwitcher": {
+    "ariaLabel": "Select language"
+  }
+}

@@ -4,10 +4,11 @@ import React, { useState } from "react";
 import { Globe } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/LanguageContext";
 
 export function LanguageSwitcher({ isScrolled = false }: { isScrolled?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentLang, setCurrentLang] = useState("en");
+  const { currentLang, setLanguage } = useLanguage();
 
   const currentLanguage = SUPPORTED_LANGUAGES.find(
     (l) => l.code === currentLang
@@ -41,7 +42,7 @@ export function LanguageSwitcher({ isScrolled = false }: { isScrolled?: boolean 
                 <button
                   key={lang.code}
                   onClick={() => {
-                    setCurrentLang(lang.code);
+                    setLanguage(lang.code);
                     setIsOpen(false);
                   }}
                   className={cn(

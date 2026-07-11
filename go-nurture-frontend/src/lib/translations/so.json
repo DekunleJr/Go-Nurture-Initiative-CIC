@@ -1,0 +1,71 @@
+{
+  "nav": {
+    "home": "Guriga",
+    "about": "Ku Saabsan",
+    "ourProgrammes": "Barnaamijyadayada",
+    "communitySupport": "Taageerada Bulshada",
+    "venues": "Goobaha",
+    "donate": "Ku Deeqi",
+    "contact": "Nala Soo Xiriir",
+    "partnerPortal": "Albaabka Shuraakada"
+  },
+  "hero": {
+    "badge": "Shirkad Hantiyeed Bulsho oo Xiran",
+    "headline1": "Awoodaynta Bulshooyinka,",
+    "headline2": "Bridging Birthing Gaps.",
+    "subheadline": "Waxbarasho bilaash ah oo ku habboon dhaqanka iyo taageero bulsho oo loogu talagalay haweenka nugul, laga tirada badan yahay, soogalootiga, qaxootiga, iyo haweenka la raray ee Norfolk.",
+    "ctaReferral": "Albaabka Shuraakada — Samee Tixraac",
+    "ctaSupport": "Taageer Himiladayada"
+  },
+  "impact": {
+    "sectionLabel": "Saamaynta Tijaabada Sannadka 1",
+    "sectionTitle": "Taageerada Hooyooyinka Nugul ee Norfolk",
+    "sectionDesc": "Iyada oo loo marayo waxbarashada ku habboon dhaqanka ee saddex kooxood oo sanadle ah, waxaan gaaraynaa haweenka ugu baahan taageerada.",
+    "stat1Label": "Haween La Taageeray",
+    "stat1Sub": "Bartilmaameedka tijaabada sannadka 1",
+    "stat2Label": "Kooxo Sanadle ah",
+    "stat2Sub": "Barnaamijyo bulsho oo bilaash ah",
+    "stat3Label": "Shuraakada Tixraaca",
+    "stat3Sub": "NHS, kooxaha diinta & bulshada",
+    "stat4Label": "Luuqadaha La Taageeray",
+    "stat4Sub": "Daryeel ku habboon dhaqanka"
+  },
+  "gallery": {
+    "sectionLabel": "Bulshadayada",
+    "sectionTitle": "Daryeel Ku Xira Bulshooyinka",
+    "sectionDesc": "Hooyo kasta waxay xaq u leedahay helista taageerada dhalmada ee dhaqan ahaan u habboon, iyada oo aan loo eegin asalkeeda ama duruufteeda.",
+    "caption1": "Xiriirka bulshada iyo taageerada",
+    "caption2": "Daryeel ku habboon dhaqanka",
+    "caption3": "Waxbarashada dhalmada iyo diyaarinta",
+    "bottomText": "Go Nurture Initiative CIC waa shirkad hantiyeed bulsho oo fadhigeedu yahay Norfolk oo bixisa taageero dhalmo oo bilaash ah oo tixraac ku salaysan haweenka nugul, laga tirada badan yahay, soogalootiga, qaxootiga, iyo haweenka la raray."
+  },
+  "fundingBridge": {
+    "sectionLabel": "Qaabka Maalgelinta",
+    "sectionTitle": "Sida Taageeradaadu ",
+    "sectionTitleHighlight": "U Abuurto Saamayn",
+    "sectionDesc": "Iib kasta oo ka yimaada qaybteena ganacsi waxa uu si toos ah u maalgeliyay taageerada dhalmada bulshada ee bilaashka ah ee haweenka ugu baahan.",
+    "step1Title": "Waad Iibsatay",
+    "step1Desc": "Ka iibso xirmooyinka waxbarashada dhalmada ee Nurtured and Nourished Health Ltd",
+    "step2Title": "Maalgelinta CSR",
+    "step2Desc": "Qayb ka mid ah faa'iidada waxa uu u gudbiyaa Masuuliyadda Bulsho ee Shirkadda Go Nurture CIC",
+    "step3Title": "Taageero Bilaash Ah",
+    "step3Desc": "Lacaguhu waxay bixiyaan waxbarasho dhalmo oo bilaash ah oo dhaqan ahaan u habboon haweenka nugul ee Norfolk",
+    "bridgeLabel": "BUUNDIGA",
+    "ctaTitle": "Arag Sawirka Dhamaystiran",
+    "ctaDesc": "Dashboard-ka hufnaanta ayaa si cad u tusaya sida lacag kasta u abuurto saamayn bulsho.",
+    "ctaDashboard": "Daawashada Dashboard-ka Hufnaanta",
+    "ctaCommercial": "Booqo Nurtured and Nourished"
+  },
+  "footer": {
+    "quickLinks": "Xiriirinta Degdegga ah",
+    "contact": "Nala Soo Xiriir",
+    "commercialTitle": "Qaybteena Ganacsi",
+    "commercialDesc": "Iibka ka yimaada shirkadda hooyada ayaa maalgeliyay adeegyadan bulshada ee bilaashka ah.",
+    "commercialLink": "Nurtured & Nourished",
+    "copyright": "Xuquuqda oo dhan waa la dhowray.",
+    "madeWith": "Ku samaysan jacayl ❤️ oo loogu talagalay hooyo kasta"
+  },
+  "languageSwitcher": {
+    "ariaLabel": "Dooro luuqad"
+  }
+}

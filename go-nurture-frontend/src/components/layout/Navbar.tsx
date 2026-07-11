@@ -7,10 +7,22 @@ import { Menu, X } from "lucide-react";
 import { NAV_LINKS, PARTNER_PORTAL_LINK, SITE_CONFIG } from "@/lib/constants";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Button } from "@/components/ui/Button";
+import { useLanguage } from "@/lib/LanguageContext";
+
+const navTranslationMap: Record<string, string> = {
+  "Home": "nav.home",
+  "About": "nav.about",
+  "Our Programmes": "nav.ourProgrammes",
+  "Community Support": "nav.communitySupport",
+  "Venues": "nav.venues",
+  "Donate": "nav.donate",
+  "Contact": "nav.contact",
+};
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -56,7 +68,7 @@ export function Navbar() {
                   : "text-white/90 hover:bg-white/10 hover:text-white"
               }`}
             >
-              {link.label}
+              {t(navTranslationMap[link.label] || link.label)}
             </Link>
           ))}
         </nav>
@@ -71,7 +83,7 @@ export function Navbar() {
               size="sm"
               className={!isScrolled ? "border-white/30 text-white hover:bg-white hover:text-(--color-primary)" : ""}
             >
-              {PARTNER_PORTAL_LINK.label}
+              {t("nav.partnerPortal")}
             </Button>
           </Link>
 
@@ -101,7 +113,7 @@ export function Navbar() {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block rounded-lg px-3 py-2.5 text-base font-medium text-foreground hover:bg-(--color-primary)/10 hover:text-(--color-primary) transition-colors"
               >
-                {link.label}
+                {t(navTranslationMap[link.label] || link.label)}
               </Link>
             ))}
             <div className="pt-2">
@@ -110,7 +122,7 @@ export function Navbar() {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <Button variant="accent" size="md" className="w-full">
-                  {PARTNER_PORTAL_LINK.label}
+                  {t("nav.partnerPortal")}
                 </Button>
               </Link>
             </div>

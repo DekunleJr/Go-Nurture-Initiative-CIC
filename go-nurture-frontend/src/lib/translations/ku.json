@@ -1,0 +1,71 @@
+{
+  "nav": {
+    "home": "Mal",
+    "about": "Derbarê Me",
+    "ourProgrammes": "Bernameyên Me",
+    "communitySupport": "Piştgiriya Civakê",
+    "venues": "Cihên Çalakiyê",
+    "donate": "Bexş bike",
+    "contact": "Têkiliyê",
+    "partnerPortal": "Portala Hevkarên"
+  },
+  "hero": {
+    "badge": "Pargîdaniya Berjewendiya Civakê ya Bi Malî",
+    "headline1": "Bihêzkirina Civakan,",
+    "headline2": "Bridging Birthing Gaps.",
+    "subheadline": "Perwerdehiya perinatal a belaş, li gorî çandê hatî adaptekirin û piştgiriya civakê ji bo jinên xeternak, kêmneteweyî, koçber, penaber û jicîhûwarkirî li Norfolk.",
+    "ctaReferral": "Portala Hevkarên — Referralê Bike",
+    "ctaSupport": "Piştgiriya Mîsyona Me"
+  },
+  "impact": {
+    "sectionLabel": "Bandora Pîlota Sala 1",
+    "sectionTitle": "Piştgiriya Dayikên Xeternak li Norfolk",
+    "sectionDesc": "Bi riya perwerdehiya perinatal a li gorî çandê hatî adaptekirin di sê komên salane de, em digihîjin jinên ku herî zêde hewceyê piştgiriyê ne.",
+    "stat1Label": "Jinên Piştgirîkirî",
+    "stat1Sub": "Armanca pîlota sala 1",
+    "stat2Label": "Komên Salane",
+    "stat2Sub": "Bernameyên civakê yên belaş",
+    "stat3Label": "Hevkarên Referralê",
+    "stat3Sub": "NHS, komên olî û civakê",
+    "stat4Label": "Zimanên Piştgirîkirî",
+    "stat4Sub": "Lênêrîna li gorî çandê hatî adaptekirin"
+  },
+  "gallery": {
+    "sectionLabel": "Civaka Me",
+    "sectionTitle": "Lênêrîna Ku Civakan Girê Dide",
+    "sectionDesc": "Her dayikek heq dike ku bigihîje piştgiriya perinatal a hesas a çandî, bêyî ku paşxana wê an rewşa wê çi be.",
+    "caption1": "Girêdana civakê û piştgirî",
+    "caption2": "Lênêrîna li gorî çandê hatî adaptekirin",
+    "caption3": "Perwerdehiya perinatal û amadekarî",
+    "bottomText": "Go Nurture Initiative CIC pargîdaniyek berjewendiya civakê ye ku navenda wê li Norfolk e û piştgiriya perinatal a belaş a bi referralê ji bo jinên xeternak, kêmneteweyî, koçber, penaber û jicîhûwarkirî peyda dike."
+  },
+  "fundingBridge": {
+    "sectionLabel": "Modela Fînansekirina Me",
+    "sectionTitle": "Çawa Piştgiriya Te ",
+    "sectionTitleHighlight": "Bandorê Diafirîne",
+    "sectionDesc": "Her kirîna ji destgeha meya bazirganî rasterast piştgiriya perinatal a belaş a civakê ji bo jinên ku herî zêde hewceyê wê ne fînanse dike.",
+    "step1Title": "Tu Dikirrî",
+    "step1Desc": "Pakêtên perwerdehiya dayiktiyê ji Nurtured and Nourished Health Ltd bikire",
+    "step2Title": "Fînansekirina CSR",
+    "step2Desc": "Beşek ji qazancê wekî Berpirsiyariya Civakî ya Pargîdaniyê vediguhezîne Go Nurture CIC",
+    "step3Title": "Piştgiriya Belaş",
+    "step3Desc": "Fon perwerdehiya perinatal a belaş a li gorî çandê hatî adaptekirin ji bo jinên xeternak li Norfolk peyda dikin",
+    "bridgeLabel": "PIR",
+    "ctaTitle": "Wêneyê Tijî Bibîne",
+    "ctaDesc": "Panela şefafiyetê ya me tam nîşan dide ka her poundek çawa bandorek civakê diafirîne.",
+    "ctaDashboard": "Panela Şefafiyetê Bibîne",
+    "ctaCommercial": "Serdana Nurtured and Nourished bike"
+  },
+  "footer": {
+    "quickLinks": "Girêdanên Bilez",
+    "contact": "Têkiliyê",
+    "commercialTitle": "Destgeha Me ya Bazirganî",
+    "commercialDesc": "Kirînên ji pargîdaniya meya dêûbav van karûbarên civakê yên belaş fînanse dikin.",
+    "commercialLink": "Nurtured & Nourished",
+    "copyright": "Hemû maf parastî ne.",
+    "madeWith": "Bi ❤️ ji bo her dayikekê hatiye çêkirin"
+  },
+  "languageSwitcher": {
+    "ariaLabel": "Ziman hilbijêre"
+  }
+}

@@ -1,11 +1,15 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Heart } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 // import { SITE_CONFIG } from "@/lib/constants";
+import { useLanguage } from "@/lib/LanguageContext";
 
 export function HeroSection() {
+  const { t } = useLanguage();
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}
@@ -37,19 +41,18 @@ export function HeroSection() {
           {/* Badge */}
           <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-white/90 backdrop-blur-sm animate-fade-in-up">
             <Heart size={14} className="text-(--color-accent-light)" fill="currentColor" />
-            Asset-Locked Community Interest Company
+            {t("hero.badge")}
           </div>
 
           {/* Headline */}
           <h1 className="mb-6 font-heading text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl xl:text-7xl animate-fade-in-up animation-delay-200">
-            Empowering Communities,<br />
-            <span className="gradient-text">Bridging Birthing Gaps.</span>
+            {t("hero.headline1")}<br />
+            <span className="gradient-text">{t("hero.headline2")}</span>
           </h1>
 
-          {/* Subheadline — aligned with the brief */}
+          {/* Subheadline */}
           <p className="mb-10 max-w-2xl text-lg leading-relaxed text-white/80 animate-fade-in-up animation-delay-400">
-            Free, referral-led, culturally adapted perinatal education and community support for
-            vulnerable, Minority Ethnic, migrant, refugee, and displaced women across Norfolk.
+            {t("hero.subheadline")}
           </p>
 
           {/* CTAs */}
@@ -60,7 +63,7 @@ export function HeroSection() {
                 size="lg"
                 className="group shadow-xl shadow-(--color-accent)/25 text-base"
               >
-                Partner Portal — Make a Referral
+                {t("hero.ctaReferral")}
                 <ArrowRight size={18} className="ml-2 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
@@ -70,7 +73,7 @@ export function HeroSection() {
                 size="lg"
                 className="border-white/30 text-white hover:bg-white hover:text-(--color-primary) text-base"
               >
-                Support Our Mission
+                {t("hero.ctaSupport")}
                 <Heart size={16} className="ml-2" />
               </Button>
             </Link>

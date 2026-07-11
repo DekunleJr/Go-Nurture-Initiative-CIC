@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Heart, Users, BookOpen, Globe } from "lucide-react";
+import { useLanguage } from "@/lib/LanguageContext";
 
 interface StatItemProps {
   icon: React.ReactNode;
@@ -71,34 +72,35 @@ function AnimatedStat({ icon, value, suffix, label, sublabel, delay }: StatItemP
 }
 
 export function ImpactStats() {
+  const { t } = useLanguage();
   const stats = [
     {
       icon: <Heart size={28} />,
       value: 30,
       suffix: "",
-      label: "Women Supported",
-      sublabel: "Year 1 pilot target",
+      labelKey: "impact.stat1Label",
+      sublabelKey: "impact.stat1Sub",
     },
     {
       icon: <BookOpen size={28} />,
       value: 3,
       suffix: "",
-      label: "Annual Cohorts",
-      sublabel: "Free community programmes",
+      labelKey: "impact.stat2Label",
+      sublabelKey: "impact.stat2Sub",
     },
     {
       icon: <Users size={28} />,
       value: 12,
       suffix: "+",
-      label: "Referral Partners",
-      sublabel: "NHS, faith & community groups",
+      labelKey: "impact.stat3Label",
+      sublabelKey: "impact.stat3Sub",
     },
     {
       icon: <Globe size={28} />,
       value: 7,
       suffix: "",
-      label: "Languages Supported",
-      sublabel: "Culturally adapted care",
+      labelKey: "impact.stat4Label",
+      sublabelKey: "impact.stat4Sub",
     },
   ];
 
@@ -107,26 +109,25 @@ export function ImpactStats() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-(--color-accent)">
-            Year 1 Pilot Impact
+            {t("impact.sectionLabel")}
           </p>
           <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl">
-            Supporting Vulnerable Mothers in Norfolk
+            {t("impact.sectionTitle")}
           </h2>
           <p className="mt-4 text-lg text-(--color-text-muted)">
-            Through referral-led, culturally adapted perinatal education across three annual cohorts,
-            we are reaching the women who need support the most.
+            {t("impact.sectionDesc")}
           </p>
         </div>
 
         <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, i) => (
             <AnimatedStat
-              key={stat.label}
+              key={stat.labelKey}
               icon={stat.icon}
               value={stat.value}
               suffix={stat.suffix}
-              label={stat.label}
-              sublabel={stat.sublabel}
+              label={t(stat.labelKey)}
+              sublabel={t(stat.sublabelKey)}
               delay={i * 150}
             />
           ))}

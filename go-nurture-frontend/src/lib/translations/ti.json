@@ -1,0 +1,71 @@
+{
+  "nav": {
+    "home": "ገዛ",
+    "about": "ብዛዕባና",
+    "ourProgrammes": "ፕሮግራማትና",
+    "communitySupport": "ደገፍ ማሕበረሰብ",
+    "venues": "ኣብ ዝተኻየደሉ ቦታታት",
+    "donate": "ለግሱ",
+    "contact": "ርኸቡና",
+    "partnerPortal": "ፖርታል ኣጋር"
+  },
+  "hero": {
+    "badge": "Asset-Locked Community Interest Company",
+    "headline1": "ማሕበረሰባት ምኽእለት ምሃብ፣",
+    "headline2": "Bridging Birthing Gaps.",
+    "subheadline": "ነጻ፣ ብመልክዕ ባህሊ ተመሲሩ ዝቐርብ ትምህርቲ ቅድመ ውላድ ንዕኡ ናይ ማሕበረሰብ ደገፍ ንተላላዕ ሰባት፣ ንህዝቢ ሃይማኖታዊ ወይ ዘርኣዊ ጥቓ ዘይኮኑ፣ ንስደተኛ ሰባት፣ ንጸላ ኢሎም ዚርከቡ ወይ ተፈናቒሎም ዘለዉ ኣንስትዮ ኣብ ኖርፎልክ።",
+    "ctaReferral": "ፖርታል ኣጋር — ምምላስ ምግባር",
+    "ctaSupport": "ደግፉ ተልዕኖና"
+  },
+  "impact": {
+    "sectionLabel": "ዓመት 1 ፓይለት ዝፈጠሮ ጽልዋ",
+    "sectionTitle": "ኣብ ኖርፎልክ ንተላላዕ ኣደታት ምድገፍ",
+    "sectionDesc": "ኣብ ትምህርቲ ቅድመ ውላድ ብመልክዕ ባህሊ ተመሲሩ ብሰለስተ ዓመታዊ ቡድናት፣ ነተን ኣመና ደገፍ ዜድልየን ኣነስትዮ ንበጽሕ።",
+    "stat1Label": "ዝተደገፋ ኣንስትዮ",
+    "stat1Sub": "ዕላማ ዓመት 1 ፓይለት",
+    "stat2Label": "ዓመታዊ ቡድናት",
+    "stat2Sub": "ነጻ ናይ ማሕበረሰብ ፕሮግራማት",
+    "stat3Label": "ምምላስ ኣጋራት",
+    "stat3Sub": "NHS፣ ናይ እምነትን ማሕበረሰብን ጉጅለታት",
+    "stat4Label": "ዝተደጎ ቛንቋታት",
+    "stat4Sub": "ብመልክዕ ባህሊ ተመሲሩ ዝቐርብ ምክንያት"
+  },
+  "gallery": {
+    "sectionLabel": "ማሕበረሰብና",
+    "sectionTitle": "ማሕበረሰባት ዘተሓሓዝ ምክንያት",
+    "sectionDesc": "ነፍሲ ወከፍ ኣደ ንህይወታ ዘሎ ደገፍ ቅድመ ውላድ ምኽንያት ክትረክብ መሰላ ኣለዋ።",
+    "caption1": "ማሕበረሰብ ርክብን ደገፍን",
+    "caption2": "ብመልክዕ ባህሊ ተመሲሩ ዝቐርብ ምክንያት",
+    "caption3": "ትምህርቲን ድሉውነትን ቅድመ ውላድ",
+    "bottomText": "Go Nurture Initiative CIC ኣብ ኖርፎልክ ዝርከብ ናይ ምኽንያት ማሕበረሰብ ኩባንያ ኮይኑ ነጻ ብመልክዕ ባህሊ ተመሲሩ ዝቐርብ ቅድመ ውላድ ደገፍ ብምምላስ ንተላላዕ ሰባት፣ ንህዝቢ ሃይማኖታዊ ወይ ዘርኣዊ ጥቓ ዘይኮኑ፣ ንስደተኛ ሰባት፣ ንጸላ ኢሎም ዚርከቡ ወይ ተፈናቒሎም ዘለዉ ኣንስትዮ ይህብ።"
+  },
+  "fundingBridge": {
+    "sectionLabel": "ኣገባብ ምንጪ ገንዘብና",
+    "sectionTitle": "ከመይ ደገፍካ ",
+    "sectionTitleHighlight": "ጽልዋ ይፈጥር",
+    "sectionDesc": "ነፍሲ ወከፍ ግዝኣት ካብ ንግዳዊ ክንድና ብቐጥታ ነዚ ነጻ ናይ ምኽንያት ማሕበረሰብ ቅድመ ውላድ ደገፍ ንተላላዕ ኣንስትዮ ይድግፍ።",
+    "step1Title": "ትገዝእ",
+    "step1Desc": "ካብ Nurtured and Nourished Health Ltd ጥቕላላት ትምህርቲ ኣደነት ግዝኡ",
+    "step2Title": "ምንጪ ገንዘብ CSR",
+    "step2Desc": "ሓደ ርክብ ትርፊ ከም ኩባንያዊ ማሕበረሰባዊ ሓላፍነት ናብ Go Nurture CIC ይልአ",
+    "step3Title": "ነጻ ደገፍ",
+    "step3Desc": "ገንዘብ ነጻ ብመልክዕ ባህሊ ተመሲሩ ዝቐርብ ቅድመ ውላድ ትምህርቲ ንተላላዕ ኣንስትዮ ኣብ ኖርፎልክ የቕርብ",
+    "bridgeLabel": "ድልድይ",
+    "ctaTitle": "ምሉእ ምስሊ ርአ",
+    "ctaDesc": "ዳሽቦርድ ግልጽነትና ከመይ ነፍሲ ወከፍ ፓውንድ ማሕበረሰባዊ ጽልዋ ከም ዝፈጥር ብንጹር ዘርኢ።",
+    "ctaDashboard": "ምርኣይ ዳሽቦርድ ግልጽነት",
+    "ctaCommercial": "ምብጻሕ Nurtured and Nourished"
+  },
+  "footer": {
+    "quickLinks": "ፍሉጥ መላኽ",
+    "contact": "ርኸቡና",
+    "commercialTitle": "ንግዳዊ ክንድና",
+    "commercialDesc": "ካብ ሆነ ኩባንያና ዝተገብረ ግዝኣት ነዚ ነጻ ናይ ማሕበረሰብ ኣገልግሎታት ይድግፍ።",
+    "commercialLink": "Nurtured & Nourished",
+    "copyright": "መሰላት ኩሉ ተሓዚቡ ኣሎ።",
+    "madeWith": "ብፍቅሪ ❤️ ንነፍሲ ወከፍ ኣደ ተዳልዩ"
+  },
+  "languageSwitcher": {
+    "ariaLabel": "ምረጽ ቋንቋ"
+  }
+}
