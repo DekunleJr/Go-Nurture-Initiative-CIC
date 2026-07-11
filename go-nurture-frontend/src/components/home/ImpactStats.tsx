@@ -64,7 +64,7 @@ function AnimatedStat({ icon, value, suffix, label, sublabel, delay }: StatItemP
         {count}
         <span className="text-(--color-accent)">{suffix}</span>
       </p>
-      <p className="mt-2 font-semibold text-(--color-text-dark)">{label}</p>
+      <p className="mt-2 font-semibold text-foreground">{label}</p>
       <p className="mt-1 text-sm text-(--color-text-muted)">{sublabel}</p>
     </div>
   );

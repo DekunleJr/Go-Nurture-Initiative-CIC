@@ -52,7 +52,7 @@ export function Navbar() {
               href={link.href}
               className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 isScrolled
-                  ? "text-(--color-text-dark) hover:bg-(--color-primary)/10 hover:text-(--color-primary)"
+                  ? "text-foreground hover:bg-(--color-primary)/10 hover:text-(--color-primary)"
                   : "text-white/90 hover:bg-white/10 hover:text-white"
               }`}
             >
@@ -80,7 +80,7 @@ export function Navbar() {
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className={`flex items-center justify-center rounded-lg p-2 lg:hidden transition-colors ${
               isScrolled
-                ? "text-(--color-text-dark) hover:bg-(--color-primary)/10"
+                ? "text-foreground hover:bg-(--color-primary)/10"
                 : "text-white hover:bg-white/10"
             }`}
             aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
@@ -99,7 +99,7 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block rounded-lg px-3 py-2.5 text-base font-medium text-(--color-text-dark) hover:bg-(--color-primary)/10 hover:text-(--color-primary) transition-colors"
+                className="block rounded-lg px-3 py-2.5 text-base font-medium text-foreground hover:bg-(--color-primary)/10 hover:text-(--color-primary) transition-colors"
               >
                 {link.label}
               </Link>

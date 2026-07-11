@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Heart } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { SITE_CONFIG } from "@/lib/constants";
+// import { SITE_CONFIG } from "@/lib/constants";
 
 export function HeroSection() {
   return (
@@ -19,9 +19,9 @@ export function HeroSection() {
           sizes="100vw"
         />
         {/* Dark overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
+        <div className="absolute inset-0 bg-linear-to-r from-black/70 via-black/50 to-black/30" />
         {/* Bottom fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-(--color-bg-card) to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-48 bg-linear-to-t from-background to-transparent" />
       </div>
 
       {/* Floating decorative shapes */}

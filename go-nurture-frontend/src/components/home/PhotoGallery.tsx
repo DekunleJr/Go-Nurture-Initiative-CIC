@@ -40,12 +40,12 @@ export function PhotoGallery() {
 
         {/* Photo Grid */}
         <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {photos.map((photo, i) => (
+          {photos.map((photo) => (
             <div
               key={photo.src}
               className="group relative overflow-hidden rounded-2xl shadow-sm transition-all duration-500 hover:shadow-xl"
             >
-              <div className="aspect-[4/3] relative">
+              <div className="aspect-4/3 relative">
                 <Image
                   src={photo.src}
                   alt={photo.alt}
@@ -54,7 +54,7 @@ export function PhotoGallery() {
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
                 {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
               </div>
               {/* Caption */}
               <div className="absolute bottom-0 left-0 right-0 p-6">
