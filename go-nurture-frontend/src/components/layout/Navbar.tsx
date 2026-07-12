@@ -40,9 +40,9 @@ export function Navbar() {
           : "bg-transparent"
       }`}
     >
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-30 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center shrink-0">
+        {/* <Link href="/" className="flex items-center shrink-0">
           <div className="relative h-16 w-16 sm:h-20 sm:w-20">
             <Image
               src="/LOGO_v1.png"
@@ -52,6 +52,17 @@ export function Navbar() {
               className="object-contain"
               style={{ width: "auto", height: "100%" }}
               priority
+            />
+          </div>
+        </Link> */}
+        <Link href="/" className="inline-flex items-center">
+          <div className="relative w-44 h-44 sm:w-56 sm:h-56">
+            <Image
+              src="/LOGO_v1.png"
+              alt={`${SITE_CONFIG.name} logo`}
+              fill
+              priority
+              className="object-contain"
             />
           </div>
         </Link>

@@ -26,46 +26,30 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand Column */}
-          <div className="space-y-4">
-            <Link href="/" className="flex items-center shrink-0">
-              <div className="relative h-20 w-20 sm:h-24 sm:w-24">
+
+          <div>
+            <Link href="/" className="inline-flex items-center">
+              <div className="relative w-44 h-44 sm:w-56 sm:h-56">
                 <Image
                   src="/LOGO_v1.png"
                   alt={`${SITE_CONFIG.name} logo`}
-                  width={200}
-                  height={200}
+                  fill
+                  priority
                   className="object-contain"
-                  style={{ width: "auto", height: "100%" }}
                 />
               </div>
             </Link>
-            <p className="text-sm leading-relaxed text-(--color-text-muted)">
+
+          </div>
+          <div>
+            <p className="max-w-sm text-sm mt-14 leading-relaxed text-(--color-text-muted)">
               {SITE_CONFIG.tagline}
             </p>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-(--color-primary)">
-              {t("footer.quickLinks")}
-            </h3>
-            <ul className="space-y-2">
-              {NAV_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-(--color-text-muted) hover:text-(--color-accent) transition-colors"
-                  >
-                    {t(navTranslationMap[link.label] || link.label)}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
           {/* Contact */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-(--color-primary)">
+            <h3 className="mb-4 text-sm mt-14 font-semibold uppercase tracking-wider text-(--color-primary)">
               {t("footer.contact")}
             </h3>
             <ul className="space-y-2">
@@ -87,7 +71,7 @@ export function Footer() {
 
           {/* Commercial Link */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-(--color-primary)">
+            <h3 className="mb-4 text-sm mt-14 font-semibold uppercase tracking-wider text-(--color-primary)">
               {t("footer.commercialTitle")}
             </h3>
             <p className="mb-4 text-sm leading-relaxed text-(--color-text-muted)">
