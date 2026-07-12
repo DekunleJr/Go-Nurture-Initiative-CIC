@@ -4,18 +4,9 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ExternalLink, Mail, MapPin } from "lucide-react";
-import { NAV_LINKS, SITE_CONFIG, COMMERCIAL_SITE_URL } from "@/lib/constants";
+import { SITE_CONFIG, COMMERCIAL_SITE_URL } from "@/lib/constants";
 import { useLanguage } from "@/lib/LanguageContext";
 
-const navTranslationMap: Record<string, string> = {
-  "Home": "nav.home",
-  "About": "nav.about",
-  "Our Programmes": "nav.ourProgrammes",
-  "Community Support": "nav.communitySupport",
-  "Venues": "nav.venues",
-  "Donate": "nav.donate",
-  "Contact": "nav.contact",
-};
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
