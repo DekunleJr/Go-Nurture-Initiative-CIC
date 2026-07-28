@@ -7,7 +7,7 @@ import { LogOut, Menu, X } from "lucide-react";
 import { SITE_CONFIG } from "@/lib/constants";
 
 export function PortalNavbar() {
-  const [partner, setPartner] = useState(() => {
+  const [partner] = useState(() => {
     if (typeof window !== "undefined") {
       const partnerData = localStorage.getItem("partner");
       return partnerData ? JSON.parse(partnerData) : null;
@@ -20,7 +20,7 @@ export function PortalNavbar() {
     if (typeof window === "undefined") return;
     localStorage.removeItem("access_token");
     localStorage.removeItem("partner");
-    window.location.href = "/portal/login";
+    window.location.href = "/";
   };
 
   return (
