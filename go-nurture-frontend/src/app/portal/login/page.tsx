@@ -1,29 +1,109 @@
-import type { Metadata } from "next";
-import { SITE_CONFIG } from "@/lib/constants";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Partner Portal Login",
-  description: `Secure partner portal login for ${SITE_CONFIG.name}.`,
-};
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Loader2, AlertCircle } from "lucide-react";
+import { SITE_CONFIG } from "@/lib/constants";
+import { PortalNavbar } from "@/components/portal/PortalNavbar";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || "Login failed");
+      }
+
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("partner", JSON.stringify(data.partner));
+      router.push("/portal/dashboard");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-      <Link
-        href="/"
-        className="mb-8 inline-flex items-center gap-1 text-sm text-(--color-accent) hover:text-(--color-accent-light) transition-colors"
-      >
-        <ArrowLeft size={16} />
-        Back to Home
-      </Link>
-      <h1 className="font-heading text-4xl font-bold text-(--color-primary)">
-        Partner Portal
-      </h1>
-      <p className="mt-4 text-lg text-(--color-text-muted)">
-        This page is coming soon. It will feature a secure login for verified partner organisations to submit referrals.
-      </p>
+    <div className="min-h-screen bg-gray-50">
+      <PortalNavbar />
+      <div className="mx-auto max-w-md px-4 py-16 sm:px-6 lg:px-8">
+        <div className="rounded-xl border border-(--color-border) bg-white p-8 shadow-sm">
+          <h1 className="font-heading text-3xl font-bold text-(--color-primary)">
+            Partner Portal Login
+          </h1>
+          <p className="mt-2 text-sm text-(--color-text-muted)">
+            Sign in to access your referral dashboard and manage submissions.
+          </p>
+
+          {error && (
+            <div className="mt-4 flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+              <AlertCircle size={18} />
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground">
+                Email address
+              </label>
+              <input
+                type="email"
+                required
+                className="mt-1 w-full rounded-lg border border-(--color-border) px-4 py-2"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground">
+                Password
+              </label>
+              <input
+                type="password"
+                required
+                className="mt-1 w-full rounded-lg border border-(--color-border) px-4 py-2"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg bg-(--color-primary) px-6 py-3 text-white hover:bg-(--color-primary)/90 disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {loading && <Loader2 size={18} className="animate-spin" />}
+              Sign In
+            </button>
+          </form>
+
+          <p className="mt-4 text-center text-xs text-(--color-text-muted)">
+            {SITE_CONFIG.name} Partner Portal
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -42,7 +42,7 @@ export default function RootLayout({
       className={`${inter.variable} ${montserrat.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <LanguageProvider>
+      <LanguageProvider>
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
