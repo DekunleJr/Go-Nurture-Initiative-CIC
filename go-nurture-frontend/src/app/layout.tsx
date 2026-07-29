@@ -44,6 +44,9 @@ export const metadata: Metadata = {
     "CIC",
     "Go Nurture",
   ],
+  verification: {
+    google: "FdaeRbbZr6wdRYmpYhXAKbcBsNbCM9sbzHq3nwvohlE",
+  },
   authors: [{ name: SITE_CONFIG.name }],
   creator: SITE_CONFIG.name,
   icons: {
