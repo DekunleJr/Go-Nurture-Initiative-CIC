@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { SITE_CONFIG } from "@/lib/constants";
 import { PortalNavbar } from "@/components/portal/PortalNavbar";
 
@@ -13,12 +14,10 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
     try {
       const res = await fetch(`${API_URL}/api/auth/login`, {
@@ -35,9 +34,10 @@ export default function LoginPage() {
 
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("partner", JSON.stringify(data.partner));
+      toast.success("Welcome back! Redirecting to dashboard...");
       router.push("/portal/dashboard");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -54,13 +54,6 @@ export default function LoginPage() {
           <p className="mt-2 text-sm text-(--color-text-muted)">
             Sign in to access your referral dashboard and manage submissions.
           </p>
-
-          {error && (
-            <div className="mt-4 flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
-              <AlertCircle size={18} />
-              {error}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>

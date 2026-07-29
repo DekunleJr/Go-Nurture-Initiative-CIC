@@ -1,45 +1,33 @@
 "use client";
 
-import { useState} from "react";
-// import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import toast from "react-hot-toast";
 import { PortalNavbar } from "@/components/portal/PortalNavbar";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-export default function SetPasswordPage() {
-  const [token] = useState(() => {
-    if (typeof window !== "undefined") {
-      const urlToken = new URLSearchParams(window.location.search).get("token");
-      return urlToken || "";
-    }
-    return "";
-  });
+function SetPasswordForm() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token") || "";
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(() => {
-    if (typeof window !== "undefined") {
-      const urlToken = new URLSearchParams(window.location.search).get("token");
-      return urlToken ? "" : "Invalid or missing invitation token.";
-    }
-    return "Invalid or missing invitation token.";
-  });
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
     if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
+      toast.error("Password must be at least 8 characters long.");
       setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      toast.error("Passwords do not match.");
       setLoading(false);
       return;
     }
@@ -61,12 +49,13 @@ export default function SetPasswordPage() {
         localStorage.setItem("access_token", data.access_token);
         localStorage.setItem("partner", JSON.stringify(data.partner));
       }
+      toast.success("Password set! Redirecting to dashboard...");
       setSuccess(true);
       setTimeout(() => {
         window.location.href = "/portal/dashboard";
       }, 2000);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -115,13 +104,6 @@ export default function SetPasswordPage() {
             Create a password to access the partner portal.
           </p>
 
-          {error && (
-            <div className="mt-4 flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
-              <AlertCircle size={18} />
-              {error}
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
               <label className="block text-sm font-medium text-foreground">
@@ -164,5 +146,17 @@ export default function SetPasswordPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 size={32} className="animate-spin text-(--color-primary)" />
+      </div>
+    }>
+      <SetPasswordForm />
+    </Suspense>
   );
 }

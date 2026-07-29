@@ -5,6 +5,7 @@ from typing import List
 from app.database.session import get_db
 from app.models.contact import ContactSubmission
 from app.schemas.contact import ContactCreate, ContactResponse
+from app.services.email import send_contact_email
 
 router = APIRouter(prefix="/api/contact", tags=["Contact"])
 
@@ -21,4 +22,13 @@ def submit_contact(data: ContactCreate, db: Session = Depends(get_db)):
     db.add(submission)
     db.commit()
     db.refresh(submission)
+
+    # Send notification email to CONTACT_EMAIL
+    send_contact_email(
+        sender_name=data.name,
+        sender_email=data.email,
+        subject=data.subject or "",
+        message=data.message,
+    )
+
     return ContactResponse.model_validate(submission)

@@ -1,13 +1,55 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Mail, MapPin } from "lucide-react";
+import toast from "react-hot-toast";
+import { ArrowRight, Mail, MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/lib/LanguageContext";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 export default function ContactPage() {
   const { t } = useLanguage();
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_URL}/api/contact/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || "Failed to send message");
+      }
+
+      toast.success(t("contact.formSuccess"));
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -96,13 +138,17 @@ export default function ContactPage() {
                 {t("contact.partnerDesc")}
               </p>
 
-              <form className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">
                     {t("contact.formName")}
                   </label>
                   <input
                     type="text"
+                    name="name"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
                     className="w-full rounded-lg border border-(--color-border) px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent) focus:border-transparent"
                     placeholder={t("contact.formName")}
                   />
@@ -113,6 +159,10 @@ export default function ContactPage() {
                   </label>
                   <input
                     type="email"
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
                     className="w-full rounded-lg border border-(--color-border) px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent) focus:border-transparent"
                     placeholder={t("contact.formEmail")}
                   />
@@ -123,6 +173,9 @@ export default function ContactPage() {
                   </label>
                   <input
                     type="text"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
                     className="w-full rounded-lg border border-(--color-border) px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent) focus:border-transparent"
                     placeholder={t("contact.formSubjectPlaceholder")}
                   />
@@ -132,13 +185,30 @@ export default function ContactPage() {
                     {t("contact.formMessage")}
                   </label>
                   <textarea
+                    name="message"
+                    required
                     rows={5}
+                    value={formData.message}
+                    onChange={handleChange}
                     className="w-full rounded-lg border border-(--color-border) px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent) focus:border-transparent resize-none"
                     placeholder={t("contact.formMessagePlaceholder")}
                   />
                 </div>
-                <Button variant="accent" size="lg" className="w-full">
-                  {t("contact.formSubmit")}
+                <Button
+                  type="submit"
+                  variant="accent"
+                  size="lg"
+                  className="w-full"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin mr-2" />
+                      Sending...
+                    </>
+                  ) : (
+                    t("contact.formSubmit")
+                  )}
                 </Button>
               </form>
             </div>

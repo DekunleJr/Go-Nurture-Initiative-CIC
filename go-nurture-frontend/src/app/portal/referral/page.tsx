@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { PortalNavbar } from "@/components/portal/PortalNavbar";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -10,7 +11,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 export default function ReferralPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     mother_name: "",
     mother_phone: "",
@@ -24,11 +24,10 @@ export default function ReferralPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
     const token = localStorage.getItem("access_token");
     if (!token) {
-      setError("You must be logged in to submit a referral.");
+      toast.error("You must be logged in to submit a referral.");
       setLoading(false);
       return;
     }
@@ -48,10 +47,10 @@ export default function ReferralPage() {
         throw new Error(data.detail || "Failed to submit referral");
       }
 
-      alert("Referral submitted successfully!");
+      toast.success("Referral submitted successfully!");
       router.push("/portal/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -67,12 +66,6 @@ export default function ReferralPage() {
         <p className="mt-2 text-(--color-text-muted)">
           Submit a referral for a mother who would benefit from our perinatal support services.
         </p>
-
-        {error && (
-          <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-4 text-red-700">
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div className="grid gap-6 sm:grid-cols-2">

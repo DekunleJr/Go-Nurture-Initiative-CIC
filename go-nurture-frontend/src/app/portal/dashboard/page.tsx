@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, FileText } from "lucide-react";
+import toast from "react-hot-toast";
 import { PortalNavbar } from "@/components/portal/PortalNavbar";
+import { useLocalStorage } from "@/lib/useLocalStorage";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -16,17 +18,16 @@ interface Referral {
   created_at: string;
 }
 
+interface PartnerData {
+  contact_name: string;
+  organisation_name: string;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [referrals, setReferrals] = useState<Referral[]>([]);
-  const [partner] = useState(() => {
-    if (typeof window !== "undefined") {
-      const partnerData = localStorage.getItem("partner");
-      return partnerData ? JSON.parse(partnerData) : null;
-    }
-    return null;
-  });
+  const partner = useLocalStorage<PartnerData>("partner");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -55,6 +56,7 @@ export default function DashboardPage() {
       .catch((error) => {
         console.error("Error fetching referrals:", error);
         if (isMounted) {
+          toast.error("Failed to load referrals. Please try again later.");
           setLoading(false);
         }
       });

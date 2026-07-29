@@ -5,15 +5,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { LogOut, Menu, X } from "lucide-react";
 import { SITE_CONFIG } from "@/lib/constants";
+import { useLocalStorage } from "@/lib/useLocalStorage";
+
+interface PartnerData {
+  contact_name: string;
+  organisation_name: string;
+}
 
 export function PortalNavbar() {
-  const [partner] = useState(() => {
-    if (typeof window !== "undefined") {
-      const partnerData = localStorage.getItem("partner");
-      return partnerData ? JSON.parse(partnerData) : null;
-    }
-    return null;
-  });
+  const partner = useLocalStorage<PartnerData>("partner");
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = () => {
