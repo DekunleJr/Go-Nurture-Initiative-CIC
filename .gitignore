@@ -25,7 +25,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+go-nurture-backend/lib/
 lib64/
 parts/
 sdist/
