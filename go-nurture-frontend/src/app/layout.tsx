@@ -20,15 +20,69 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://go-nurture-initiative-cic.onrender.com";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: SITE_CONFIG.name,
     template: `%s | ${SITE_CONFIG.name}`,
   },
   description:
     "Free, culturally adapted perinatal education and community support for vulnerable, Minority Ethnic, migrant, refugee, and displaced women in Norfolk.",
+  keywords: [
+    "perinatal education",
+    "community support",
+    "Norfolk",
+    "minority ethnic women",
+    "migrant women",
+    "refugee women",
+    "culturally adapted care",
+    "birth preparation",
+    "postnatal support",
+    "Community Interest Company",
+    "CIC",
+    "Go Nurture",
+  ],
+  authors: [{ name: SITE_CONFIG.name }],
+  creator: SITE_CONFIG.name,
   icons: {
     icon: "/LOGO_v1.png",
+    apple: "/LOGO_v1.png",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_GB",
+    url: siteUrl,
+    siteName: SITE_CONFIG.name,
+    title: SITE_CONFIG.name,
+    description:
+      "Free, culturally adapted perinatal education and community support for vulnerable, Minority Ethnic, migrant, refugee, and displaced women in Norfolk.",
+    images: [
+      {
+        url: "/hero_1.jfif",
+        width: 1200,
+        height: 630,
+        alt: `${SITE_CONFIG.name} — Empowering Communities, Bridging Birthing Gaps`,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_CONFIG.name,
+    description:
+      "Free, culturally adapted perinatal education and community support for vulnerable women in Norfolk.",
+    images: ["/hero_1.jfif"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 

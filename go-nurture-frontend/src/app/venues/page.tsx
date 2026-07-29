@@ -6,6 +6,14 @@ import { ArrowLeft } from "lucide-react";
 export const metadata: Metadata = {
   title: "Venues",
   description: `Find community venues in Norfolk where ${SITE_CONFIG.name} cohorts meet.`,
+  alternates: {
+    canonical: "/venues",
+  },
+  openGraph: {
+    title: "Venues | Go Nurture Initiative CIC",
+    description: `Find community venues in Norfolk where ${SITE_CONFIG.name} cohorts meet.`,
+    url: "/venues",
+  },
 };
 
 export default function VenuesPage() {

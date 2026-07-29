@@ -5,6 +5,10 @@ export const metadata: Metadata = {
     default: "Partner Portal",
     template: "%s | Partner Portal",
   },
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function PortalLayout({

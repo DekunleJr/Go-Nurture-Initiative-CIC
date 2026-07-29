@@ -6,6 +6,14 @@ import { ArrowLeft } from "lucide-react";
 export const metadata: Metadata = {
   title: "How It Works",
   description: `Learn how ${SITE_CONFIG.name} supports women in Norfolk.`,
+  alternates: {
+    canonical: "/how-it-works",
+  },
+  openGraph: {
+    title: "How It Works | Go Nurture Initiative CIC",
+    description: `Learn how ${SITE_CONFIG.name} supports women in Norfolk.`,
+    url: "/how-it-works",
+  },
 };
 
 export default function HowItWorksPage() {
