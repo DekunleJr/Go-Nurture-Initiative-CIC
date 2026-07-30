@@ -53,11 +53,18 @@ function DonationForm({
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to create payment intent");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        const errMsg = errData.detail || `Failed to create payment intent (HTTP ${res.status})`;
+        console.error("[DonationForm] PaymentIntent creation failed:", errMsg, { status: res.status, url: `${apiBase}/api/donations/create-payment-intent` });
+        throw new Error(errMsg);
+      }
       const data = await res.json();
+      console.log("[DonationForm] PaymentIntent created:", { donationId: data.donation_id, hasSecret: !!data.client_secret });
       onIntentCreated(data.client_secret, data.donation_id);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
+      console.error("[DonationForm] Error:", msg);
       setError(msg);
       setSubmitting(false);
     }
@@ -179,10 +186,14 @@ function CheckoutForm({
     });
 
     if (error) {
+      console.error("[CheckoutForm] Stripe confirmPayment error:", error.message, error);
       setErrorMsg(error.message || t("transparency.paymentFailed"));
       setProcessing(false);
-    } else if (onSuccess) {
-      onSuccess();
+    } else {
+      console.log("[CheckoutForm] Payment confirmed successfully, calling onSuccess");
+      if (onSuccess) {
+        onSuccess();
+      }
     }
   };
 
@@ -239,11 +250,18 @@ export default function TransparencyContent() {
 
   const confirmDonation = useCallback(async (id: string) => {
     try {
+      console.log("[Transparency] Confirming donation:", id);
       const confirmRes = await fetch(`${apiBase}/api/donations/confirm/${id}`, {
         method: "POST",
       });
-      if (!confirmRes.ok) throw new Error("Failed to confirm donation");
+      if (!confirmRes.ok) {
+        const errData = await confirmRes.json().catch(() => ({}));
+        const errMsg = errData.detail || `Failed to confirm donation (HTTP ${confirmRes.status})`;
+        console.error("[Transparency] Donation confirmation failed:", errMsg);
+        throw new Error(errMsg);
+      }
 
+      console.log("[Transparency] Donation confirmed successfully:", id);
       setSuccess(true);
       setClientSecret(null);
       setDonationId(null);
@@ -254,6 +272,7 @@ export default function TransparencyContent() {
       setTotal(totalRes.total);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Something went wrong";
+      console.error("[Transparency] Confirmation error:", message);
       setError(message);
     }
   }, [apiBase]);

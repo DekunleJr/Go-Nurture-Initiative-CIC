@@ -78,10 +78,15 @@ def seed_admin():
 
 
 # CORS configuration
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+FRONTEND_URLS = os.getenv("FRONTEND_URL", "http://localhost:3000")
+# Split comma-separated origins into a list and strip whitespace
+allowed_origins = [origin.strip() for origin in FRONTEND_URLS.split(",") if origin.strip()]
+
+logger.info(f"CORS allowed origins: {allowed_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL, "http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
