@@ -1,4 +1,5 @@
 import os
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
@@ -89,3 +90,35 @@ def get_total_donations(db: Session = Depends(get_db)):
         .scalar()
     ) or 0
     return {"total": float(total)}
+
+
+@router.get("/", response_model=List[DonationResponse])
+def list_donations(db: Session = Depends(get_db)):
+    """List recent completed donations (public)."""
+    donations = (
+        db.query(Donation)
+        .filter(Donation.status == DonationStatus.COMPLETED)
+        .order_by(Donation.created_at.desc())
+        .limit(50)
+        .all()
+    )
+    return [DonationResponse.model_validate(d) for d in donations]
+
+
+@router.post("/", response_model=DonationResponse, status_code=status.HTTP_201_CREATED)
+def create_donation(data: DonationCreate, db: Session = Depends(get_db)):
+    """Create a donation directly (demo/test flow without Stripe)."""
+    donation = Donation(
+        amount=data.amount,
+        currency=data.currency,
+        donor_name=data.donor_name,
+        donor_email=data.donor_email,
+        message=data.message,
+        is_anonymous=data.is_anonymous,
+        payment_provider="direct",
+        status=DonationStatus.COMPLETED,
+    )
+    db.add(donation)
+    db.commit()
+    db.refresh(donation)
+    return DonationResponse.model_validate(donation)

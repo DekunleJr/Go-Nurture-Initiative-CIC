@@ -7,7 +7,7 @@ import { ArrowRight, Heart, Users, Globe, Shield } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/lib/LanguageContext";
 
-export default function AboutPage() {
+export function HowItWorksContent() {
   const { t } = useLanguage();
 
   return (
@@ -20,27 +20,27 @@ export default function AboutPage() {
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
             <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent-light) mb-3">
-              {t("about.introLabel")}
+              {t("howItWorks.introLabel")}
             </p>
             <h1 className="font-heading text-4xl font-extrabold text-white sm:text-5xl lg:text-6xl">
-              {t("about.introTitle")}{" "}
-              <span className="text-(--color-accent-light)">{t("about.introTitleHighlight")}</span>
+              {t("howItWorks.introTitle")}{" "}
+              <span className="text-(--color-accent-light)">{t("howItWorks.introTitleHighlight")}</span>
             </h1>
             <p className="mt-6 text-lg text-white/80 max-w-2xl">
-              {t("about.introDesc")}
+              {t("howItWorks.introDesc")}
             </p>
           </div>
         </div>
       </section>
 
-      {/* Mission */}
+      {/* Step 1: Referral */}
       <section className="py-20 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-12 lg:grid-cols-2 items-center">
             <div className="relative h-100 rounded-2xl overflow-hidden shadow-lg">
               <Image
-                src="/hero_3.jfif"
-                alt="Community support"
+                src="/hero_2.jfif"
+                alt="Healthcare professional making a referral"
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -48,20 +48,20 @@ export default function AboutPage() {
             </div>
             <div>
               <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent) mb-3">
-                {t("about.missionLabel")}
+                {t("howItWorks.step1Label")}
               </p>
               <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl mb-6">
-                {t("about.missionTitle")}
+                {t("howItWorks.step1Title")}
               </h2>
               <p className="text-lg text-(--color-text-muted) leading-relaxed">
-                {t("about.missionDesc")}
+                {t("howItWorks.step1Desc")}
               </p>
               <div className="mt-8 grid grid-cols-2 gap-4">
                 {[
-                  { icon: <Heart size={22} />, text: "Asset-Locked CIC" },
-                  { icon: <Shield size={22} />, text: "Referral-Only Access" },
-                  { icon: <Globe size={22} />, text: "7 Languages" },
-                  { icon: <Users size={22} />, text: "Norfolk-Based" },
+                  { icon: <Heart size={22} />, text: "NHS & Midwife Referrals" },
+                  { icon: <Shield size={22} />, text: "GDPR-Compliant Portal" },
+                  { icon: <Globe size={22} />, text: "Community Partners" },
+                  { icon: <Users size={22} />, text: "Informed Consent" },
                 ].map((item) => (
                   <div key={item.text} className="flex items-center gap-3 rounded-xl bg-(--color-bg-sage) p-4">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--color-accent)/10 text-(--color-accent)">
@@ -76,45 +76,122 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* CSR Bridge Model */}
+      {/* Step 2: Cohort Placement */}
       <section className="py-20 bg-(--color-bg-sage)">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-2 items-center">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent) mb-3">
+                {t("howItWorks.step2Label")}
+              </p>
+              <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl mb-6">
+                {t("howItWorks.step2Title")}
+              </h2>
+              <p className="text-lg text-(--color-text-muted) leading-relaxed">
+                {t("howItWorks.step2Desc")}
+              </p>
+            </div>
+            <div className="relative h-100 rounded-2xl overflow-hidden shadow-lg">
+              <Image
+                src="/hero_3.jfif"
+                alt="Women in a cohort group session"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Step 3: Free Perinatal Programme */}
+      <section className="py-20 bg-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-2 items-center">
+            <div className="relative h-100 rounded-2xl overflow-hidden shadow-lg">
+              <Image
+                src="/hero_4.jfif"
+                alt="Perinatal education session"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </div>
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent) mb-3">
+                {t("howItWorks.step3Label")}
+              </p>
+              <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl mb-6">
+                {t("howItWorks.step3Title")}
+              </h2>
+              <p className="text-lg text-(--color-text-muted) leading-relaxed">
+                {t("howItWorks.step3Desc")}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Step 4: Postnatal Support */}
+      <section className="py-20 bg-(--color-bg-sage)">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-2 items-center">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent) mb-3">
+                {t("howItWorks.step4Label")}
+              </p>
+              <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl mb-6">
+                {t("howItWorks.step4Title")}
+              </h2>
+              <p className="text-lg text-(--color-text-muted) leading-relaxed">
+                {t("howItWorks.step4Desc")}
+              </p>
+            </div>
+            <div className="relative h-100 rounded-2xl overflow-hidden shadow-lg">
+              <Image
+                src="/hero_1.jfif"
+                alt="Postnatal community support"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CSR Bridge Model */}
+      <section className="py-20 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent) mb-3">
-              {t("about.howLabel")}
+              {t("howItWorks.bridgeLabel")}
             </p>
             <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl mb-6">
-              {t("about.howTitle")}
+              {t("howItWorks.bridgeTitle")}
             </h2>
             <p className="text-lg text-(--color-text-muted) leading-relaxed">
-              {t("about.howDesc")}
+              {t("howItWorks.bridgeDesc")}
             </p>
-            <Link
-              href="/how-it-works"
-              className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-(--color-accent) hover:text-(--color-accent-light) transition-colors"
-            >
-              {t("about.howLinkLabel")}
-              <ArrowRight size={16} />
-            </Link>
           </div>
 
           <div className="mt-12 grid gap-6 sm:grid-cols-3">
             {[
               {
                 step: "01",
-                title: t("about.step1Title"),
-                desc: t("about.step1Desc"),
+                title: t("howItWorks.bridgeStep1Title"),
+                desc: t("howItWorks.bridgeStep1Desc"),
               },
               {
                 step: "02",
-                title: t("about.step2Title"),
-                desc: t("about.step2Desc"),
+                title: t("howItWorks.bridgeStep2Title"),
+                desc: t("howItWorks.bridgeStep2Desc"),
                 highlight: true,
               },
               {
                 step: "03",
-                title: t("about.step3Title"),
-                desc: t("about.step3Desc"),
+                title: t("howItWorks.bridgeStep3Title"),
+                desc: t("howItWorks.bridgeStep3Desc"),
               },
             ].map((item) => (
               <div
@@ -122,7 +199,7 @@ export default function AboutPage() {
                 className={`rounded-2xl p-8 text-center transition-all ${
                   item.highlight
                     ? "bg-(--color-accent) text-white shadow-lg shadow-(--color-accent)/30"
-                    : "bg-white shadow-sm"
+                    : "bg-(--color-bg-sage) shadow-sm"
                 }`}
               >
                 <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold font-heading ${
@@ -144,78 +221,18 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Pilot + Stats */}
-      <section className="py-20 bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-12 lg:grid-cols-2 items-center">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent) mb-3">
-                {t("about.pilotLabel")}
-              </p>
-              <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl mb-6">
-                {t("about.pilotTitle")}
-              </h2>
-              <p className="text-lg text-(--color-text-muted) leading-relaxed mb-8">
-                {t("about.pilotDesc")}
-              </p>
-
-              <div className="grid grid-cols-3 gap-6">
-                {[
-                  { value: t("about.stat1Value"), suffix: t("about.stat1Suffix"), label: t("about.stat1Label") },
-                  { value: t("about.stat2Value"), suffix: t("about.stat2Suffix"), label: t("about.stat2Label") },
-                  { value: t("about.stat3Value"), suffix: t("about.stat3Suffix"), label: t("about.stat3Label") },
-                ].map((stat) => (
-                  <div key={stat.label} className="text-center">
-                    <p className="font-heading text-3xl font-bold text-(--color-primary)">
-                      {stat.value}<span className="text-(--color-accent)">{stat.suffix}</span>
-                    </p>
-                    <p className="text-sm text-(--color-text-muted) mt-1">{stat.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="relative h-100 rounded-2xl overflow-hidden shadow-lg">
-              <Image
-                src="/hero_2.jfif"
-                alt="Mothers and community"
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Referral Section */}
-      <section className="py-20 bg-(--color-bg-sage)">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent) mb-3">
-              {t("about.referralLabel")}
-            </p>
-            <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl mb-6">
-              {t("about.referralTitle")}
-            </h2>
-            <p className="text-lg text-(--color-text-muted) leading-relaxed">
-              {t("about.referralDesc")}
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-(--color-bg-sage)">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl mb-4">
-            {t("about.ctaTitle")}
+            {t("howItWorks.ctaTitle")}
           </h2>
           <p className="text-lg text-(--color-text-muted) mb-8">
-            {t("about.ctaDesc")}
+            {t("howItWorks.ctaDesc")}
           </p>
           <Link href="/contact">
             <Button variant="accent" size="lg" className="group">
-              {t("about.ctaButton")}
+              {t("howItWorks.ctaButton")}
               <ArrowRight size={18} className="ml-2 transition-transform group-hover:translate-x-1" />
             </Button>
           </Link>
