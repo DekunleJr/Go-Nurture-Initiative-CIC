@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { SITE_CONFIG } from "@/lib/constants";
 import TransparencyContent from "@/components/transparency/TransparencyContent";
 
@@ -16,5 +17,9 @@ export const metadata: Metadata = {
 };
 
 export default function TransparencyPage() {
-  return <TransparencyContent />;
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <TransparencyContent />
+    </Suspense>
+  );
 }
