@@ -1,0 +1,62 @@
+# Environment variables (secrets must not be baked into the image)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Python virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Python compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*$py.class
+
+# Python packaging artifacts
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Alembic compiled files
+alembic/versions/*.pyc
+
+# Tests (not needed in production image)
+tests/
+
+# IDE / OS files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Docker files (not needed inside the image)
+Dockerfile
+.dockerignore
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
