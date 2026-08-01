@@ -54,7 +54,7 @@ export default function ContactPage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative pt-32 pb-20 bg-(--color-primary) overflow-hidden">
+      <section className="relative pt-32 lg:pt-80 pb-20 bg-(--color-primary) overflow-hidden">
         <div className="absolute inset-0 opacity-[0.04]"
           style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "40px 40px" }}
         />
