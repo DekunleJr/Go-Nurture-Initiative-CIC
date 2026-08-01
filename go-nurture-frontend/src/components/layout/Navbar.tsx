@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -23,27 +23,12 @@ const navTranslationMap: Record<string, string> = {
 export function Navbar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const { t } = useLanguage();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   if (pathname?.startsWith("/portal")) return null;
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-(--color-border)"
-          : "bg-transparent"
-      }`}
-    >
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-(--color-border)">
       <div className="mx-auto flex h-30 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         {/* <Link href="/" className="flex items-center shrink-0">
@@ -73,30 +58,32 @@ export function Navbar() {
 
         {/* Desktop Navigation */}
         <nav className="hidden lg:flex items-center gap-1">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                isScrolled
-                  ? "text-foreground hover:bg-(--color-primary)/10 hover:text-(--color-primary)"
-                  : "text-white/90 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              {t(navTranslationMap[link.label] || link.label)}
-            </Link>
-          ))}
+          {NAV_LINKS.map((link) => {
+            const isActive = link.href === "/" ? pathname === "/" : pathname === link.href;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  isActive
+                    ? "text-(--color-primary) font-semibold bg-(--color-primary)/10"
+                    : "text-foreground hover:bg-(--color-primary)/10 hover:text-(--color-primary)"
+                }`}
+              >
+                {t(navTranslationMap[link.label] || link.label)}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Right side actions */}
         <div className="flex items-center gap-2">
-          <LanguageSwitcher isScrolled={isScrolled} />
+          <LanguageSwitcher />
 
           <Link href={PARTNER_PORTAL_LINK.href} className="hidden sm:block">
             <Button
-              variant={isScrolled ? "accent" : "outline"}
+              variant="accent"
               size="sm"
-              className={!isScrolled ? "border-white/30 text-white hover:bg-white hover:text-(--color-primary)" : ""}
             >
               {t("nav.partnerPortal")}
             </Button>
@@ -105,11 +92,7 @@ export function Navbar() {
           {/* Mobile menu toggle */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={`flex items-center justify-center rounded-lg p-2 lg:hidden transition-colors ${
-              isScrolled
-                ? "text-foreground hover:bg-(--color-primary)/10"
-                : "text-white hover:bg-white/10"
-            }`}
+            className="flex items-center justify-center rounded-lg p-2 lg:hidden transition-colors text-foreground hover:bg-(--color-primary)/10"
             aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -121,16 +104,23 @@ export function Navbar() {
       {isMobileMenuOpen && (
         <div className="border-t border-(--color-border) bg-white lg:hidden">
           <div className="space-y-1 px-4 py-4">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block rounded-lg px-3 py-2.5 text-base font-medium text-foreground hover:bg-(--color-primary)/10 hover:text-(--color-primary) transition-colors"
-              >
-                {t(navTranslationMap[link.label] || link.label)}
-              </Link>
-            ))}
+            {NAV_LINKS.map((link) => {
+              const isActive = link.href === "/" ? pathname === "/" : pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`block rounded-lg px-3 py-2.5 text-base font-medium transition-colors ${
+                    isActive
+                      ? "text-(--color-primary) font-semibold bg-(--color-primary)/10"
+                      : "text-foreground hover:bg-(--color-primary)/10 hover:text-(--color-primary)"
+                  }`}
+                >
+                  {t(navTranslationMap[link.label] || link.label)}
+                </Link>
+              );
+            })}
             <div className="pt-2">
               <Link
                 href={PARTNER_PORTAL_LINK.href}

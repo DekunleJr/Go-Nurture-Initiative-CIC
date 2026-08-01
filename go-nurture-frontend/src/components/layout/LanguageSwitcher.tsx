@@ -6,7 +6,7 @@ import { SUPPORTED_LANGUAGES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/LanguageContext";
 
-export function LanguageSwitcher({ isScrolled = false }: { isScrolled?: boolean }) {
+export function LanguageSwitcher() {
   const [isOpen, setIsOpen] = useState(false);
   const { currentLang, setLanguage } = useLanguage();
 
@@ -18,11 +18,7 @@ export function LanguageSwitcher({ isScrolled = false }: { isScrolled?: boolean 
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-          isScrolled
-            ? "text-(--color-primary) hover:bg-(--color-primary)/10"
-            : "text-white/80 hover:bg-white/10"
-        }`}
+        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors text-(--color-primary) hover:bg-(--color-primary)/10"
         aria-label="Select language"
         aria-expanded={isOpen}
       >
