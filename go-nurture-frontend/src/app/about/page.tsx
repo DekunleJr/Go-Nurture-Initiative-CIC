@@ -60,7 +60,7 @@ export default function AboutPage() {
                 {[
                   { icon: <Heart size={22} />, text: "Asset-Locked CIC" },
                   { icon: <Shield size={22} />, text: "Referral-Only Access" },
-                  { icon: <Globe size={22} />, text: "7 Languages" },
+                  { icon: <Globe size={22} />, text: "Multiple Languages" },
                   { icon: <Users size={22} />, text: "Norfolk-Based" },
                 ].map((item) => (
                   <div key={item.text} className="flex items-center gap-3 rounded-xl bg-(--color-bg-sage) p-4">
@@ -76,68 +76,30 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* CSR Bridge Model */}
+      {/* Our Values */}
       <section className="py-20 bg-(--color-bg-sage)">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent) mb-3">
-              {t("about.howLabel")}
+              {t("about.valuesLabel")}
             </p>
             <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl mb-6">
-              {t("about.howTitle")}
+              {t("about.valuesTitle")}
             </h2>
-            <p className="text-lg text-(--color-text-muted) leading-relaxed">
-              {t("about.howDesc")}
-            </p>
-            <Link
-              href="/how-it-works"
-              className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-(--color-accent) hover:text-(--color-accent-light) transition-colors"
-            >
-              {t("about.howLinkLabel")}
-              <ArrowRight size={16} />
-            </Link>
           </div>
 
-          <div className="mt-12 grid gap-6 sm:grid-cols-3">
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              {
-                step: "01",
-                title: t("about.step1Title"),
-                desc: t("about.step1Desc"),
-              },
-              {
-                step: "02",
-                title: t("about.step2Title"),
-                desc: t("about.step2Desc"),
-                highlight: true,
-              },
-              {
-                step: "03",
-                title: t("about.step3Title"),
-                desc: t("about.step3Desc"),
-              },
+              { icon: <Heart size={22} />, text: t("about.value1") },
+              { icon: <Shield size={22} />, text: t("about.value2") },
+              { icon: <Globe size={22} />, text: t("about.value3") },
+              { icon: <Users size={22} />, text: t("about.value4") },
             ].map((item) => (
-              <div
-                key={item.step}
-                className={`rounded-2xl p-8 text-center transition-all ${
-                  item.highlight
-                    ? "bg-(--color-accent) text-white shadow-lg shadow-(--color-accent)/30"
-                    : "bg-white shadow-sm"
-                }`}
-              >
-                <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold font-heading ${
-                  item.highlight ? "bg-white/20 text-white" : "bg-(--color-primary)/10 text-(--color-primary)"
-                }`}>
-                  {item.step}
+              <div key={item.text} className="flex items-center gap-4 rounded-2xl bg-white p-6 shadow-sm">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-(--color-accent)/10 text-(--color-accent)">
+                  {item.icon}
                 </div>
-                <h3 className={`font-heading text-xl font-bold mb-2 ${
-                  item.highlight ? "text-white" : "text-(--color-primary)"
-                }`}>
-                  {item.title}
-                </h3>
-                <p className={`text-sm ${item.highlight ? "text-white/80" : "text-(--color-text-muted)"}`}>
-                  {item.desc}
-                </p>
+                <span className="text-base font-semibold text-(--color-primary)">{item.text}</span>
               </div>
             ))}
           </div>

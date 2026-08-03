@@ -1,8 +1,9 @@
 import uuid
 from datetime import datetime, timezone, date
-from sqlalchemy import Column, String, Boolean, DateTime, Text, Integer, Date
+from sqlalchemy import Column, String, Boolean, DateTime, Text, Integer, Date, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from app.database.session import Base
+from sqlalchemy import inspect
 
 
 class Cohort(Base):
@@ -21,4 +22,8 @@ class Cohort(Base):
     max_participants = Column(Integer, default=30)
     is_active = Column(Boolean, default=True)
     description = Column(Text, nullable=True)
+    venue_id = Column(UUID(as_uuid=True), ForeignKey("venues.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
