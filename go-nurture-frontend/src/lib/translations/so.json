@@ -13,20 +13,21 @@
     "badge": "Shirkadda Manfacda Bulshada",
     "headline1": "Xoojinta Bulshada,",
     "headline2": "Bridging Birthing Gaps.",
-    "subheadline": "Waxbarasho bilaash ah, taageero bulsho oo ku habaysan dhaqanka dumarka nugul ee Norfolk.",
+    "subheadline": "Waxbarasho bilaash ah oo dhalmada ku saabsan, xarumaha quudinta dhallaanka iyo taageerada bulshada oo dhaqan ahaan loo habeeyey haweenka madowga ah, Aasiyaanka ah, beelaha laga tirada badan yahay iyo haweenka barakacay ee guud ahaan Norfolk.",
     "ctaReferral": "Albaabka Wada Shaqeynta — U gudbi",
     "ctaSupport": "Taageer Himiladeena"
   },
   "impact": {
     "sectionLabel": "Saamaynta Sannadka 1aad",
     "sectionTitle": "Taageerada Hooyooyinka Nugul ee Norfolk",
-    "sectionDesc": "Iyadoo la adeegsanayo waxbarashada ku habaysan dhaqanka, waxaan gaaraynaa dumarka ugu baahan taageerada.",
+    "sectionDesc": "Iyada oo loo marayo waxbarashada dhalmada ee dhaqan ahaan loo habeeyey iyo xarumaha quudinta dhallaanka ee saddexda kooxood ee sanadlaha ah, waxaan gaaraynaa haweenka ugu badan ee ay saamaysay sinnaan la'aanta caafimaadka hooyada ee UK.",
     "stat1Label": "Dumar La Taageeray",
     "stat1Sub": "Bartilmaameedka Sannadka 1aad",
     "stat2Label": "Kooxo Sanadle ah",
     "stat2Sub": "Barnaamijyo bilaash ah",
     "stat3Label": "Wada Shaqeeyayaal",
-    "stat3Sub": "NHS, kooxaha diinta & bulshada",
+    "stat3Sub": "kooxaha diinta & bulshada",
+    "stat4Value": "Badan",
     "stat4Label": "Luuqadaha La Taageeray",
     "stat4Sub": "Daryeel ku habaysan dhaqanka"
   },
@@ -37,7 +38,8 @@
     "caption1": "Xiriirka bulshada iyo taageerada",
     "caption2": "Daryeel ku habaysan dhaqanka",
     "caption3": "Waxbarashada iyo diyaarinta dhalmada",
-    "bottomText": "Go Nurture Initiative CIC waa shirkad manfacda bulshada oo bixisa taageero bilaash ah dumarka nugul."
+    "caption4": "Xarunta quudinta dhallaanka",
+    "bottomText": "Go Nurture Initiative CIC waa shirkad manfacda bulshada oo ah mid ku taal Norfolk oo bixisa taageero bilaash ah oo dhalmada ku saabsan iyo taageerada quudinta dhallaanka haweenka madowga ah, Aasiyaanka ah, beelaha laga tirada badan yahay iyo haweenka barakacay."
   },
   "fundingBridge": {
     "sectionLabel": "Qaabka Maalgelinta",
@@ -45,7 +47,7 @@
     "sectionTitleHighlight": "U Saamaynayso",
     "sectionDesc": "Iib kasta oo laga sameeyo garabka ganacsigu wuxuu si toos ah u maalgeliyay taageerada bulshada ee bilaashka ah.",
     "step1Title": "Waxaad Iibsatay",
-    "step1Desc": "Iibso xirmooyinka waxbarashada hooyada ee Nurtured and Nourished Health Ltd",
+    "step1Desc": "Iibso xirmooyinka waxbarashada hooyada ee Nurtured and Nourished Women's Health Ltd",
     "step2Title": "CSR Maalgelin",
     "step2Desc": "Qayb faa'iidada ah ayaa loo wareejiyay Go Nurture CIC",
     "step3Title": "Taageero Bilaash Ah",
@@ -61,7 +63,7 @@
     "contact": "Nala soo xiriir",
     "commercialTitle": "Garabka Ganacsigeena",
     "commercialDesc": "Iibka shirkadda hoose ayaa maalgeliya adeegyadan bulshada bilaashka ah.",
-    "commercialLink": "Nurtured & Nourished",
+    "commercialLink": "Nurtured & Nourished Women's Health LTD",
     "copyright": "Dhammaan xuquuqda dhawran yihiin.",
     "madeWith": "Lagu sameeyay jacayl hooyo kasta"
   },

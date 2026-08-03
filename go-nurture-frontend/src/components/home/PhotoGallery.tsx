@@ -21,6 +21,11 @@ const photos = [
     alt: "Perinatal education session",
     captionKey: "gallery.caption3",
   },
+  {
+    src: "/Infant_feeding.jpg",
+    alt: "Infant feeding clinic",
+    captionKey: "gallery.caption4",
+  },
 ];
 
 export function PhotoGallery() {
@@ -42,7 +47,7 @@ export function PhotoGallery() {
         </div>
 
         {/* Photo Grid */}
-        <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {photos.map((photo) => (
             <div
               key={photo.src}
@@ -54,7 +59,7 @@ export function PhotoGallery() {
                   alt={photo.alt}
                   fill
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 />
                 {/* Gradient overlay */}
                 <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />

@@ -13,21 +13,22 @@
     "badge": "ኩባንያ ጥቕሚ ማሕበረሰብ",
     "headline1": "ምምላዕ ማሕበረሰባት፣",
     "headline2": "Bridging Birthing Gaps.",
-    "subheadline": "ነጻ ትምህርቲ ቅድመ ልደት ንድኻማት ኣንስቲ ኣብ ኖርፎልክ።",
+    "subheadline": "ነጻ ትምህርቲ ቅድመ ልደት፣ ክሊኒካት ምግቢ ህጻናትን ድጋፍ ማሕበረሰብን፣ ብባህሊ እተመላለሰ፣ ንጸሊማት፣ ኣስያውያን፣ ኣባላት ውሑዳት ጎሳታትን ተፈናቃልቲ ኣንስቲን ኣብ ምሉእ ኖርፎልክ።",
     "ctaReferral": "ፖርታል ኣጋር — ምምላስ ምግባር",
     "ctaSupport": "ድገፍ ተልእኮና"
   },
   "impact": {
     "sectionLabel": "ጽልዋ ቀዳማይ ዓመት",
     "sectionTitle": "ደገፍ ንድኻማት ኣደታት ኣብ ኖርፎልክ",
-    "sectionDesc": "ብኸመይ ንዝያዳ ደገፍ ዘድልየን ኣንስቲ ንበጽሕ።",
+    "sectionDesc": "ብኸመይ ንዝያዳ ደገፍ ዘድልየን ኣንስቲ ንበጽሕ። ብኸመይ ንዝያዳ ተጸልዩ ዝኾና ኣንስቲ ማተርናል ሕማም ኣብ ዩኬ ንበጽሕ።",
     "stat1Label": "ዝተደገፋ ኣንስቲ",
     "stat1Sub": "ዕላማ ቀዳማይ ዓመት",
     "stat2Label": "ዓመታዊ ቡድናት",
     "stat2Sub": "ነጻ ፕሮግራማት ማሕበረሰብ",
     "stat3Label": "ኣጋራት ምምላስ",
-    "stat3Sub": "NHS፣ ሃይማኖታዊን ማሕበረሰባዊን ቡድናት",
-    "stat4Label": "ዝተደገፋ ቋንቋታት",
+    "stat3Sub": "ሃይማኖታዊን ማሕበረሰባዊን ቡድናት",
+    "stat4Value": "ብዙሓት",
+    "stat4Label": "ንቋታት ዝተደገፉ",
     "stat4Sub": "ከባቢያዊ ኣከባቢ ዝተዓጣጠረ ክንክን"
   },
   "gallery": {
@@ -37,7 +38,8 @@
     "caption1": "ምትእስሳርን ደገፍን ማሕበረሰብ",
     "caption2": "ከባቢያዊ ኣከባቢ ዝተዓጣጠረ ክንክን",
     "caption3": "ትምህርቲን ድልዳለን ቅድመ ልደት",
-    "bottomText": "Go Nurture Initiative CIC ንድኻማት ኣንስቲ ነጻ ደገፍ ዝህብ ኩባንያ ጥቕሚ ማሕበረሰብ እዩ።"
+    "caption4": "ክሊኒክ ምግቢ ህጻናት",
+    "bottomText": "Go Nurture Initiative CIC ኣብ ኖርፎልክ ዝርከብ ኩባንያ ጥቕሚ ማሕበረሰብ እዩ — ነጻ ትምህርቲ ቅድመ ልደትን ደገፍ ምግቢ ህጻናትን ንጸሊማት፣ ኣስያውያን፣ ኣባላት ውሑዳት ጎሳታትን ተፈናቃልቲ ኣንስቲን ይህብ።"
   },
   "fundingBridge": {
     "sectionLabel": "ኣብነት ምንጪ ገንዘብና",
@@ -45,7 +47,7 @@
     "sectionTitleHighlight": "ጽልዋ ይፈጥር",
     "sectionDesc": "ነፍሲ ወከፍ ግዝኣት ካብ ንግዳዊ ክንድና ነጻ ደገፍ ማሕበረሰብ ይምንድን።",
     "step1Title": "ንስኻ ትገዝእ",
-    "step1Desc": "ካብ Nurtured and Nourished Health Ltd ጥቕላላት ትምህርቲ ኣደነት ግዝኡ",
+    "step1Desc": "ካብ Nurtured and Nourished Women's Health Ltd ጥቕላላት ትምህርቲ ኣደነት ግዝኡ",
     "step2Title": "ምንጪ ገንዘብ CSR",
     "step2Desc": "ሓደ ክፋል ትርፊ ናብ Go Nurture CIC ይምሓል",
     "step3Title": "ነጻ ደገፍ",
@@ -61,7 +63,7 @@
     "contact": "መርከቢ",
     "commercialTitle": "ንግዳዊ ክንድና",
     "commercialDesc": "ግዝኣታት ካብ ኣደ ኩባንያ ነዚ ነጻ ኣገልግሎታት ይምንድን።",
-    "commercialLink": "Nurtured & Nourished",
+    "commercialLink": "Nurtured & Nourished Women's Health LTD",
     "copyright": "መሰላት ኩሉ ተሓጺጉ ኣሎ።",
     "madeWith": "ብፍቕሪ ንነፍሲ ወከፍ ኣደ ተሰሪሑ"
   },
