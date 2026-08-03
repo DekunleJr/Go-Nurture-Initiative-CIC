@@ -3,13 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, X, Shield } from "lucide-react";
 import { SITE_CONFIG } from "@/lib/constants";
 import { useLocalStorage } from "@/lib/useLocalStorage";
 
 interface PartnerData {
   contact_name: string;
   organisation_name: string;
+  is_admin?: boolean;
 }
 
 export function PortalNavbar() {
@@ -47,6 +48,15 @@ export function PortalNavbar() {
               {partner.contact_name} · {partner.organisation_name}
             </span>
           )}
+          {partner && partner.is_admin && (
+            <Link
+              href="/admin/dashboard"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-(--color-accent) px-4 py-2 text-sm font-medium text-white hover:bg-(--color-accent)/90 transition-colors"
+            >
+              <Shield size={16} />
+              Admin
+            </Link>
+          )}
           {partner && (
             <button
               onClick={handleLogout}
@@ -76,6 +86,15 @@ export function PortalNavbar() {
               <p className="text-sm text-(--color-text-muted) pb-2">
                 {partner.contact_name} · {partner.organisation_name}
               </p>
+            )}
+            {partner && partner.is_admin && (
+              <Link
+                href="/admin/dashboard"
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-(--color-accent) hover:bg-gray-50 transition-colors"
+              >
+                <Shield size={18} />
+                Admin Dashboard
+              </Link>
             )}
             {partner && (
               <button

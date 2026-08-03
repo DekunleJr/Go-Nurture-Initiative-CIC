@@ -26,6 +26,7 @@ export function Navbar() {
   const { t } = useLanguage();
 
   if (pathname?.startsWith("/portal")) return null;
+  if (pathname?.startsWith("/admin")) return null;
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-(--color-border)">
