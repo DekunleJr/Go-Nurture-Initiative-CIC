@@ -11,7 +11,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 export function HeroSection() {
   const { t } = useLanguage();
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden mt-50">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image

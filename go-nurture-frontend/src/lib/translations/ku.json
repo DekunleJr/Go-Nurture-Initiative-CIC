@@ -13,20 +13,21 @@
     "badge": "Şirketa berjewendiya civakê",
     "headline1": "Hêzdarkirina civakan,",
     "headline2": "Dagirtina valahiyên zayînê.",
-    "subheadline": "Perwerdehiya belaş a perinatal ji bo jinên xeternak li Norfolk.",
+    "subheadline": "Perwerdehiya belaş a perinatal, klînîkên xwarina pitikan û piştgiriya civakî ya bi çandî ve hatî guherandin ji bo jinên reş, Asyayî, kêmneteweyî û jinebermayî li seranserê Norfolk.",
     "ctaReferral": "Portala hevkar — şandin",
     "ctaSupport": "Piştgiriya mîsyona me bike"
   },
   "impact": {
     "sectionLabel": "Bandora sala 1em",
     "sectionTitle": "Piştgiriya dayikên xeternak li Norfolk",
-    "sectionDesc": "Bi perwerdehiya çandî ve, em digihîjin jinên ku herî zêde hewceyê piştgiriyê ne.",
+    "sectionDesc": "Bi rêya perwerdehiya perinatal a çandî û klînîkên xwarina pitikan di sê komên salane de, em digihîjin jinên ku herî zêde ji newekheviya tenduristiya dayikan li Keyaniya Yekbûyî bandor bûne.",
     "stat1Label": "Jinên piştgirîkirî",
     "stat1Sub": "Armanca sala 1em",
     "stat2Label": "Komên salane",
     "stat2Sub": "Bernameyên belaş ên civakê",
     "stat3Label": "Hevkarên şandinê",
-    "stat3Sub": "NHS, komên olî û civakê",
+    "stat3Sub": "komên olî û civakê",
+    "stat4Value": "Pirjimar",
     "stat4Label": "Zimanên piştgirîkirî",
     "stat4Sub": "Lênihêrîna çandî"
   },
@@ -37,7 +38,8 @@
     "caption1": "Girêdana civakê û piştgirî",
     "caption2": "Lênihêrîna çandî",
     "caption3": "Perwerdehiya perinatal û amadekarî",
-    "bottomText": "Go Nurture Initiative CIC şirketek berjewendiya civakê ye ku piştgiriya belaş pêşkêşî jinên xeternak dike."
+    "caption4": "Klînîka xwarina pitikan",
+    "bottomText": "Go Nurture Initiative CIC şirketek berjewendiya civakê ye li Norfolk ku perwerdehiya belaş a perinatal û piştgiriya xwarina pitikan pêşkêşî jinên reş, Asyayî, kêmneteweyî û jinebermayî dike."
   },
   "fundingBridge": {
     "sectionLabel": "Modela fînansmana me",
@@ -45,7 +47,7 @@
     "sectionTitleHighlight": "Bandorê çêdike",
     "sectionDesc": "Her kirîna ji destê bazirganî yê me rasterast piştgiriya belaş a civakê fînanse dike.",
     "step1Title": "Hûn dikirin",
-    "step1Desc": "Pakêtên perwerdehiya dayikê ji Nurtured and Nourished Health Ltd bikirin",
+    "step1Desc": "Pakêtên perwerdehiya dayikê ji Nurtured and Nourished Women's Health Ltd bikirin",
     "step2Title": "Fînansekirina CSR",
     "step2Desc": "Beşek ji qazancê vediguhere Go Nurture CIC",
     "step3Title": "Piştgiriya belaş",
@@ -61,7 +63,7 @@
     "contact": "Têkilî",
     "commercialTitle": "Destê bazirganî yê me",
     "commercialDesc": "Kirîn ji şirketa dêûbav van karûbarên belaş fînanse dike.",
-    "commercialLink": "Nurtured & Nourished",
+    "commercialLink": "Nurtured & Nourished Women's Health LTD",
     "copyright": "Hemû maf parastî ne.",
     "madeWith": "Bi ❤️ ji bo her dayikê hatiye çêkirin"
   },

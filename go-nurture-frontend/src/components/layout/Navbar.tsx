@@ -29,7 +29,7 @@ export function Navbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-(--color-border)">
-      <div className="mx-auto flex h-30 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-30 lg:h-72 max-w-7xl lg:max-w-[1600px] items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         {/* <Link href="/" className="flex items-center shrink-0">
           <div className="relative h-16 w-16 sm:h-20 sm:w-20">
@@ -45,7 +45,7 @@ export function Navbar() {
           </div>
         </Link> */}
         <Link href="/" className="inline-flex items-center">
-          <div className="relative w-44 h-44 sm:w-56 sm:h-56">
+          <div className="relative w-44 h-44 sm:w-56 sm:h-56 lg:w-140 lg:h-140">
             <Image
               src="/LOGO_v1.png"
               alt={`${SITE_CONFIG.name} logo`}

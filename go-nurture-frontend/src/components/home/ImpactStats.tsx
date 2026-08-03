@@ -6,7 +6,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 
 interface StatItemProps {
   icon: React.ReactNode;
-  value: number;
+  value: number | string;
   suffix: string;
   label: string;
   sublabel: string;
@@ -33,7 +33,7 @@ function AnimatedStat({ icon, value, suffix, label, sublabel, delay }: StatItemP
   }, []);
 
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isVisible || typeof value !== "number") return;
     const duration = 2000;
     const steps = 60;
     const increment = value / steps;
@@ -62,7 +62,7 @@ function AnimatedStat({ icon, value, suffix, label, sublabel, delay }: StatItemP
         {icon}
       </div>
       <p className="font-heading text-4xl font-bold text-(--color-primary) sm:text-5xl">
-        {count}
+        {typeof value === "number" ? count : value}
         <span className="text-(--color-accent)">{suffix}</span>
       </p>
       <p className="mt-2 font-semibold text-foreground">{label}</p>
@@ -97,7 +97,7 @@ export function ImpactStats() {
     },
     {
       icon: <Globe size={28} />,
-      value: 7,
+      value: t("impact.stat4Value"),
       suffix: "",
       labelKey: "impact.stat4Label",
       sublabelKey: "impact.stat4Sub",
