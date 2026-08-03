@@ -113,7 +113,7 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
       await onActivate(partnerId);
       toast.success("Partner activated successfully");
     } catch (error) {
-      toast.error("Failed to activate partner");
+      toast.error("Failed to activate partner" + (error instanceof Error ? `: ${error.message}` : ""));
     }
   };
 
@@ -122,7 +122,7 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
       await onDeactivate(partnerId);
       toast.success("Partner deactivated successfully");
     } catch (error) {
-      toast.error("Failed to deactivate partner");
+      toast.error("Failed to deactivate partner" + (error instanceof Error ? `: ${error.message}` : ""));
     }
   };
 

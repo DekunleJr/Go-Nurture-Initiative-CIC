@@ -23,27 +23,26 @@ export default function VenuesPage() {
   const [loading, setLoading] = useState(true);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
 
-  const fetchVenues = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/venues/`);
-      if (res.ok) {
-        const data = await res.json();
-        setVenues(data);
-        if (data.length > 0 && !selectedVenue) {
-          setSelectedVenue(data[0]);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching venues:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    fetchVenues();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const loadVenues = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/venues/`);
+        if (res.ok) {
+          const data = await res.json();
+          setVenues(data);
+          if (data.length > 0 && !selectedVenue) {
+            setSelectedVenue(data[0]);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching venues:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadVenues();
+    }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">

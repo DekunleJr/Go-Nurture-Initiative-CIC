@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Search, Filter, X } from "lucide-react";
-import toast from "react-hot-toast";
 
 interface Referral {
   id: string;
