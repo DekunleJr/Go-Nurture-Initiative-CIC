@@ -53,6 +53,7 @@ def create_referral(
         language_requirement=referral.language_requirement,
         requires_interpreter=referral.requires_interpreter,
         additional_notes=referral.additional_notes,
+        db=db,
     )
 
     return ReferralResponse.model_validate(referral)

@@ -113,6 +113,7 @@ def confirm_donation(donation_id: str, db: Session = Depends(get_db)):
         currency=donation.currency,
         is_anonymous=donation.is_anonymous,
         message=donation.message,
+        db=db,
     )
 
     return {"message": "Donation confirmed successfully"}
@@ -169,6 +170,7 @@ def create_donation(data: DonationCreate, db: Session = Depends(get_db)):
         currency=donation.currency,
         is_anonymous=donation.is_anonymous,
         message=donation.message,
+        db=db,
     )
 
     return DonationResponse.model_validate(donation)

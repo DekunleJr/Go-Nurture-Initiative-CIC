@@ -12,6 +12,7 @@ import VenuesTab from "./components/VenuesTab";
 import CohortsTab from "./components/CohortsTab";
 import DonationsTab from "./components/DonationsTab";
 import ContactsTab from "./components/ContactsTab";
+import EmailLogsTab from "./components/EmailLogsTab";
 
 const API_BASE = "/";
 
@@ -112,7 +113,7 @@ interface Contact {
   created_at: string;
 }
 
-type Tab = "overview" | "referrals" | "partners" | "venues" | "cohorts" | "donations" | "contacts";
+type Tab = "overview" | "referrals" | "partners" | "venues" | "cohorts" | "donations" | "contacts" | "emails";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -445,6 +446,7 @@ export default function AdminDashboard() {
               { id: "cohorts", label: "Cohorts" },
               { id: "donations", label: "Donations" },
               { id: "contacts", label: "Contacts" },
+              { id: "emails", label: "Emails" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -513,6 +515,10 @@ export default function AdminDashboard() {
 
         {activeTab === "contacts" && (
           <ContactsTab contacts={contacts} />
+        )}
+
+        {activeTab === "emails" && (
+          <EmailLogsTab />
         )}
       </div>
     </div>

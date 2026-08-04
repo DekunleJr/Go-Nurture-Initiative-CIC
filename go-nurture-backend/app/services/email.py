@@ -1,8 +1,26 @@
 import os
 import resend
 from dotenv import load_dotenv
+from sqlalchemy.orm import Session
+from datetime import datetime, timezone
+from app.models.email_log import EmailLog
 
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"))
+
+
+def log_email(db: Session, recipient_email: str, subject: str, body: str, email_type: str, status: str, error_message: str | None = None):
+    """Helper to log email to database."""
+    log = EmailLog(
+        recipient_email=recipient_email,
+        subject=subject,
+        body=body,
+        email_type=email_type,
+        status=status,
+        error_message=error_message,
+        created_at=datetime.now(timezone.utc),
+    )
+    db.add(log)
+    db.commit()
 
 
 def send_invite_email(
@@ -10,6 +28,7 @@ def send_invite_email(
     recipient_name: str,
     organisation_name: str,
     invite_link: str,
+    db: Session = None,
 ) -> bool:
     """
     Send an invitation email to a new partner with a link to set their password.
@@ -37,6 +56,9 @@ Best regards,
 Go Nurture Initiative CIC
 """
 
+    sent = False
+    error_msg = None
+
     # If no API key is configured, print to console (for development/testing)
     if not api_key or api_key == "re_xxxxxxxxxxxx":
         print(f"=== EMAIL TO: {recipient_email} ===")
@@ -44,27 +66,41 @@ Go Nurture Initiative CIC
         print(f"Subject: {subject}")
         print(body)
         print("=== END EMAIL ===")
-        return True
+        sent = True
+    else:
+        try:
+            resend.api_key = api_key
+            response = resend.Emails.send({
+                "from": from_email,
+                "to": recipient_email,
+                "subject": subject,
+                "text": body.strip(),
+            })
+            print(f"Email sent to {recipient_email}: {response}")
+            sent = True
+        except Exception as e:
+            error_msg = str(e)
+            print(f"Failed to send email via Resend: {e}")
+            # Fallback: print to console so development isn't blocked
+            print(f"=== EMAIL TO: {recipient_email} ===")
+            print(f"From: {from_email}")
+            print(f"Subject: {subject}")
+            print(body)
+            print("=== END EMAIL ===")
 
-    try:
-        resend.api_key = api_key
-        response = resend.Emails.send({
-            "from": from_email,
-            "to": recipient_email,
-            "subject": subject,
-            "text": body.strip(),
-        })
-        print(f"Email sent to {recipient_email}: {response}")
-        return True
-    except Exception as e:
-        print(f"Failed to send email via Resend: {e}")
-        # Fallback: print to console so development isn't blocked
-        print(f"=== EMAIL TO: {recipient_email} ===")
-        print(f"From: {from_email}")
-        print(f"Subject: {subject}")
-        print(body)
-        print("=== END EMAIL ===")
-        return False
+    # Log to database if db session provided
+    if db is not None:
+        log_email(
+            db=db,
+            recipient_email=recipient_email,
+            subject=subject,
+            body=body.strip(),
+            email_type="partner_invite",
+            status="success" if sent else "failed",
+            error_message=error_msg,
+        )
+
+    return sent
 
 
 def send_referral_notification_email(
@@ -75,6 +111,7 @@ def send_referral_notification_email(
     language_requirement: str | None,
     requires_interpreter: bool,
     additional_notes: str | None,
+    db: Session = None,
 ) -> bool:
     """
     Send an admin notification email when a new referral is created.
@@ -111,32 +148,48 @@ Please review and approve/reject this referral in the admin dashboard.
 This email was sent automatically from the Go Nurture referral system.
 """
 
+    sent = False
+    error_msg = None
+
     if not api_key or api_key == "re_xxxxxxxxxxxx":
         print(f"=== REFERRAL NOTIFICATION EMAIL TO: {contact_email} ===")
         print(f"From: {from_email}")
         print(f"Subject: {email_subject}")
         print(body)
         print("=== END EMAIL ===")
-        return True
+        sent = True
+    else:
+        try:
+            resend.api_key = api_key
+            response = resend.Emails.send({
+                "from": from_email,
+                "to": contact_email,
+                "subject": email_subject,
+                "text": body.strip(),
+            })
+            print(f"Referral notification email sent to {contact_email}: {response}")
+            sent = True
+        except Exception as e:
+            error_msg = str(e)
+            print(f"Failed to send referral notification email via Resend: {e}")
+            print(f"=== REFERRAL NOTIFICATION EMAIL TO: {contact_email} ===")
+            print(f"From: {from_email}")
+            print(f"Subject: {email_subject}")
+            print(body)
+            print("=== END EMAIL ===")
 
-    try:
-        resend.api_key = api_key
-        response = resend.Emails.send({
-            "from": from_email,
-            "to": contact_email,
-            "subject": email_subject,
-            "text": body.strip(),
-        })
-        print(f"Referral notification email sent to {contact_email}: {response}")
-        return True
-    except Exception as e:
-        print(f"Failed to send referral notification email via Resend: {e}")
-        print(f"=== REFERRAL NOTIFICATION EMAIL TO: {contact_email} ===")
-        print(f"From: {from_email}")
-        print(f"Subject: {email_subject}")
-        print(body)
-        print("=== END EMAIL ===")
-        return False
+    if db is not None:
+        log_email(
+            db=db,
+            recipient_email=contact_email,
+            subject=email_subject,
+            body=body.strip(),
+            email_type="referral",
+            status="success" if sent else "failed",
+            error_message=error_msg,
+        )
+
+    return sent
 
 
 def send_donation_notification_email(
@@ -146,6 +199,7 @@ def send_donation_notification_email(
     currency: str,
     is_anonymous: bool,
     message: str | None,
+    db: Session = None,
 ) -> bool:
     """
     Send an admin notification email when a new donation is received.
@@ -175,32 +229,48 @@ Please review the donation in the admin dashboard.
 This email was sent automatically from the Go Nurture donation system.
 """
 
+    sent = False
+    error_msg = None
+
     if not api_key or api_key == "re_xxxxxxxxxxxx":
         print(f"=== DONATION NOTIFICATION EMAIL TO: {contact_email} ===")
         print(f"From: {from_email}")
         print(f"Subject: {email_subject}")
         print(body)
         print("=== END EMAIL ===")
-        return True
+        sent = True
+    else:
+        try:
+            resend.api_key = api_key
+            response = resend.Emails.send({
+                "from": from_email,
+                "to": contact_email,
+                "subject": email_subject,
+                "text": body.strip(),
+            })
+            print(f"Donation notification email sent to {contact_email}: {response}")
+            sent = True
+        except Exception as e:
+            error_msg = str(e)
+            print(f"Failed to send donation notification email via Resend: {e}")
+            print(f"=== DONATION NOTIFICATION EMAIL TO: {contact_email} ===")
+            print(f"From: {from_email}")
+            print(f"Subject: {email_subject}")
+            print(body)
+            print("=== END EMAIL ===")
 
-    try:
-        resend.api_key = api_key
-        response = resend.Emails.send({
-            "from": from_email,
-            "to": contact_email,
-            "subject": email_subject,
-            "text": body.strip(),
-        })
-        print(f"Donation notification email sent to {contact_email}: {response}")
-        return True
-    except Exception as e:
-        print(f"Failed to send donation notification email via Resend: {e}")
-        print(f"=== DONATION NOTIFICATION EMAIL TO: {contact_email} ===")
-        print(f"From: {from_email}")
-        print(f"Subject: {email_subject}")
-        print(body)
-        print("=== END EMAIL ===")
-        return False
+    if db is not None:
+        log_email(
+            db=db,
+            recipient_email=contact_email,
+            subject=email_subject,
+            body=body.strip(),
+            email_type="donation",
+            status="success" if sent else "failed",
+            error_message=error_msg,
+        )
+
+    return sent
 
 
 def send_contact_email(
@@ -208,6 +278,7 @@ def send_contact_email(
     sender_email: str,
     subject: str,
     message: str,
+    db: Session = None,
 ) -> bool:
     """
     Send a contact form submission to CONTACT_EMAIL.
@@ -236,6 +307,9 @@ Message:
 This email was sent automatically from the Go Nurture website contact form.
 """
 
+    sent = False
+    error_msg = None
+
     # If no API key is configured, print to console (for development/testing)
     if not api_key or api_key == "re_xxxxxxxxxxxx":
         print(f"=== CONTACT EMAIL TO: {contact_email} ===")
@@ -243,24 +317,36 @@ This email was sent automatically from the Go Nurture website contact form.
         print(f"Subject: {email_subject}")
         print(body)
         print("=== END CONTACT EMAIL ===")
-        return True
+        sent = True
+    else:
+        try:
+            resend.api_key = api_key
+            response = resend.Emails.send({
+                "from": from_email,
+                "to": contact_email,
+                "subject": email_subject,
+                "text": body.strip(),
+            })
+            print(f"Contact email sent to {contact_email}: {response}")
+            sent = True
+        except Exception as e:
+            error_msg = str(e)
+            print(f"Failed to send contact email via Resend: {e}")
+            print(f"=== CONTACT EMAIL TO: {contact_email} ===")
+            print(f"From: {from_email}")
+            print(f"Subject: {email_subject}")
+            print(body)
+            print("=== END CONTACT EMAIL ===")
 
-    try:
-        resend.api_key = api_key
-        response = resend.Emails.send({
-            "from": from_email,
-            "to": contact_email,
-            "subject": email_subject,
-            "text": body.strip(),
-        })
-        print(f"Contact email sent to {contact_email}: {response}")
-        return True
-    except Exception as e:
-        print(f"Failed to send contact email via Resend: {e}")
-        # Fallback: print to console so development isn't blocked
-        print(f"=== CONTACT EMAIL TO: {contact_email} ===")
-        print(f"From: {from_email}")
-        print(f"Subject: {email_subject}")
-        print(body)
-        print("=== END CONTACT EMAIL ===")
-        return False
+    if db is not None:
+        log_email(
+            db=db,
+            recipient_email=contact_email,
+            subject=email_subject,
+            body=body.strip(),
+            email_type="contact",
+            status="success" if sent else "failed",
+            error_message=error_msg,
+        )
+
+    return sent
