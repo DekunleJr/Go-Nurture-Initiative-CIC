@@ -19,6 +19,7 @@ from app.schemas.donation import DonationResponse
 from app.schemas.contact import ContactResponse
 from app.utils.auth import get_current_admin
 from app.services.geocode import geocode_address
+from app.services.email import send_referral_approval_email
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
@@ -93,6 +94,35 @@ def admin_update_referral_status(
 
     db.commit()
     db.refresh(referral)
+
+    # If approved, send notification email to the partner organisation
+    if update.status == "approved":
+        partner = db.query(PartnerOrganisation).filter(PartnerOrganisation.id == referral.partner_id).first()
+        if partner:
+            cohort_name = None
+            venue_name = None
+            if referral.cohort_id:
+                cohort = db.query(Cohort).filter(Cohort.id == referral.cohort_id).first()
+                if cohort:
+                    cohort_name = cohort.name
+                    if cohort.venue_id:
+                        venue = db.query(Venue).filter(Venue.id == cohort.venue_id).first()
+                        if venue:
+                            venue_name = venue.name
+
+            send_referral_approval_email(
+                partner_email=partner.email,
+                partner_name=partner.organisation_name,
+                mother_name=referral.mother_name,
+                due_date=referral.estimated_due_date.isoformat() if referral.estimated_due_date else "",
+                cohort_name=cohort_name,
+                venue_name=venue_name,
+                language_requirement=referral.language_requirement,
+                requires_interpreter=referral.requires_interpreter,
+                additional_notes=referral.additional_notes,
+                db=db,
+            )
+
     return {"message": "Referral updated successfully", "referral_id": referral.id}
 
 

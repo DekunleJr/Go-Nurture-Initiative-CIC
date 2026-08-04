@@ -278,6 +278,93 @@ This email was sent automatically from the Go Nurture donation system.
     return sent
 
 
+def send_referral_approval_email(
+    partner_email: str,
+    partner_name: str,
+    mother_name: str,
+    due_date: str,
+    cohort_name: str | None,
+    venue_name: str | None,
+    language_requirement: str | None,
+    requires_interpreter: bool,
+    additional_notes: str | None,
+    db: Session = None,
+) -> bool:
+    """
+    Send an approval notification email to the partner organisation
+    when a referral is approved by an admin.
+    """
+    api_key = os.getenv("RESEND_API_KEY", "")
+    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>")
+
+    subject = f"[Referral Approved] {mother_name}'s referral has been approved"
+    body = f"""
+Hello {partner_name},
+
+Good news! A referral you submitted has been approved by the admin team.
+
+Referral Details:
+- Mother: {mother_name}
+- Estimated Due Date: {due_date}
+- Language Requirement: {language_requirement or "None specified"}
+- Requires Interpreter: {"Yes" if requires_interpreter else "No"}
+
+Approved Cohort: {cohort_name or "Not assigned yet"}
+Venue: {venue_name or "Not assigned yet"}
+
+Additional Notes:
+{additional_notes or "None"}
+
+Please contact the Go Nurture team if you have any questions.
+
+Best regards,
+Go Nurture Initiative CIC
+"""
+
+    sent = False
+    error_msg = None
+
+    if not api_key or api_key == "re_xxxxxxxxxxxx":
+        print(f"=== REFERRAL APPROVAL EMAIL TO: {partner_email} ===")
+        print(f"From: {from_email}")
+        print(f"Subject: {subject}")
+        print(body)
+        print("=== END EMAIL ===")
+        sent = True
+    else:
+        try:
+            resend.api_key = api_key
+            response = resend.Emails.send({
+                "from": from_email,
+                "to": partner_email,
+                "subject": subject,
+                "text": body.strip(),
+            })
+            print(f"Referral approval email sent to {partner_email}: {response}")
+            sent = True
+        except Exception as e:
+            error_msg = str(e)
+            print(f"Failed to send referral approval email via Resend: {e}")
+            print(f"=== REFERRAL APPROVAL EMAIL TO: {partner_email} ===")
+            print(f"From: {from_email}")
+            print(f"Subject: {subject}")
+            print(body)
+            print("=== END EMAIL ===")
+
+    if db is not None:
+        log_email(
+            db=db,
+            recipient_email=partner_email,
+            subject=subject,
+            body=body.strip(),
+            email_type="referral_approval",
+            status="success" if sent else "failed",
+            error_message=error_msg,
+        )
+
+    return sent
+
+
 def send_contact_email(
     sender_name: str,
     sender_email: str,
