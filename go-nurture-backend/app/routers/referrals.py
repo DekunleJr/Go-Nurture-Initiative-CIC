@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List
 from uuid import UUID
@@ -6,8 +6,11 @@ from uuid import UUID
 from app.database.session import get_db
 from app.models.referral import Referral
 from app.models.partner import PartnerOrganisation
+from app.models.cohort import Cohort
+from app.models.venue import Venue
 from app.schemas.referral import ReferralCreate, ReferralResponse, ReferralStatusUpdate
 from app.utils.auth import get_current_partner
+from app.services.email import send_referral_notification_email
 
 router = APIRouter(prefix="/api/referrals", tags=["Referrals"])
 
@@ -15,6 +18,7 @@ router = APIRouter(prefix="/api/referrals", tags=["Referrals"])
 @router.post("/", response_model=ReferralResponse, status_code=status.HTTP_201_CREATED)
 def create_referral(
     data: ReferralCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_partner: PartnerOrganisation = Depends(get_current_partner),
 ):
@@ -38,6 +42,19 @@ def create_referral(
     db.add(referral)
     db.commit()
     db.refresh(referral)
+
+    # Send admin notification email in the background
+    background_tasks.add_task(
+        send_referral_notification_email,
+        mother_name=referral.mother_name,
+        mother_phone=referral.mother_phone,
+        due_date=referral.estimated_due_date.isoformat() if referral.estimated_due_date else "",
+        partner_name=current_partner.organisation_name,
+        language_requirement=referral.language_requirement,
+        requires_interpreter=referral.requires_interpreter,
+        additional_notes=referral.additional_notes,
+    )
+
     return ReferralResponse.model_validate(referral)
 
 
@@ -53,7 +70,26 @@ def list_my_referrals(
         .order_by(Referral.created_at.desc())
         .all()
     )
-    return [ReferralResponse.model_validate(r) for r in referrals]
+
+    enriched = []
+    for r in referrals:
+        data = ReferralResponse.model_validate(r).model_dump(mode="json")
+        # cohort name
+        if r.cohort_id:
+            cohort = db.query(Cohort).filter(Cohort.id == r.cohort_id).first()
+            data["cohort_name"] = cohort.name if cohort else None
+            # venue name via cohort
+            if cohort and cohort.venue_id:
+                venue = db.query(Venue).filter(Venue.id == cohort.venue_id).first()
+                data["venue_name"] = venue.name if venue else None
+            else:
+                data["venue_name"] = None
+        else:
+            data["cohort_name"] = None
+            data["venue_name"] = None
+        enriched.append(data)
+
+    return enriched
 
 
 @router.get("/{referral_id}", response_model=ReferralResponse)

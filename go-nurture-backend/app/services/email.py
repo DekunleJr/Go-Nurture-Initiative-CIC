@@ -67,6 +67,142 @@ Go Nurture Initiative CIC
         return False
 
 
+def send_referral_notification_email(
+    mother_name: str,
+    mother_phone: str,
+    due_date: str,
+    partner_name: str,
+    language_requirement: str | None,
+    requires_interpreter: bool,
+    additional_notes: str | None,
+) -> bool:
+    """
+    Send an admin notification email when a new referral is created.
+    Uses Resend for email delivery with console fallback for development.
+    """
+    api_key = os.getenv("RESEND_API_KEY", "")
+    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>")
+    contact_email = os.getenv("CONTACT_EMAIL", "")
+
+    if not contact_email:
+        print("CONTACT_EMAIL not set in environment. Cannot send referral notification email.")
+        return False
+
+    email_subject = "[New Referral] A new mother needs approval"
+    body = f"""
+A new referral has been submitted and requires your attention.
+
+Mother Details:
+- Name: {mother_name}
+- Phone: {mother_phone}
+- Estimated Due Date: {due_date}
+- Language Requirement: {language_requirement or "None specified"}
+- Requires Interpreter: {"Yes" if requires_interpreter else "No"}
+
+Referral Source:
+- Partner Organisation: {partner_name}
+
+Additional Notes:
+{additional_notes or "None"}
+
+Please review and approve/reject this referral in the admin dashboard.
+
+---
+This email was sent automatically from the Go Nurture referral system.
+"""
+
+    if not api_key or api_key == "re_xxxxxxxxxxxx":
+        print(f"=== REFERRAL NOTIFICATION EMAIL TO: {contact_email} ===")
+        print(f"From: {from_email}")
+        print(f"Subject: {email_subject}")
+        print(body)
+        print("=== END EMAIL ===")
+        return True
+
+    try:
+        resend.api_key = api_key
+        response = resend.Emails.send({
+            "from": from_email,
+            "to": contact_email,
+            "subject": email_subject,
+            "text": body.strip(),
+        })
+        print(f"Referral notification email sent to {contact_email}: {response}")
+        return True
+    except Exception as e:
+        print(f"Failed to send referral notification email via Resend: {e}")
+        print(f"=== REFERRAL NOTIFICATION EMAIL TO: {contact_email} ===")
+        print(f"From: {from_email}")
+        print(f"Subject: {email_subject}")
+        print(body)
+        print("=== END EMAIL ===")
+        return False
+
+
+def send_donation_notification_email(
+    donor_name: str | None,
+    donor_email: str | None,
+    amount: float,
+    currency: str,
+    is_anonymous: bool,
+    message: str | None,
+) -> bool:
+    """
+    Send an admin notification email when a new donation is received.
+    Uses Resend for email delivery with console fallback for development.
+    """
+    api_key = os.getenv("RESEND_API_KEY", "")
+    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>")
+    contact_email = os.getenv("CONTACT_EMAIL", "")
+
+    if not contact_email:
+        print("CONTACT_EMAIL not set in environment. Cannot send donation notification email.")
+        return False
+
+    email_subject = "[New Donation] A new donation has been received"
+    body = f"""
+A new donation has been received.
+
+Donor Details:
+- Name: {donor_name or "Anonymous"}
+- Email: {donor_email or "N/A"}
+- Amount: {amount:.2f} {currency.upper()}
+- Message: {message or "No message"}
+
+Please review the donation in the admin dashboard.
+
+---
+This email was sent automatically from the Go Nurture donation system.
+"""
+
+    if not api_key or api_key == "re_xxxxxxxxxxxx":
+        print(f"=== DONATION NOTIFICATION EMAIL TO: {contact_email} ===")
+        print(f"From: {from_email}")
+        print(f"Subject: {email_subject}")
+        print(body)
+        print("=== END EMAIL ===")
+        return True
+
+    try:
+        resend.api_key = api_key
+        response = resend.Emails.send({
+            "from": from_email,
+            "to": contact_email,
+            "subject": email_subject,
+            "text": body.strip(),
+        })
+        print(f"Donation notification email sent to {contact_email}: {response}")
+        return True
+    except Exception as e:
+        print(f"Failed to send donation notification email via Resend: {e}")
+        print(f"=== DONATION NOTIFICATION EMAIL TO: {contact_email} ===")
+        print(f"From: {from_email}")
+        print(f"Subject: {email_subject}")
+        print(body)
+        print("=== END EMAIL ===")
+        return False
+
+
 def send_contact_email(
     sender_name: str,
     sender_email: str,

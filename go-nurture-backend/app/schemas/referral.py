@@ -28,6 +28,8 @@ class ReferralResponse(BaseModel):
     status: str
     created_at: datetime
     updated_at: datetime
+    cohort_name: Optional[str] = None
+    venue_name: Optional[str] = None
 
     model_config = {"from_attributes": True}
 
