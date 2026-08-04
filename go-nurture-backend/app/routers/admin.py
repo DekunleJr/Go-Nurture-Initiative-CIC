@@ -12,6 +12,7 @@ from app.models.contact import ContactSubmission
 from app.models.donation import Donation
 from app.models.venue import Venue
 from app.models.cohort import Cohort
+from app.models.email_log import EmailLog
 from app.schemas.referral import ReferralResponse, ReferralStatusUpdate
 from app.schemas.partner import PartnerResponse
 from app.schemas.donation import DonationResponse
@@ -402,6 +403,39 @@ def admin_update_cohort(
     db.commit()
     db.refresh(cohort)
     return {"message": "Cohort updated successfully", "cohort": cohort.to_dict()}
+
+
+@router.get("/email-logs", response_model=dict)
+def admin_get_email_logs(
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+    skip: int = 0,
+    limit: int = 50,
+    email_type: str | None = None,
+):
+    """Admin only: Get all email logs with optional filtering."""
+    query = db.query(EmailLog)
+    if email_type:
+        query = query.filter(EmailLog.email_type == email_type)
+    total = query.count()
+    logs = query.order_by(EmailLog.created_at.desc()).offset(skip).limit(limit).all()
+    return {
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+        "logs": [
+            {
+                "id": str(log.id),
+                "recipient_email": log.recipient_email,
+                "subject": log.subject,
+                "email_type": log.email_type,
+                "status": log.status,
+                "error_message": log.error_message,
+                "created_at": log.created_at.isoformat() if log.created_at else None,
+            }
+            for log in logs
+        ],
+    }
 
 
 @router.delete("/cohorts/{cohort_id}", response_model=dict)

@@ -29,6 +29,7 @@ def submit_contact(data: ContactCreate, db: Session = Depends(get_db)):
         sender_email=data.email,
         subject=data.subject or "",
         message=data.message,
+        db=db,
     )
 
     return ContactResponse.model_validate(submission)

@@ -80,6 +80,7 @@ def admin_create_partner(
         recipient_name=partner.contact_name,
         organisation_name=partner.organisation_name,
         invite_link=invite_link,
+        db=db,
     )
 
     return PartnerInviteResponse(
