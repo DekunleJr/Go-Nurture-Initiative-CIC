@@ -55,9 +55,11 @@ interface Venue {
   name: string;
   address: string;
   city: string;
-  postcode: string;
+  postcode: string | null;
   capacity: number;
   description: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 interface Cohort {
@@ -229,15 +231,43 @@ export default function AdminDashboard() {
     name: string;
     address: string;
     city: string;
-    postcode: string;
+    postcode: string | null;
     capacity: number;
     description: string;
+    latitude?: number | null;
+    longitude?: number | null;
   }) => {
     const token = localStorage.getItem("access_token");
     if (!token) return;
 
     await fetch(`${API_BASE}api/admin/venues`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(venueData),
+    });
+  };
+
+  const updateVenue = async (
+    venueId: string,
+    venueData: {
+      name: string;
+      address: string;
+      city: string;
+      postcode: string | null;
+      capacity: number;
+      description: string;
+      latitude?: number | null;
+      longitude?: number | null;
+    }
+  ) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    await fetch(`${API_BASE}api/admin/venues/${venueId}`, {
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -369,6 +399,7 @@ export default function AdminDashboard() {
           <VenuesTab
             venues={venues}
             onCreateVenue={createVenue}
+            onUpdateVenue={updateVenue}
             onDeleteVenue={deleteVenue}
             onRefresh={fetchData}
           />

@@ -15,6 +15,7 @@ from app.models.cohort import Cohort
 from app.schemas.referral import ReferralResponse, ReferralStatusUpdate
 from app.schemas.partner import PartnerResponse
 from app.utils.auth import get_current_admin
+from app.services.geocode import geocode_address
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
@@ -226,12 +227,56 @@ def admin_create_venue(
     db: Session = Depends(get_db),
     admin: PartnerOrganisation = Depends(get_current_admin),
 ):
-    """Admin only: Create a new venue."""
+    """Admin only: Create a new venue. Geocodes the address if no coordinates provided."""
+    # If coordinates are missing, try to geocode from the address
+    if not venue_data.get("latitude") or not venue_data.get("longitude"):
+        coords = geocode_address(
+            venue_data.get("address", ""),
+            venue_data.get("city"),
+            venue_data.get("postcode"),
+        )
+        if coords:
+            venue_data["latitude"] = coords["lat"]
+            venue_data["longitude"] = coords["lon"]
+
     venue = Venue(**venue_data)
     db.add(venue)
     db.commit()
     db.refresh(venue)
     return {"message": "Venue created successfully", "venue_id": venue.id}
+
+
+@router.patch("/venues/{venue_id}", response_model=dict)
+def admin_update_venue(
+    venue_id: UUID,
+    venue_data: dict,
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    """Admin only: Update a venue. Geocodes the address if coordinates are not provided."""
+    venue = db.query(Venue).filter(Venue.id == venue_id).first()
+    if not venue:
+        raise HTTPException(status_code=404, detail="Venue not found")
+
+    allowed_fields = {
+        "name", "address", "city", "postcode", "capacity",
+        "description", "latitude", "longitude", "is_active",
+    }
+
+    for key, value in venue_data.items():
+        if key in allowed_fields:
+            setattr(venue, key, value)
+
+    # If coordinates are missing/null after the update, try to geocode from the address
+    if not venue.latitude or not venue.longitude:
+        coords = geocode_address(venue.address, venue.city, venue.postcode)
+        if coords:
+            venue.latitude = coords["lat"]
+            venue.longitude = coords["lon"]
+
+    db.commit()
+    db.refresh(venue)
+    return {"message": "Venue updated successfully", "venue": venue.to_dict()}
 
 
 @router.delete("/venues/{venue_id}", response_model=dict)
