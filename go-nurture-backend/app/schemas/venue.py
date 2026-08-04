@@ -8,7 +8,8 @@ class VenueResponse(BaseModel):
     id: UUID
     name: str
     address: str
-    postcode: str
+    city: str
+    postcode: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     description: Optional[str] = None
@@ -23,7 +24,7 @@ class VenueResponse(BaseModel):
 class VenueCreate(BaseModel):
     name: str
     address: str
-    postcode: str
+    postcode: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     description: Optional[str] = None

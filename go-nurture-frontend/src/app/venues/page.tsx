@@ -1,7 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { MapPin, Navigation } from "lucide-react";
+
+const VenueMap = dynamic(() => import("./VenueMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-full w-full flex items-center justify-center bg-gray-100">
+      <p className="text-gray-600">Loading map...</p>
+    </div>
+  ),
+});
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -10,9 +20,9 @@ interface Venue {
   name: string;
   address: string;
   city: string;
-  postcode: string;
-  latitude: number;
-  longitude: number;
+  postcode: string | null;
+  latitude: number | null;
+  longitude: number | null;
   description: string;
   transport_links: string;
   facilities: string;
@@ -22,7 +32,6 @@ export default function VenuesPage() {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
-
 
   useEffect(() => {
     const loadVenues = async () => {
@@ -42,7 +51,21 @@ export default function VenuesPage() {
       }
     };
     loadVenues();
-    }, []);
+  }, []);
+
+  // Listen for marker clicks on the map
+  useEffect(() => {
+    const handleVenueSelect = (event: Event) => {
+      const customEvent = event as CustomEvent<{ id: string }>;
+      const venue = venues.find((v) => v.id === customEvent.detail.id);
+      if (venue) {
+        setSelectedVenue(venue);
+      }
+    };
+
+    document.addEventListener("venue:select", handleVenueSelect);
+    return () => document.removeEventListener("venue:select", handleVenueSelect);
+  }, [venues]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -112,18 +135,9 @@ export default function VenuesPage() {
             <div className="lg:col-span-2">
               {selectedVenue ? (
                 <div className="space-y-6">
-                  {/* Google Maps Embed */}
-                  <div className="relative h-100 w-full rounded-xl overflow-hidden shadow-lg">
-                    <iframe
-                      title="Venue Map"
-                      src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${selectedVenue.latitude},${selectedVenue.longitude}&zoom=15`}
-                      width="100%"
-                      height="100%"
-                      style={{ border: 0 }}
-                      allowFullScreen
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                    />
+                  {/* Leaflet + OpenStreetMap */}
+                  <div className="relative h-100 w-full rounded-xl overflow-hidden shadow-lg z-0">
+                    <VenueMap venues={venues} selectedVenue={selectedVenue} />
                   </div>
 
                   {/* Venue Details */}

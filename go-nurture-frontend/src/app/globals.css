@@ -120,3 +120,35 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Leaflet venue markers */
+.venue-marker {
+  background: transparent;
+  border: none;
+}
+
+.venue-marker-pin {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--color-accent);
+  border: 2px solid #fff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+  color: #fff;
+  transition: transform 0.2s ease;
+}
+
+.venue-marker-pin svg {
+  transform: rotate(45deg);
+}
+
+.venue-marker-pin--selected {
+  background: var(--color-primary);
+  transform: rotate(-45deg) scale(1.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  z-index: 1000;
+}

@@ -15,7 +15,7 @@ class Venue(Base):
     name = Column(String(255), nullable=False)
     address = Column(String(500), nullable=False)
     city = Column(String(100), nullable=False)
-    postcode = Column(String(20), nullable=False)
+    postcode = Column(String(20), nullable=True)
     capacity = Column(Integer, nullable=True)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)

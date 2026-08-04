@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, Pencil } from "lucide-react";
 import toast from "react-hot-toast";
+import Pagination from "./Pagination";
 
 interface Partner {
   id: string;
@@ -48,6 +49,13 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
   const [phone, setPhone] = useState("");
   const [orgType, setOrgType] = useState("referral");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [page, setPage] = useState(1);
+
+  const PAGE_SIZE = 10;
+  const totalPages = Math.max(1, Math.ceil(partners.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const visiblePartners = partners.slice(start, start + PAGE_SIZE);
 
   const resetForm = () => {
     setOrgName("");
@@ -216,7 +224,7 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {partners.map((partner) => (
+            {visiblePartners.map((partner) => (
               <tr key={partner.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm font-medium text-gray-900">{partner.organisation_name}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{partner.contact_name}</td>
@@ -264,6 +272,8 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
           </tbody>
         </table>
       </div>
+
+      <Pagination page={currentPage} pageSize={PAGE_SIZE} total={partners.length} onPageChange={setPage} />
     </div>
   );
 }

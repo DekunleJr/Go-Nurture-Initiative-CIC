@@ -1,4 +1,4 @@
-import { Users, FileText, Heart, Mail, MapPin, Calendar} from "lucide-react";
+import { Users, FileText, Heart, Mail, MapPin, Calendar } from "lucide-react";
 
 interface Stats {
   total_partners: number;
@@ -123,16 +123,25 @@ export default function OverviewTab({ stats }: { stats: Stats | null }) {
           <h3 className="font-heading text-xl font-bold text-gray-900 mb-4">
             Referrals by Status
           </h3>
-          <div className="flex gap-4">
-            {Object.entries(stats.referrals_by_status).map(([status, count]) => (
-              <div
-                key={status}
-                className="flex items-center gap-2 rounded-lg bg-gray-50 px-4 py-2"
-              >
-                <span className="text-sm text-gray-600">{status}</span>
-                <span className="font-bold text-gray-900">{count}</span>
-              </div>
-            ))}
+          <div className="flex flex-wrap gap-4">
+            {Object.entries(stats.referrals_by_status).map(([status, count]) => {
+              const colorMap: Record<string, string> = {
+                pending: "bg-yellow-50 text-yellow-700",
+                approved: "bg-green-50 text-green-700",
+                rejected: "bg-red-50 text-red-700",
+                completed: "bg-blue-50 text-blue-700",
+              };
+              const cls = colorMap[status] || "bg-gray-100 text-gray-700";
+              return (
+                <div
+                  key={status}
+                  className={`flex items-center gap-2 rounded-lg px-4 py-2 ${cls}`}
+                >
+                  <span className="text-sm font-medium capitalize">{status}</span>
+                  <span className="font-bold">{count}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
