@@ -10,6 +10,8 @@ import ReferralsTab from "./components/ReferralsTab";
 import PartnersTab from "./components/PartnersTab";
 import VenuesTab from "./components/VenuesTab";
 import CohortsTab from "./components/CohortsTab";
+import DonationsTab from "./components/DonationsTab";
+import ContactsTab from "./components/ContactsTab";
 
 const API_BASE = "/";
 
@@ -34,6 +36,10 @@ interface Referral {
   estimated_due_date: string;
   status: string;
   partner_id: string;
+  partner_name: string | null;
+  cohort_id: string | null;
+  cohort_name: string | null;
+  venue_name: string | null;
   created_at: string;
 }
 
@@ -70,9 +76,43 @@ interface Cohort {
   end_date: string;
   max_participants: number;
   venue_name: string;
+  venue_id: string | null;
+  venue_address: string | null;
+  venue_city: string | null;
+  members: {
+    id: string;
+    mother_name: string;
+    mother_phone: string;
+    estimated_due_date: string | null;
+    status: string;
+    language_requirement: string | null;
+    requires_interpreter: boolean;
+    created_at: string | null;
+  }[];
 }
 
-type Tab = "overview" | "referrals" | "partners" | "venues" | "cohorts";
+interface Donation {
+  id: string;
+  amount: number;
+  currency: string;
+  donor_name: string | null;
+  donor_email: string | null;
+  message: string | null;
+  is_anonymous: boolean;
+  status: string;
+  created_at: string;
+}
+
+interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  subject: string | null;
+  message: string;
+  created_at: string;
+}
+
+type Tab = "overview" | "referrals" | "partners" | "venues" | "cohorts" | "donations" | "contacts";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -82,6 +122,9 @@ export default function AdminDashboard() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [venues, setVenues] = useState<Venue[]>([]);
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
+  const [donations, setDonations] = useState<Donation[]>([]);
+  const [donationTotal, setDonationTotal] = useState(0);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [isAdmin, setIsAdmin] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -105,7 +148,7 @@ export default function AdminDashboard() {
     setRefreshing(true);
 
     try {
-      const [statsRes, referralsRes, partnersRes, venuesRes, cohortsRes] = await Promise.all([
+      const [statsRes, referralsRes, partnersRes, venuesRes, cohortsRes, donationsRes, contactsRes] = await Promise.all([
         fetch(`${API_BASE}api/admin/stats`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
@@ -121,6 +164,12 @@ export default function AdminDashboard() {
         fetch(`${API_BASE}api/admin/cohorts`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
+        fetch(`${API_BASE}api/admin/donations`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_BASE}api/admin/contacts`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
 
       if (statsRes.ok) setStats(await statsRes.json());
@@ -128,6 +177,12 @@ export default function AdminDashboard() {
       if (partnersRes.ok) setPartners(await partnersRes.json());
       if (venuesRes.ok) setVenues(await venuesRes.json());
       if (cohortsRes.ok) setCohorts(await cohortsRes.json());
+      if (donationsRes.ok) {
+        const data = await donationsRes.json();
+        setDonations(data.donations || []);
+        setDonationTotal(data.total_amount || 0);
+      }
+      if (contactsRes.ok) setContacts((await contactsRes.json()).contacts || []);
     } catch (error) {
       console.error("Error fetching admin data:", error);
       toast.error("Failed to load dashboard data");
@@ -307,6 +362,40 @@ export default function AdminDashboard() {
     });
   };
 
+  const updateCohort = async (
+    cohortId: string,
+    cohortData: {
+      name: string;
+      year: number;
+      start_date: string;
+      end_date: string;
+      max_participants: number;
+      venue_id: string;
+    }
+  ) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    await fetch(`${API_BASE}api/admin/cohorts/${cohortId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(cohortData),
+    });
+  };
+
+  const deleteCohort = async (cohortId: string) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    await fetch(`${API_BASE}api/admin/cohorts/${cohortId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -354,6 +443,8 @@ export default function AdminDashboard() {
               { id: "partners", label: "Partners" },
               { id: "venues", label: "Venues" },
               { id: "cohorts", label: "Cohorts" },
+              { id: "donations", label: "Donations" },
+              { id: "contacts", label: "Contacts" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -410,8 +501,18 @@ export default function AdminDashboard() {
             cohorts={cohorts}
             venues={venues}
             onCreateCohort={createCohort}
+            onUpdateCohort={updateCohort}
+            onDeleteCohort={deleteCohort}
             onRefresh={fetchData}
           />
+        )}
+
+        {activeTab === "donations" && (
+          <DonationsTab donations={donations} totalAmount={donationTotal} />
+        )}
+
+        {activeTab === "contacts" && (
+          <ContactsTab contacts={contacts} />
         )}
       </div>
     </div>

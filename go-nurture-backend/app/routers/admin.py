@@ -14,6 +14,8 @@ from app.models.venue import Venue
 from app.models.cohort import Cohort
 from app.schemas.referral import ReferralResponse, ReferralStatusUpdate
 from app.schemas.partner import PartnerResponse
+from app.schemas.donation import DonationResponse
+from app.schemas.contact import ContactResponse
 from app.utils.auth import get_current_admin
 from app.services.geocode import geocode_address
 
@@ -40,11 +42,32 @@ def admin_get_all_referrals(
     total = query.count()
     referrals = query.order_by(Referral.created_at.desc()).offset(skip).limit(limit).all()
 
+    enriched = []
+    for r in referrals:
+        data = ReferralResponse.model_validate(r).model_dump(mode="json")
+        # partner name
+        partner = db.query(PartnerOrganisation).filter(PartnerOrganisation.id == r.partner_id).first()
+        data["partner_name"] = partner.organisation_name if partner else None
+        # cohort name
+        if r.cohort_id:
+            cohort = db.query(Cohort).filter(Cohort.id == r.cohort_id).first()
+            data["cohort_name"] = cohort.name if cohort else None
+            # venue name via cohort
+            if cohort and cohort.venue_id:
+                venue = db.query(Venue).filter(Venue.id == cohort.venue_id).first()
+                data["venue_name"] = venue.name if venue else None
+            else:
+                data["venue_name"] = None
+        else:
+            data["cohort_name"] = None
+            data["venue_name"] = None
+        enriched.append(data)
+
     return {
         "total": total,
         "skip": skip,
         "limit": limit,
-    "referrals": [ReferralResponse.model_validate(r) for r in referrals],
+        "referrals": enriched,
     }
 
 
@@ -87,7 +110,7 @@ def admin_get_all_contacts(
         "total": total,
         "skip": skip,
         "limit": limit,
-        "contacts": [c.to_dict() for c in contacts],
+        "contacts": [ContactResponse.model_validate(c) for c in contacts],
     }
 
 
@@ -108,7 +131,7 @@ def admin_get_all_donations(
         "total_amount": total_amount,
         "skip": skip,
         "limit": limit,
-        "donations": [d.to_dict() for d in donations],
+        "donations": [DonationResponse.model_validate(d) for d in donations],
     }
 
 
@@ -299,9 +322,46 @@ def admin_get_all_cohorts(
     db: Session = Depends(get_db),
     admin: PartnerOrganisation = Depends(get_current_admin),
 ):
-    """Admin only: Get all cohorts."""
+    """Admin only: Get all cohorts with venue details and assigned referrals."""
     cohorts = db.query(Cohort).order_by(Cohort.start_date.desc()).all()
-    return [c.to_dict() for c in cohorts]
+    result = []
+    for cohort in cohorts:
+        data = cohort.to_dict()
+
+        # Attach venue name, address, and city
+        if cohort.venue_id:
+            venue = db.query(Venue).filter(Venue.id == cohort.venue_id).first()
+            data["venue_name"] = venue.name if venue else None
+            data["venue_address"] = venue.address if venue else None
+            data["venue_city"] = venue.city if venue else None
+        else:
+            data["venue_name"] = None
+            data["venue_address"] = None
+            data["venue_city"] = None
+
+        # Attach the referrals (people) assigned to this cohort
+        referrals = (
+            db.query(Referral)
+            .filter(Referral.cohort_id == cohort.id)
+            .order_by(Referral.created_at.desc())
+            .all()
+        )
+        data["members"] = [
+            {
+                "id": str(r.id),
+                "mother_name": r.mother_name,
+                "mother_phone": r.mother_phone,
+                "estimated_due_date": r.estimated_due_date.isoformat() if r.estimated_due_date else None,
+                "status": r.status,
+                "language_requirement": r.language_requirement,
+                "requires_interpreter": r.requires_interpreter,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in referrals
+        ]
+
+        result.append(data)
+    return result
 
 
 @router.post("/cohorts", response_model=dict)
@@ -316,3 +376,44 @@ def admin_create_cohort(
     db.commit()
     db.refresh(cohort)
     return {"message": "Cohort created successfully", "cohort_id": cohort.id}
+
+
+@router.patch("/cohorts/{cohort_id}", response_model=dict)
+def admin_update_cohort(
+    cohort_id: UUID,
+    cohort_data: dict,
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    """Admin only: Update a cohort."""
+    cohort = db.query(Cohort).filter(Cohort.id == cohort_id).first()
+    if not cohort:
+        raise HTTPException(status_code=404, detail="Cohort not found")
+
+    allowed_fields = {
+        "name", "year", "start_date", "end_date",
+        "max_participants", "is_active", "description", "venue_id",
+    }
+
+    for key, value in cohort_data.items():
+        if key in allowed_fields:
+            setattr(cohort, key, value)
+
+    db.commit()
+    db.refresh(cohort)
+    return {"message": "Cohort updated successfully", "cohort": cohort.to_dict()}
+
+
+@router.delete("/cohorts/{cohort_id}", response_model=dict)
+def admin_delete_cohort(
+    cohort_id: UUID,
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    """Admin only: Delete a cohort."""
+    cohort = db.query(Cohort).filter(Cohort.id == cohort_id).first()
+    if not cohort:
+        raise HTTPException(status_code=404, detail="Cohort not found")
+    db.delete(cohort)
+    db.commit()
+    return {"message": "Cohort deleted successfully", "cohort_id": str(cohort_id)}

@@ -1,7 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Filter, X } from "lucide-react";
+import { Search, Filter, X, FileText } from "lucide-react";
+import Pagination from "./Pagination";
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+      <FileText size={48} className="mb-3 opacity-40" />
+      <p className="text-sm">{message}</p>
+    </div>
+  );
+}
 
 interface Referral {
   id: string;
@@ -10,6 +20,10 @@ interface Referral {
   estimated_due_date: string;
   status: string;
   partner_id: string;
+  partner_name: string | null;
+  cohort_id: string | null;
+  cohort_name: string | null;
+  venue_name: string | null;
   created_at: string;
 }
 
@@ -30,6 +44,7 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onRef
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedReferral, setSelectedReferral] = useState<Referral | null>(null);
   const [selectedCohortId, setSelectedCohortId] = useState<string>("");
+  const [page, setPage] = useState(1);
 
   const filteredReferrals = referrals.filter((referral) => {
     const matchesSearch =
@@ -38,6 +53,12 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onRef
     const matchesStatus = statusFilter === "all" || referral.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const PAGE_SIZE = 10;
+  const totalPages = Math.max(1, Math.ceil(filteredReferrals.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const visibleReferrals = filteredReferrals.slice(start, start + PAGE_SIZE);
 
   const handleUpdateStatus = async (referralId: string, status: string, cohortId?: string) => {
     await onUpdateStatus(referralId, status, cohortId);
@@ -86,6 +107,9 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onRef
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mother</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created By</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cohort</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Venue</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted</th>
@@ -93,14 +117,14 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onRef
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {filteredReferrals.length === 0 ? (
+            {visibleReferrals.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                  No referrals found
+                <td colSpan={9} className="px-6">
+                  <EmptyState message="No referrals found" />
                 </td>
               </tr>
             ) : (
-              filteredReferrals.map((referral) => (
+              visibleReferrals.map((referral) => (
                 <tr key={referral.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     {referral.mother_name}
@@ -109,10 +133,27 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onRef
                     {referral.mother_phone}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
+                    {referral.partner_name || "-"}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {referral.cohort_name || "-"}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {referral.venue_name || "-"}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
                     {new Date(referral.estimated_due_date).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4">
-                    <span className="inline-flex rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
+                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                      referral.status === "rejected"
+                        ? "bg-red-50 text-red-700"
+                        : referral.status === "approved"
+                          ? "bg-green-50 text-green-700"
+                          : referral.status === "pending"
+                            ? "bg-yellow-50 text-yellow-700"
+                            : "bg-gray-100 text-gray-700"
+                    }`}>
                       {referral.status}
                     </span>
                   </td>
@@ -137,6 +178,8 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onRef
         </table>
       </div>
 
+      <Pagination page={currentPage} pageSize={PAGE_SIZE} total={filteredReferrals.length} onPageChange={setPage} />
+
       {/* Assign/Review Modal */}
       {selectedReferral && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -147,7 +190,7 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onRef
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <p className="text-sm text-gray-600">Mother Name</p>
@@ -165,7 +208,15 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onRef
               </div>
               <div>
                 <p className="text-sm text-gray-600">Current Status</p>
-                <span className="inline-flex rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
+                <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                  selectedReferral.status === "rejected"
+                    ? "bg-red-50 text-red-700"
+                    : selectedReferral.status === "approved"
+                      ? "bg-green-50 text-green-700"
+                      : selectedReferral.status === "pending"
+                        ? "bg-yellow-50 text-yellow-700"
+                        : "bg-gray-100 text-gray-700"
+                }`}>
                   {selectedReferral.status}
                 </span>
               </div>
