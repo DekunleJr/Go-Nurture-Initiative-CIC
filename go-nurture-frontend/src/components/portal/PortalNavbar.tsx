@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { LogOut, Menu, X, Shield } from "lucide-react";
 import { SITE_CONFIG } from "@/lib/constants";
 import { useLocalStorage } from "@/lib/useLocalStorage";
@@ -16,6 +17,8 @@ interface PartnerData {
 export function PortalNavbar() {
   const partner = useLocalStorage<PartnerData>("partner");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+  const isAdminPage = pathname.startsWith("/admin");
 
   const handleLogout = () => {
     if (typeof window === "undefined") return;
@@ -50,11 +53,11 @@ export function PortalNavbar() {
           )}
           {partner && partner.is_admin && (
             <Link
-              href="/admin/dashboard"
+              href={isAdminPage ? "/portal/dashboard" : "/admin/dashboard"}
               className="inline-flex items-center gap-1.5 rounded-lg bg-(--color-accent) px-4 py-2 text-sm font-medium text-white hover:bg-(--color-accent)/90 transition-colors"
             >
               <Shield size={16} />
-              Admin
+              {isAdminPage ? "Portal" : "Admin"}
             </Link>
           )}
           {partner && (
@@ -89,11 +92,11 @@ export function PortalNavbar() {
             )}
             {partner && partner.is_admin && (
               <Link
-                href="/admin/dashboard"
+                href={isAdminPage ? "/portal/dashboard" : "/admin/dashboard"}
                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-(--color-accent) hover:bg-gray-50 transition-colors"
               >
                 <Shield size={18} />
-                Admin Dashboard
+                {isAdminPage ? "Portal" : "Admin Dashboard"}
               </Link>
             )}
             {partner && (

@@ -6,6 +6,7 @@ import { Plus, FileText } from "lucide-react";
 import toast from "react-hot-toast";
 import { PortalNavbar } from "@/components/portal/PortalNavbar";
 import { useLocalStorage } from "@/lib/useLocalStorage";
+import Pagination from "../../admin/dashboard/components/Pagination";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -14,7 +15,11 @@ interface Referral {
   mother_name: string;
   mother_phone: string;
   estimated_due_date: string;
+  language_requirement: string | null;
+  requires_interpreter: boolean;
   status: string;
+  cohort_name: string | null;
+  venue_name: string | null;
   created_at: string;
 }
 
@@ -27,11 +32,12 @@ export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [page, setPage] = useState(1);
   const partner = useLocalStorage<PartnerData>("partner");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    
+
     const token = localStorage.getItem("access_token");
     if (!token) {
       router.push("/portal/login");
@@ -66,10 +72,16 @@ export default function DashboardPage() {
     };
   }, [router]);
 
+  const PAGE_SIZE = 10;
+  const totalPages = Math.max(1, Math.ceil(referrals.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const visibleReferrals = referrals.slice(start, start + PAGE_SIZE);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <PortalNavbar />
-      <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="font-heading text-4xl font-bold text-(--color-primary)">
             Partner Dashboard
@@ -106,50 +118,89 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="overflow-hidden rounded-xl border border-(--color-border) bg-white">
-            <table className="min-w-full divide-y divide-(--color-border)">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Mother
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Phone
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Due Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Submitted
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-(--color-border)">
-                {referrals.map((referral) => (
-                  <tr key={referral.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm font-medium text-foreground">
-                      {referral.mother_name}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-(--color-text-muted)">
-                      {referral.mother_phone}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-(--color-text-muted)">
-                      {new Date(referral.estimated_due_date).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
-                        {referral.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-(--color-text-muted)">
-                      {new Date(referral.created_at).toLocaleDateString()}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-(--color-border)">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Mother
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Phone
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Due Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Language
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Interpreter
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Cohort
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Venue
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Submitted
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-(--color-border)">
+                  {visibleReferrals.map((referral) => (
+                    <tr key={referral.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm font-medium text-foreground">
+                        {referral.mother_name}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-(--color-text-muted)">
+                        {referral.mother_phone}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-(--color-text-muted)">
+                        {new Date(referral.estimated_due_date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-(--color-text-muted)">
+                        {referral.language_requirement || "-"}
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        {referral.requires_interpreter ? (
+                          <span className="inline-flex rounded-full bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700">Yes</span>
+                        ) : (
+                          <span className="text-(--color-text-muted)">No</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-(--color-text-muted)">
+                        {referral.cohort_name || "-"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-(--color-text-muted)">
+                        {referral.venue_name || "-"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                          referral.status === "rejected"
+                            ? "bg-red-50 text-red-700"
+                            : referral.status === "approved"
+                              ? "bg-green-50 text-green-700"
+                              : referral.status === "pending"
+                                ? "bg-yellow-50 text-yellow-700"
+                                : "bg-gray-100 text-gray-700"
+                        }`}>
+                          {referral.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-(--color-text-muted)">
+                        {new Date(referral.created_at).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Pagination page={currentPage} pageSize={PAGE_SIZE} total={referrals.length} onPageChange={setPage} />
           </div>
         )}
       </div>

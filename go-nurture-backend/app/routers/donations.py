@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from app.database.session import get_db
 from app.models.donation import Donation, DonationStatus
 from app.schemas.donation import DonationCreate, DonationResponse, PaymentIntentResponse
+from app.services.email import send_donation_notification_email
 
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"))
 
@@ -103,6 +104,17 @@ def confirm_donation(donation_id: str, db: Session = Depends(get_db)):
     donation.status = DonationStatus.COMPLETED
     db.commit()
     logger.info(f"[Donation] Confirmed donation {donation_id} (amount: {donation.amount} {donation.currency})")
+
+    # Send admin notification email
+    send_donation_notification_email(
+        donor_name=donation.donor_name,
+        donor_email=donation.donor_email,
+        amount=donation.amount,
+        currency=donation.currency,
+        is_anonymous=donation.is_anonymous,
+        message=donation.message,
+    )
+
     return {"message": "Donation confirmed successfully"}
 
 
@@ -148,4 +160,15 @@ def create_donation(data: DonationCreate, db: Session = Depends(get_db)):
     db.add(donation)
     db.commit()
     db.refresh(donation)
+
+    # Send admin notification email
+    send_donation_notification_email(
+        donor_name=donation.donor_name,
+        donor_email=donation.donor_email,
+        amount=donation.amount,
+        currency=donation.currency,
+        is_anonymous=donation.is_anonymous,
+        message=donation.message,
+    )
+
     return DonationResponse.model_validate(donation)
