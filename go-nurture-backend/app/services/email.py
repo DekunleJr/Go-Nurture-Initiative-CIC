@@ -10,17 +10,22 @@ load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file_
 
 def log_email(db: Session, recipient_email: str, subject: str, body: str, email_type: str, status: str, error_message: str | None = None):
     """Helper to log email to database."""
-    log = EmailLog(
-        recipient_email=recipient_email,
-        subject=subject,
-        body=body,
-        email_type=email_type,
-        status=status,
-        error_message=error_message,
-        created_at=datetime.now(timezone.utc),
-    )
-    db.add(log)
-    db.commit()
+    try:
+        log = EmailLog(
+            recipient_email=recipient_email,
+            subject=subject,
+            body=body,
+            email_type=email_type,
+            status=status,
+            error_message=error_message,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(log)
+        db.commit()
+    except Exception as e:
+        # If the email_logs table doesn't exist or any DB error occurs,
+        # don't crash the request — just log to console.
+        print(f"[EmailLog] Failed to log email: {e}")
 
 
 def send_invite_email(
