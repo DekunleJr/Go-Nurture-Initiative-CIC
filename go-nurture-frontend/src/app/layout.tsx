@@ -50,8 +50,8 @@ export const metadata: Metadata = {
   authors: [{ name: SITE_CONFIG.name }],
   creator: SITE_CONFIG.name,
   icons: {
-    icon: "/LOGO_v1.png",
-    apple: "/LOGO_v1.png",
+    icon: "/favicon.png",
+    apple: "/favicon.png",
   },
   openGraph: {
     type: "website",

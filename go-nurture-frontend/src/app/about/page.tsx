@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Heart, Users, Globe, Shield } from "lucide-react";
+import { ArrowRight, Heart, Users, Globe, Shield, Sprout } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/lib/LanguageContext";
 
@@ -40,7 +40,7 @@ export default function AboutPage() {
             <div className="relative h-100 rounded-2xl overflow-hidden shadow-lg">
               <Image
                 src="/hero_3.jfif"
-                alt="Community support"
+                alt={t("about.missionImageAlt")}
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -58,10 +58,10 @@ export default function AboutPage() {
               </p>
               <div className="mt-8 grid grid-cols-2 gap-4">
                 {[
-                  { icon: <Heart size={22} />, text: "Asset-Locked CIC" },
-                  { icon: <Shield size={22} />, text: "Referral-Only Access" },
-                  { icon: <Globe size={22} />, text: "Multiple Languages" },
-                  { icon: <Users size={22} />, text: "Norfolk-Based" },
+                  { icon: <Heart size={22} />, text: t("about.value1") },
+                  { icon: <Shield size={22} />, text: t("about.value2") },
+                  { icon: <Globe size={22} />, text: t("about.value3") },
+                  { icon: <Users size={22} />, text: t("about.value4") },
                 ].map((item) => (
                   <div key={item.text} className="flex items-center gap-3 rounded-xl bg-(--color-bg-sage) p-4">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--color-accent)/10 text-(--color-accent)">
@@ -86,20 +86,59 @@ export default function AboutPage() {
             <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl mb-6">
               {t("about.valuesTitle")}
             </h2>
+            <p className="text-lg text-(--color-text-muted) leading-relaxed">
+              {t("about.valuesIntro")}
+            </p>
           </div>
 
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-16 grid gap-8 lg:grid-cols-3">
             {[
-              { icon: <Heart size={22} />, text: t("about.value1") },
-              { icon: <Shield size={22} />, text: t("about.value2") },
-              { icon: <Globe size={22} />, text: t("about.value3") },
-              { icon: <Users size={22} />, text: t("about.value4") },
+              {
+                icon: <Heart size={24} />,
+                title: t("about.faithTitle"),
+                core: t("about.faithCore"),
+                cicContext: t("about.faithCicContext"),
+              },
+              {
+                icon: <Sprout size={24} />,
+                title: t("about.growthTitle"),
+                core: t("about.growthCore"),
+                cicContext: t("about.growthCicContext"),
+              },
+              {
+                icon: <Users size={24} />,
+                title: t("about.relationshipsTitle"),
+                core: t("about.relationshipsCore"),
+                cicContext: t("about.relationshipsCicContext"),
+              },
             ].map((item) => (
-              <div key={item.text} className="flex items-center gap-4 rounded-2xl bg-white p-6 shadow-sm">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-(--color-accent)/10 text-(--color-accent)">
-                  {item.icon}
+              <div key={item.title} className="flex flex-col rounded-2xl bg-white p-8 shadow-sm">
+                <div className="mb-6 flex items-center gap-4">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-(--color-accent)/10 text-(--color-accent)">
+                    {item.icon}
+                  </div>
+                  <h3 className="font-heading text-2xl font-bold text-(--color-primary)">
+                    {item.title}
+                  </h3>
                 </div>
-                <span className="text-base font-semibold text-(--color-primary)">{item.text}</span>
+                <div className="space-y-6">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent)">
+                      {t("about.coreLabel")}
+                    </p>
+                    <p className="mt-2 text-(--color-text-muted) leading-relaxed">
+                      {item.core}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent)">
+                      {t("about.cicContextLabel")}
+                    </p>
+                    <p className="mt-2 text-(--color-text-muted) leading-relaxed">
+                      {item.cicContext}
+                    </p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -139,7 +178,7 @@ export default function AboutPage() {
             <div className="relative h-100 rounded-2xl overflow-hidden shadow-lg">
               <Image
                 src="/hero_2.jfif"
-                alt="Mothers and community"
+                alt={t("about.pilotImageAlt")}
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"
