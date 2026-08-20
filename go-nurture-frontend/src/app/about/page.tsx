@@ -205,6 +205,93 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* Meet the Team */}
+      <section className="py-20 bg-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent) mb-3">
+              {t("about.teamLabel")}
+            </p>
+            <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl mb-6">
+              {t("about.teamTitle")}
+            </h2>
+          </div>
+
+          <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                name: t("about.member1Name"),
+                role: t("about.member1Role"),
+                bio: t("about.member1Bio"),
+                image: t("about.member1Image"),
+              },
+              {
+                name: t("about.member2Name"),
+                role: t("about.member2Role"),
+                bio: t("about.member2Bio"),
+                image: t("about.member2Image"),
+              },
+              {
+                name: t("about.member3Name"),
+                role: t("about.member3Role"),
+                bio: t("about.member3Bio"),
+                image: t("about.member3Image"),
+              },
+              {
+                name: t("about.member4Name"),
+                role: t("about.member4Role"),
+                bio: t("about.member4Bio"),
+                image: t("about.member4Image"),
+              },
+              {
+                name: t("about.member5Name"),
+                role: t("about.member5Role"),
+                bio: t("about.member5Bio"),
+                image: t("about.member5Image"),
+              },
+              {
+                name: t("about.member6Name"),
+                role: t("about.member6Role"),
+                bio: t("about.member6Bio"),
+                image: t("about.member6Image"),
+              },
+            ].map((member) => (
+              <div
+                key={member.name}
+                className="flex flex-col overflow-hidden rounded-2xl bg-(--color-bg-sage) shadow-sm transition-shadow hover:shadow-md"
+              >
+                <div className="relative h-96 w-full overflow-hidden">
+                  <Image
+                    src={member.image}
+                    alt={member.name}
+                    fill
+                    className="object-cover object-top"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
+                </div>
+                <div className="flex flex-1 flex-col p-6">
+                  <h3 className="font-heading text-xl font-bold text-(--color-primary)">
+                    {member.name}
+                  </h3>
+                  <p className="mt-1 text-sm font-semibold uppercase tracking-widest text-(--color-accent)">
+                    {member.role}
+                  </p>
+                  <p className="mt-4 text-sm text-(--color-text-muted) leading-relaxed">
+                    {member.bio}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-16 mx-auto max-w-3xl text-center">
+            <blockquote className="font-heading text-2xl font-bold text-(--color-primary) sm:text-3xl leading-relaxed">
+              &ldquo;{t("about.teamQuote")}&rdquo;
+            </blockquote>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-20 bg-white">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">

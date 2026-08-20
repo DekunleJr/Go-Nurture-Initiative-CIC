@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 
 // Import all translation files
 import en from "@/lib/translations/en.json";
@@ -39,17 +39,28 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-function getInitialLanguage(): string {
-  if (typeof window !== "undefined") {
-    const saved = localStorage.getItem("go-nurture-lang");
-    if (saved && translations[saved]) return saved;
-  }
-  return "en";
-}
+// function getInitialLanguage(): string {
+//   // Always start with English on both server and client to avoid hydration mismatch.
+//   // The saved language is read in useEffect after hydration.
+//   return "en";
+// }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [currentLang, setCurrentLang] = useState(getInitialLanguage);
-  const [isRTL, setIsRTL] = useState(() => RTL_LANGUAGES.includes(getInitialLanguage()));
+  const [currentLang, setCurrentLang] = useState("en");
+  const [isRTL, setIsRTL] = useState(false);
+
+  // After hydration, load the saved language preference from localStorage
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = localStorage.getItem("go-nurture-lang");
+    if (!saved || !translations[saved]) return;
+    // Defer state update to avoid cascading renders within the effect
+    const id = window.setTimeout(() => {
+      setCurrentLang(saved);
+      setIsRTL(RTL_LANGUAGES.includes(saved));
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
 
   const setLanguage = useCallback((code: string) => {
     if (translations[code]) {
