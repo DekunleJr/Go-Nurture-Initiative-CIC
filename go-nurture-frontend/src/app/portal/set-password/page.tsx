@@ -11,6 +11,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 function SetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
+  const isReset = searchParams.get("reset") === "true";
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -44,14 +45,14 @@ function SetPasswordForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.detail || "Failed to set password");
+        throw new Error(data.detail || (isReset ? "Failed to reset password" : "Failed to set password"));
       }
 
       if (typeof window !== "undefined") {
         localStorage.setItem("access_token", data.access_token);
         localStorage.setItem("partner", JSON.stringify(data.partner));
       }
-      toast.success("Password set! Redirecting to dashboard...");
+      toast.success(isReset ? "Password updated! Redirecting to dashboard..." : "Password set! Redirecting to dashboard...");
       setSuccess(true);
       setTimeout(() => {
         window.location.href = "/portal/dashboard";
@@ -70,9 +71,19 @@ function SetPasswordForm() {
         <div className="mx-auto max-w-md px-4 py-16 sm:px-6 lg:px-8">
           <div className="rounded-xl border border-red-200 bg-red-50 p-8 text-center">
             <AlertCircle size={48} className="mx-auto text-red-600 mb-4" />
-            <h1 className="font-heading text-2xl font-bold text-red-900">Invalid Invitation</h1>
-            <p className="mt-2 text-red-700">This password setup link is invalid or has expired.</p>
-            <p className="mt-4 text-sm text-red-600">Please contact the Go Nurture team for a new invitation.</p>
+            <h1 className="font-heading text-2xl font-bold text-red-900">
+              {isReset ? "Invalid Reset Link" : "Invalid Invitation"}
+            </h1>
+            <p className="mt-2 text-red-700">
+              This {isReset ? "password reset" : "password setup"} link is invalid or has expired.
+            </p>
+            <p className="mt-4 text-sm text-red-600">
+              Please{" "}
+              <a href="/portal/forgot-password" className="underline font-medium">
+                request a new reset link
+              </a>{" "}
+              or contact the Go Nurture team.
+            </p>
           </div>
         </div>
       </div>
@@ -86,7 +97,9 @@ function SetPasswordForm() {
         <div className="mx-auto max-w-md px-4 py-16 sm:px-6 lg:px-8">
           <div className="rounded-xl border border-green-200 bg-green-50 p-8 text-center">
             <CheckCircle size={48} className="mx-auto text-green-600 mb-4" />
-            <h1 className="font-heading text-2xl font-bold text-green-900">Password Set!</h1>
+            <h1 className="font-heading text-2xl font-bold text-green-900">
+              {isReset ? "Password Updated!" : "Password Set!"}
+            </h1>
             <p className="mt-2 text-green-700">Redirecting you to your dashboard...</p>
           </div>
         </div>
@@ -100,10 +113,12 @@ function SetPasswordForm() {
       <div className="mx-auto max-w-md px-4 py-16 sm:px-6 lg:px-8">
         <div className="rounded-xl border border-(--color-border) bg-white p-8 shadow-sm">
           <h1 className="font-heading text-3xl font-bold text-(--color-primary)">
-            Set Your Password
+            {isReset ? "Choose a New Password" : "Set Your Password"}
           </h1>
           <p className="mt-2 text-sm text-(--color-text-muted)">
-            Create a password to access the partner portal.
+            {isReset
+              ? "Enter a new password for your partner portal account."
+              : "Create a password to access the partner portal."}
           </p>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -164,7 +179,7 @@ function SetPasswordForm() {
               className="w-full rounded-lg bg-(--color-primary) px-6 py-3 text-white hover:bg-(--color-primary)/90 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading && <Loader2 size={18} className="animate-spin" />}
-              Set Password & Continue
+              {isReset ? "Update Password & Continue" : "Set Password & Continue"}
             </button>
           </form>
         </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import { SITE_CONFIG } from "@/lib/constants";
@@ -103,6 +104,15 @@ export default function LoginPage() {
               Sign In
             </button>
           </form>
+
+          <p className="mt-4 text-center text-sm">
+            <Link
+              href="/portal/forgot-password"
+              className="text-(--color-accent) hover:text-(--color-accent-dark) font-medium"
+            >
+              Forgot your password?
+            </Link>
+          </p>
 
           <p className="mt-4 text-center text-xs text-(--color-text-muted)">
             {SITE_CONFIG.name} Partner Portal

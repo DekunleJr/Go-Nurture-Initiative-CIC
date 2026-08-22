@@ -298,6 +298,29 @@ export default function AdminDashboard() {
     });
   };
 
+  const resendInvite = async (partnerId: string) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_BASE}api/auth/admin/resend-invite/${partnerId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || "Failed to resend invite");
+      }
+
+      toast.success("Invitation email resent successfully");
+    } catch (error) {
+      toast.error("Failed to resend invite" + (error instanceof Error ? `: ${error.message}` : ""));
+      throw error;
+    }
+  };
+
   const createVenue = async (venueData: {
     name: string;
     address: string;
@@ -579,6 +602,7 @@ export default function AdminDashboard() {
             onDeactivate={deactivatePartner}
             onCreatePartner={createPartner}
             onUpdatePartner={updatePartner}
+            onResendInvite={resendInvite}
             onRefresh={fetchData}
           />
         )}

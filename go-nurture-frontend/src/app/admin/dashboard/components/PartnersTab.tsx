@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Pencil } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Pencil, Mail, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import Pagination from "./Pagination";
 
@@ -36,10 +36,11 @@ interface PartnersTabProps {
     organisation_type?: string;
     is_admin?: boolean;
   }) => Promise<void>;
+  onResendInvite: (partnerId: string) => Promise<void>;
   onRefresh: () => void;
 }
 
-export default function PartnersTab({ partners, onActivate, onDeactivate, onCreatePartner, onUpdatePartner, onRefresh }: PartnersTabProps) {
+export default function PartnersTab({ partners, onActivate, onDeactivate, onCreatePartner, onUpdatePartner, onResendInvite, onRefresh }: PartnersTabProps) {
   const [showForm, setShowForm] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editingPartnerId, setEditingPartnerId] = useState<string | null>(null);
@@ -50,6 +51,19 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
   const [orgType, setOrgType] = useState("referral");
   const [isAdmin, setIsAdmin] = useState(false);
   const [page, setPage] = useState(1);
+  const [resendingId, setResendingId] = useState<string | null>(null);
+  const [resentAt, setResentAt] = useState<Record<string, number>>({});
+  const [now, setNow] = useState(() => Date.now());
+
+  const COOLDOWN_MS = 5 * 60 * 1000;
+
+  // Tick every second while any cooldown is active so countdowns stay live
+  const hasCooldowns = Object.keys(resentAt).length > 0;
+  useEffect(() => {
+    if (!hasCooldowns) return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [hasCooldowns]);
 
   const PAGE_SIZE = 10;
   const totalPages = Math.max(1, Math.ceil(partners.length / PAGE_SIZE));
@@ -132,6 +146,34 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
     } catch (error) {
       toast.error("Failed to deactivate partner" + (error instanceof Error ? `: ${error.message}` : ""));
     }
+  };
+
+  const handleResendInvite = async (partnerId: string) => {
+    setResendingId(partnerId);
+    try {
+      await onResendInvite(partnerId);
+      // Success: start the 5-minute cooldown for this partner
+      setResentAt((prev) => ({ ...prev, [partnerId]: Date.now() }));
+      setNow(Date.now());
+    } catch {
+      // Error toast already shown by the handler in page.tsx — no cooldown on failure
+    } finally {
+      setResendingId(null);
+    }
+  };
+
+  const getCooldownRemaining = (partnerId: string): number => {
+    const sentAt = resentAt[partnerId];
+    if (!sentAt) return 0;
+    const remaining = COOLDOWN_MS - (now - sentAt);
+    return remaining > 0 ? remaining : 0;
+  };
+
+  const formatCountdown = (ms: number): string => {
+    const totalSeconds = Math.ceil(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -255,18 +297,49 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
                         : "Pending"}
                   </span>
                 </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <button onClick={() => handleEdit(partner)} className="inline-flex items-center justify-center p-1 text-blue-600 hover:bg-blue-50 rounded-lg" title="Edit partner">
-                      <Pencil size={16} />
-                    </button>
-                    {partner.is_active ? (
-                      <button onClick={() => handleDeactivate(partner.id)} className="text-xs text-red-600 hover:text-red-700">Deactivate</button>
-                    ) : (
-                      <button onClick={() => handleActivate(partner.id)} className="text-xs text-green-600 hover:text-green-700">Activate</button>
-                    )}
-                  </div>
-                </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => handleEdit(partner)} className="inline-flex items-center justify-center p-1 text-blue-600 hover:bg-blue-50 rounded-lg" title="Edit partner">
+                        <Pencil size={16} />
+                      </button>
+                      {partner.is_active && !partner.is_verified && (() => {
+                        const isSending = resendingId === partner.id;
+                        const cooldownMs = getCooldownRemaining(partner.id);
+                        const isCoolingDown = cooldownMs > 0;
+                        return (
+                          <button
+                            onClick={() => handleResendInvite(partner.id)}
+                            disabled={isSending || isCoolingDown}
+                            className={`inline-flex items-center gap-1 text-xs ${
+                              isSending || isCoolingDown
+                                ? "text-gray-400 cursor-not-allowed"
+                                : "text-(--color-accent) hover:text-(--color-accent-dark)"
+                            }`}
+                            title={isCoolingDown ? `You can resend again in ${formatCountdown(cooldownMs)}` : "Resend activation link"}
+                          >
+                            {isSending ? (
+                              <>
+                                <Loader2 size={14} className="animate-spin" /> Sending...
+                              </>
+                            ) : isCoolingDown ? (
+                              <>
+                                <Mail size={14} /> Resend Invite ({formatCountdown(cooldownMs)})
+                              </>
+                            ) : (
+                              <>
+                                <Mail size={14} /> Resend Invite
+                              </>
+                            )}
+                          </button>
+                        );
+                      })()}
+                      {partner.is_active ? (
+                        <button onClick={() => handleDeactivate(partner.id)} className="text-xs text-red-600 hover:text-red-700">Deactivate</button>
+                      ) : (
+                        <button onClick={() => handleActivate(partner.id)} className="text-xs text-green-600 hover:text-green-700">Activate</button>
+                      )}
+                    </div>
+                  </td>
               </tr>
             ))}
           </tbody>

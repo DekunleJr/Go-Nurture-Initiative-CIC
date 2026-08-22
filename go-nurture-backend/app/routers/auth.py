@@ -1,6 +1,8 @@
 import os
+from uuid import UUID
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
@@ -22,13 +24,56 @@ from app.utils.auth import (
     get_current_partner,
     get_current_admin,
 )
-from app.services.email import send_invite_email
+from app.services.email import send_invite_email, send_password_reset_email
 
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"))
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+@router.post("/forgot-password", response_model=dict)
+def forgot_password(
+    data: ForgotPasswordRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    """
+    Request a password reset link. Always returns success (regardless of whether
+    the email exists) to prevent account enumeration. If the account exists,
+    a reset token is generated and emailed to the partner.
+    """
+    partner = db.query(PartnerOrganisation).filter(
+        PartnerOrganisation.email == data.email.lower() if hasattr(PartnerOrganisation.email, "lower") else PartnerOrganisation.email == data.email
+    ).first()
+
+    if partner:
+        # Generate a fresh reset token (reuses the set-password token columns)
+        reset_token = generate_set_password_token()
+        token_expires = datetime.now(timezone.utc) + timedelta(hours=48)
+
+        partner.set_password_token = reset_token
+        partner.set_password_token_expires = token_expires
+        db.commit()
+
+        reset_link = f"{FRONTEND_URL}/portal/set-password?token={reset_token}&reset=true"
+
+        background_tasks.add_task(
+            send_password_reset_email,
+            recipient_email=partner.email,
+            recipient_name=partner.contact_name or "Partner",
+            reset_link=reset_link,
+            db=db,
+        )
+
+    return {
+        "message": "If an account exists with that email, a password reset link has been sent."
+    }
 
 
 @router.post("/admin/create-partner", response_model=PartnerInviteResponse)
@@ -88,6 +133,49 @@ def admin_create_partner(
         partner=PartnerResponse.model_validate(partner),
         invite_link=invite_link,
     )
+
+
+@router.post("/admin/resend-invite/{partner_id}", response_model=dict)
+def admin_resend_invite(
+    partner_id: UUID,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    """
+    Admin only: Resend the invite/activation link to a partner who hasn't
+    set their password yet (pending account). Generates a fresh 48-hour token.
+    """
+    partner = db.query(PartnerOrganisation).filter(PartnerOrganisation.id == partner_id).first()
+    if not partner:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Partner not found")
+
+    if partner.hashed_password is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This partner has already activated their account. Use the password reset flow instead.",
+        )
+
+    # Generate a fresh token and expiry
+    set_password_token = generate_set_password_token()
+    token_expires = datetime.now(timezone.utc) + timedelta(hours=48)
+
+    partner.set_password_token = set_password_token
+    partner.set_password_token_expires = token_expires
+    db.commit()
+
+    invite_link = f"{FRONTEND_URL}/portal/set-password?token={set_password_token}"
+
+    background_tasks.add_task(
+        send_invite_email,
+        recipient_email=partner.email,
+        recipient_name=partner.contact_name or "Partner",
+        organisation_name=partner.organisation_name,
+        invite_link=invite_link,
+        db=db,
+    )
+
+    return {"message": f"Invitation resent to {partner.email}", "invite_link": invite_link}
 
 
 @router.post("/set-password", response_model=TokenResponse)

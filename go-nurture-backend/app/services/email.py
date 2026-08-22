@@ -108,6 +108,81 @@ Go Nurture Initiative CIC
     return sent
 
 
+def send_password_reset_email(
+    recipient_email: str,
+    recipient_name: str,
+    reset_link: str,
+    db: Session = None,
+) -> bool:
+    """
+    Send a password reset email to a partner who forgot their password.
+    Uses Resend for email delivery with console fallback for development.
+    """
+    api_key = os.getenv("RESEND_API_KEY", "")
+    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>")
+
+    subject = "Reset your Go Nurture Initiative password"
+    body = f"""
+Hello {recipient_name},
+
+We received a request to reset your password for the Go Nurture Initiative Partner Portal.
+
+To choose a new password, please use the link below:
+
+{reset_link}
+
+This link will expire in 48 hours.
+
+If you did not request this, you can safely ignore this email — your password will remain unchanged.
+
+Best regards,
+Go Nurture Initiative CIC
+"""
+
+    sent = False
+    error_msg = None
+
+    if not api_key or api_key == "re_xxxxxxxxxxxx":
+        print(f"=== PASSWORD RESET EMAIL TO: {recipient_email} ===")
+        print(f"From: {from_email}")
+        print(f"Subject: {subject}")
+        print(body)
+        print("=== END EMAIL ===")
+        sent = True
+    else:
+        try:
+            resend.api_key = api_key
+            response = resend.Emails.send({
+                "from": from_email,
+                "to": recipient_email,
+                "subject": subject,
+                "text": body.strip(),
+            })
+            print(f"Password reset email sent to {recipient_email}: {response}")
+            sent = True
+        except Exception as e:
+            error_msg = str(e)
+            print(f"Failed to send password reset email via Resend: {e}")
+            print(f"=== PASSWORD RESET EMAIL TO: {recipient_email} ===")
+            print(f"From: {from_email}")
+            print(f"Subject: {subject}")
+            print(body)
+            print("=== END EMAIL ===")
+
+    if db is not None:
+        log_email(
+            db=db,
+            recipient_email=recipient_email,
+            subject=subject,
+            body=body.strip(),
+            email_type="password_reset",
+            status="success" if sent else "failed",
+            error_message=error_msg,
+        )
+
+    return sent
+
+
 def send_referral_notification_email(
     mother_name: str,
     mother_phone: str,
