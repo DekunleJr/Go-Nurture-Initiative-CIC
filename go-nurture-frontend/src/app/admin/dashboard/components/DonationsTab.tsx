@@ -41,7 +41,7 @@ export default function DonationsTab({ donations, totalAmount }: DonationsTabPro
 
   return (
     <div className="rounded-xl bg-white shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-gray-200 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="font-heading text-xl font-bold text-gray-900">
           Donations ({donations.length})
         </h3>

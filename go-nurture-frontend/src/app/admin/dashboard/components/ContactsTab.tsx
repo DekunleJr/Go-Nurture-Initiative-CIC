@@ -50,11 +50,11 @@ export default function ContactsTab({ contacts }: ContactsTabProps) {
 
   return (
     <div className="rounded-xl bg-white shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-gray-200 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="font-heading text-xl font-bold text-gray-900">
           Contact Submissions ({contacts.length})
         </h3>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input

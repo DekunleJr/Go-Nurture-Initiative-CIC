@@ -416,7 +416,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50">
       <PortalNavbar />
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="font-heading text-4xl font-bold text-(--color-primary)">
               Admin Dashboard
@@ -428,7 +428,7 @@ export default function AdminDashboard() {
           <button
             onClick={fetchData}
             disabled={refreshing}
-            className="inline-flex items-center gap-2 rounded-lg bg-(--color-primary) px-4 py-2 text-white hover:bg-(--color-primary)/90 disabled:opacity-50"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-(--color-primary) px-4 py-2 text-white hover:bg-(--color-primary)/90 disabled:opacity-50 sm:w-auto"
           >
             <RefreshCw size={18} className={refreshing ? "animate-spin" : ""} />
             {refreshing ? "Refreshing..." : "Refresh"}
@@ -437,7 +437,7 @@ export default function AdminDashboard() {
 
         {/* Tabs */}
         <div className="mb-6 border-b border-gray-200">
-          <nav className="-mb-px flex gap-6">
+          <nav className="-mb-px flex gap-4 overflow-x-auto whitespace-nowrap sm:gap-6">
             {[
               { id: "overview", label: "Overview" },
               { id: "referrals", label: "Referrals" },

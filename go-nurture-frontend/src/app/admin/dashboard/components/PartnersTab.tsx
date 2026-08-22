@@ -136,13 +136,13 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
 
   return (
     <div className="rounded-xl bg-white shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-gray-200 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="font-heading text-xl font-bold text-gray-900">
           Partner Organisations ({partners.length})
         </h3>
         <button
           onClick={() => { resetForm(); setShowForm(!showForm); }}
-          className="inline-flex items-center gap-2 rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto"
         >
           <Plus size={18} />
           New Partner
@@ -199,11 +199,11 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
               </div>
             )}
           </div>
-          <div className="mt-4 flex gap-3">
-            <button type="submit" className="rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90">
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <button type="submit" className="w-full rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto">
               {editMode ? "Update Partner" : "Create Partner"}
             </button>
-            <button type="button" onClick={() => { resetForm(); setShowForm(false); }} className="rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+            <button type="button" onClick={() => { resetForm(); setShowForm(false); }} className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 sm:w-auto">Cancel</button>
           </div>
         </form>
       )}

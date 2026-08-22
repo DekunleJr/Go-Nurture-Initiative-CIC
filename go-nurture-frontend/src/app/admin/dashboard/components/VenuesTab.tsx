@@ -170,9 +170,9 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
 
   return (
     <div className="rounded-xl bg-white shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-gray-200 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="font-heading text-xl font-bold text-gray-900">Venues ({venues.length})</h3>
-        <button onClick={() => { if (showForm) resetForm(); else setShowForm(true); }} className="inline-flex items-center gap-2 rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90">
+        <button onClick={() => { if (showForm) resetForm(); else setShowForm(true); }} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto">
           <Plus size={18} /> New Venue
         </button>
       </div>
@@ -222,9 +222,9 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
             {latitude != null && longitude != null && (<p className="mt-2 text-xs text-gray-600">Pin placed at: {latitude.toFixed(5)}, {longitude.toFixed(5)}</p>)}
           </div>
 
-          <div className="mt-4 flex gap-3">
-            <button type="submit" className="rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90">{editingVenue ? "Save Changes" : "Create Venue"}</button>
-            <button type="button" onClick={resetForm} className="rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50">Cancel</button>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <button type="submit" className="w-full rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto">{editingVenue ? "Save Changes" : "Create Venue"}</button>
+            <button type="button" onClick={resetForm} className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 sm:w-auto">Cancel</button>
           </div>
         </form>
       )}

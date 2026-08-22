@@ -14,13 +14,12 @@ export function Footer() {
 
   return (
     <footer className="border-t border-(--color-border) bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           {/* Brand Column */}
-
-          <div>
+          <div className="flex flex-col items-center sm:items-start">
             <Link href="/" className="inline-flex items-center">
-              <div className="relative w-44 h-44 sm:w-56 sm:h-56">
+              <div className="relative h-28 w-28 sm:h-40 sm:w-40 lg:h-44 lg:w-44">
                 <Image
                   src="/LOGO_v1.png"
                   alt={`${SITE_CONFIG.name} logo`}
@@ -30,30 +29,27 @@ export function Footer() {
                 />
               </div>
             </Link>
-
-          </div>
-          <div>
-            <p className="max-w-sm text-sm mt-14 leading-relaxed text-(--color-text-muted)">
+            <p className="mt-4 max-w-sm text-center text-sm leading-relaxed text-(--color-text-muted) sm:text-left lg:mt-6">
               {SITE_CONFIG.tagline}
             </p>
           </div>
 
           {/* Contact */}
-          <div>
-            <h3 className="mb-4 text-sm mt-14 font-semibold uppercase tracking-wider text-(--color-primary)">
+          <div className="text-center sm:text-left">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-(--color-primary)">
               {t("footer.contact")}
             </h3>
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               <li>
                 <a
                   href={`mailto:${SITE_CONFIG.email}`}
-                  className="flex items-center gap-2 text-sm text-(--color-text-muted) hover:text-(--color-accent) transition-colors"
+                  className="inline-flex items-center gap-2 text-sm text-(--color-text-muted) hover:text-(--color-accent) transition-colors"
                 >
-                  <Mail size={14} />
-                  {SITE_CONFIG.email}
+                  <Mail size={14} className="shrink-0" />
+                  <span className="break-all">{SITE_CONFIG.email}</span>
                 </a>
               </li>
-              <li className="flex items-start gap-2 text-sm text-(--color-text-muted)">
+              <li className="inline-flex items-start justify-center sm:justify-start gap-2 text-sm text-(--color-text-muted)">
                 <MapPin size={14} className="mt-0.5 shrink-0" />
                 <span>Norfolk, United Kingdom</span>
               </li>
@@ -61,8 +57,8 @@ export function Footer() {
           </div>
 
           {/* Commercial Link */}
-          <div>
-            <h3 className="mb-4 text-sm mt-14 font-semibold uppercase tracking-wider text-(--color-primary)">
+          <div className="text-center sm:text-left">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-(--color-primary)">
               {t("footer.commercialTitle")}
             </h3>
             <p className="mb-4 text-sm leading-relaxed text-(--color-text-muted)">

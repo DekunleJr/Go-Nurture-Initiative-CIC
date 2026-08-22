@@ -69,27 +69,27 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onRef
   return (
     <div className="rounded-xl bg-white shadow-sm overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h3 className="font-heading text-xl font-bold text-gray-900">
             All Referrals ({referrals.length})
           </h3>
-          <div className="flex items-center gap-3">
-            <div className="relative">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative w-full sm:w-auto">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="text"
                 placeholder="Search referrals..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
               />
             </div>
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="pl-10 pr-8 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
+                className="w-full pl-10 pr-8 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
               >
                 <option value="all">All Statuses</option>
                 <option value="pending">Pending</option>
@@ -238,22 +238,22 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onRef
               </div>
             </div>
 
-            <div className="mt-6 flex gap-3">
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:gap-3">
               <button
                 onClick={() => handleUpdateStatus(selectedReferral.id, "approved", selectedCohortId || undefined)}
-                className="flex-1 rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90"
+                className="w-full rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:flex-1"
               >
                 Approve & Assign
               </button>
               <button
                 onClick={() => handleUpdateStatus(selectedReferral.id, "rejected")}
-                className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+                className="w-full rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 sm:flex-1"
               >
                 Reject
               </button>
               <button
                 onClick={() => setSelectedReferral(null)}
-                className="flex-1 rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50"
+                className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 sm:flex-1"
               >
                 Cancel
               </button>
