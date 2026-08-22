@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Anantha Signature — brand accent font (sub-headings / creative text) */
+@font-face {
+  font-family: "Anantha Signature";
+  src: url("/fonts/AnanthaSignature.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Brand Color Palette */
 :root {
   --color-primary: #436045;

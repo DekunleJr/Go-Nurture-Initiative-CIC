@@ -16,6 +16,8 @@ interface Venue {
   postcode: string | null;
   capacity: number;
   description: string;
+  transport_links: string;
+  nearby_landmarks: string;
   latitude: number | null;
   longitude: number | null;
 }
@@ -29,6 +31,8 @@ interface VenuesTabProps {
     postcode: string;
     capacity: number;
     description: string;
+    transport_links: string;
+    nearby_landmarks: string;
     latitude?: number | null;
     longitude?: number | null;
   }) => Promise<void>;
@@ -41,6 +45,8 @@ interface VenuesTabProps {
       postcode: string;
       capacity: number;
       description: string;
+      transport_links: string;
+      nearby_landmarks: string;
       latitude?: number | null;
       longitude?: number | null;
     }
@@ -67,6 +73,8 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
   const [postcode, setPostcode] = useState("");
   const [capacity, setCapacity] = useState(30);
   const [description, setDescription] = useState("");
+  const [transportLinks, setTransportLinks] = useState("");
+  const [nearbyLandmarks, setNearbyLandmarks] = useState("");
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [searching, setSearching] = useState(false);
@@ -139,12 +147,14 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
 
   const resetForm = () => {
     setName(""); setAddress(""); setCity(""); setPostcode(""); setCapacity(30); setDescription("");
+    setTransportLinks(""); setNearbyLandmarks("");
     setLatitude(null); setLongitude(null); setEditingVenue(null); setShowForm(false);
   };
 
   const handleEditClick = (venue: Venue) => {
     setEditingVenue(venue); setName(venue.name); setAddress(venue.address); setCity(venue.city);
     setPostcode(venue.postcode ?? ""); setCapacity(venue.capacity); setDescription(venue.description);
+    setTransportLinks(venue.transport_links ?? ""); setNearbyLandmarks(venue.nearby_landmarks ?? "");
     setLatitude(venue.latitude); setLongitude(venue.longitude); setShowForm(true);
   };
 
@@ -152,7 +162,7 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
     e.preventDefault();
     if (!name || !address || !city) { toast.error("Please fill in all required fields"); return; }
     try {
-      const venueData = { name, address, city, postcode, capacity, description, latitude, longitude };
+      const venueData = { name, address, city, postcode, capacity, description, transport_links: transportLinks, nearby_landmarks: nearbyLandmarks, latitude, longitude };
       if (editingVenue) { await onUpdateVenue(editingVenue.id, venueData); toast.success("Venue updated successfully"); }
       else { await onCreateVenue(venueData); toast.success("Venue created successfully"); }
       resetForm(); onRefresh();
@@ -204,6 +214,14 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
               <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Brief description" className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Transport Links</label>
+              <textarea value={transportLinks} onChange={(e) => setTransportLinks(e.target.value)} placeholder="e.g., Bus routes 10/11 stop outside; 10 min walk from Norwich station" rows={2} className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nearby Landmarks</label>
+              <textarea value={nearbyLandmarks} onChange={(e) => setNearbyLandmarks(e.target.value)} placeholder="e.g., Next to the library, opposite the parish church" rows={2} className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
             </div>
           </div>
 

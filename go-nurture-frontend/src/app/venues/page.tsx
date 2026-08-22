@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { MapPin, Navigation } from "lucide-react";
+import { MapPin, Navigation, Landmark } from "lucide-react";
 
 const VenueMap = dynamic(() => import("./VenueMap"), {
   ssr: false,
@@ -25,6 +25,7 @@ interface Venue {
   longitude: number | null;
   description: string;
   transport_links: string;
+  nearby_landmarks: string;
   facilities: string;
 }
 
@@ -164,6 +165,16 @@ export default function VenuesPage() {
                           <div>
                             <p className="font-medium text-gray-900">Transport Links</p>
                             <p className="text-gray-600">{selectedVenue.transport_links}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedVenue.nearby_landmarks && (
+                        <div className="flex items-start gap-3">
+                          <Landmark className="text-(--color-accent) mt-1" size={20} />
+                          <div>
+                            <p className="font-medium text-gray-900">Nearby Landmarks</p>
+                            <p className="text-gray-600">{selectedVenue.nearby_landmarks}</p>
                           </div>
                         </div>
                       )}

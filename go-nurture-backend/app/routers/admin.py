@@ -317,6 +317,7 @@ def admin_update_venue(
     allowed_fields = {
         "name", "address", "city", "postcode", "capacity",
         "description", "latitude", "longitude", "is_active",
+        "transport_links", "nearby_landmarks", "accessibility_info",
     }
 
     for key, value in venue_data.items():

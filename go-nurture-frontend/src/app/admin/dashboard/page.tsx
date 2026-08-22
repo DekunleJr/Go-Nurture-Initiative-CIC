@@ -66,6 +66,8 @@ interface Venue {
   postcode: string | null;
   capacity: number;
   description: string;
+  transport_links: string;
+  nearby_landmarks: string;
   latitude: number | null;
   longitude: number | null;
 }
@@ -303,6 +305,8 @@ export default function AdminDashboard() {
     postcode: string | null;
     capacity: number;
     description: string;
+    transport_links: string;
+    nearby_landmarks: string;
     latitude?: number | null;
     longitude?: number | null;
   }) => {
@@ -328,6 +332,8 @@ export default function AdminDashboard() {
       postcode: string | null;
       capacity: number;
       description: string;
+      transport_links: string;
+      nearby_landmarks: string;
       latitude?: number | null;
       longitude?: number | null;
     }
