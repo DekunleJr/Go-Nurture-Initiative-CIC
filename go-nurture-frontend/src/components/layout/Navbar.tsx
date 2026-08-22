@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -23,32 +23,39 @@ const navTranslationMap: Record<string, string> = {
 export function Navbar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { t } = useLanguage();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 40);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   if (pathname?.startsWith("/portal")) return null;
   if (pathname?.startsWith("/admin")) return null;
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-(--color-border)">
-      <div className="mx-auto flex h-30 lg:h-72 max-w-7xl lg:max-w-[1600px] items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div
+        className={`mx-auto flex max-w-7xl lg:max-w-[1600px] items-center justify-between px-4 sm:px-6 lg:px-8 transition-all duration-300 ease-in-out ${
+          scrolled ? "h-[30px] lg:h-[72px]" : "h-30 lg:h-72"
+        }`}
+      >
         {/* Logo */}
-        {/* <Link href="/" className="flex items-center shrink-0">
-          <div className="relative h-16 w-16 sm:h-20 sm:w-20">
-            <Image
-              src="/LOGO_v1.png"
-              alt={`${SITE_CONFIG.name} logo`}
-              width={80}
-              height={80}
-              className="object-contain"
-              style={{ width: "auto", height: "100%" }}
-              priority
-            />
-          </div>
-        </Link> */}
         <Link href="/" className="inline-flex items-center">
-          <div className="relative w-44 h-44 sm:w-56 sm:h-56 lg:w-140 lg:h-140">
+          <div
+            className={`relative transition-all duration-300 ease-in-out ${
+              scrolled
+                ? "w-11 h-11 sm:w-14 sm:h-14 lg:w-35 lg:h-35"
+                : "w-44 h-44 sm:w-56 sm:h-56 lg:w-140 lg:h-140"
+            }`}
+          >
             <Image
-              src="/LOGO_v1.png"
+              src="/LOGO_v2.png"
               alt={`${SITE_CONFIG.name} logo`}
               fill
               priority

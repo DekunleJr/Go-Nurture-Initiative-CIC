@@ -15,13 +15,13 @@ export function Footer() {
   return (
     <footer className="border-t border-(--color-border) bg-white">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8 m-0">
           {/* Brand Column */}
-          <div className="flex flex-col items-center sm:items-start">
-            <Link href="/" className="inline-flex items-center">
-              <div className="relative h-28 w-28 sm:h-40 sm:w-40 lg:h-44 lg:w-44">
+          <div className="flex flex-col items-center gap-0">
+            <Link href="/" className="inline-flex items-center mb-0">
+              <div className="relative h-18 w-48">
                 <Image
-                  src="/LOGO_v1.png"
+                  src="/LOGO_v2.png"
                   alt={`${SITE_CONFIG.name} logo`}
                   fill
                   priority
@@ -29,7 +29,7 @@ export function Footer() {
                 />
               </div>
             </Link>
-            <p className="mt-4 max-w-sm text-center text-sm leading-relaxed text-(--color-text-muted) sm:text-left lg:mt-6">
+            <p className="max-w-sm text-sm leading-relaxed text-(--color-text-muted)">
               {SITE_CONFIG.tagline}
             </p>
           </div>

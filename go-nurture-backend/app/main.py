@@ -5,9 +5,10 @@ from dotenv import load_dotenv
 import logging
 from sqlalchemy import text
 
-from app.routers import auth, referrals, contact, donations, venues, admin
+from app.routers import auth, referrals, contact, donations, venues, admin, community
 from app.database.session import SessionLocal, engine
 from app.models.partner import PartnerOrganisation
+from app.models.community_partner import CommunityPartner
 from app.utils.auth import hash_password
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
@@ -34,6 +35,7 @@ def startup_events():
         raise SystemExit("Database connection failed. Application shutting down.")
 
     seed_admin()
+    seed_community_partners()
 
 
 def seed_admin():
@@ -77,6 +79,38 @@ def seed_admin():
         db.close()
 
 
+def seed_community_partners():
+    """Seed initial community partners if the table is empty."""
+    initial_partners = [
+        "NHS Norfolk & Waveney Integrated Care Board",
+        "Community Midwives & Health Visitors",
+        "English Plus (Language Support)",
+        "Bridge Plus (Migrant Support)",
+        "New Routes (Refugee Support)",
+        "Local Churches & Community Groups",
+        "Local Mosques & Faith Centres",
+        "Family Support Services",
+    ]
+
+    db = SessionLocal()
+    try:
+        count = db.query(CommunityPartner).count()
+        if count > 0:
+            logger.info(f"Community partners already seeded ({count} partners)")
+            return
+
+        for name in initial_partners:
+            partner = CommunityPartner(name=name)
+            db.add(partner)
+        db.commit()
+        logger.info(f"Seeded {len(initial_partners)} community partners")
+    except Exception as e:
+        logger.error(f"Failed to seed community partners: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
+
 # CORS configuration
 FRONTEND_URLS = os.getenv("FRONTEND_URL", "http://localhost:3000")
 # Split comma-separated origins into a list and strip whitespace
@@ -99,6 +133,7 @@ app.include_router(contact.router)
 app.include_router(donations.router)
 app.include_router(venues.router)
 app.include_router(admin.router)
+app.include_router(community.router)
 
 
 @app.get("/")

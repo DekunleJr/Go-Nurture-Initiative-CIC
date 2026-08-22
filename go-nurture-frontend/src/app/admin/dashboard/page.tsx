@@ -13,6 +13,7 @@ import CohortsTab from "./components/CohortsTab";
 import DonationsTab from "./components/DonationsTab";
 import ContactsTab from "./components/ContactsTab";
 import EmailLogsTab from "./components/EmailLogsTab";
+import CommunityPartnersTab from "./components/CommunityPartnersTab";
 
 const API_BASE = "/";
 
@@ -113,7 +114,14 @@ interface Contact {
   created_at: string;
 }
 
-type Tab = "overview" | "referrals" | "partners" | "venues" | "cohorts" | "donations" | "contacts" | "emails";
+interface CommunityPartner {
+  id: string;
+  name: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+type Tab = "overview" | "referrals" | "partners" | "venues" | "cohorts" | "donations" | "contacts" | "emails" | "community_partners";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -126,6 +134,7 @@ export default function AdminDashboard() {
   const [donations, setDonations] = useState<Donation[]>([]);
   const [donationTotal, setDonationTotal] = useState(0);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [communityPartners, setCommunityPartners] = useState<CommunityPartner[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [isAdmin, setIsAdmin] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -149,7 +158,7 @@ export default function AdminDashboard() {
     setRefreshing(true);
 
     try {
-      const [statsRes, referralsRes, partnersRes, venuesRes, cohortsRes, donationsRes, contactsRes] = await Promise.all([
+      const [statsRes, referralsRes, partnersRes, venuesRes, cohortsRes, donationsRes, contactsRes, communityPartnersRes] = await Promise.all([
         fetch(`${API_BASE}api/admin/stats`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
@@ -171,6 +180,9 @@ export default function AdminDashboard() {
         fetch(`${API_BASE}api/admin/contacts`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
+        fetch(`${API_BASE}api/admin/community-partners`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
 
       if (statsRes.ok) setStats(await statsRes.json());
@@ -184,6 +196,7 @@ export default function AdminDashboard() {
         setDonationTotal(data.total_amount || 0);
       }
       if (contactsRes.ok) setContacts((await contactsRes.json()).contacts || []);
+      if (communityPartnersRes.ok) setCommunityPartners(await communityPartnersRes.json());
     } catch (error) {
       console.error("Error fetching admin data:", error);
       toast.error("Failed to load dashboard data");
@@ -397,6 +410,81 @@ export default function AdminDashboard() {
     });
   };
 
+  const createCommunityPartner = async (name: string) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    await fetch(`${API_BASE}api/admin/community-partners`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ name }),
+    });
+  };
+
+  const updateCommunityPartner = async (partnerId: string, name: string) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    await fetch(`${API_BASE}api/admin/community-partners/${partnerId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ name }),
+    });
+  };
+
+  const deleteCommunityPartner = async (partnerId: string) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    await fetch(`${API_BASE}api/admin/community-partners/${partnerId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  };
+
+  const toggleCommunityPartnerStatus = async (partnerId: string, isActive: boolean) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    // Optimistic update: move the toggle immediately in the UI
+    setCommunityPartners((prev) =>
+      prev.map((p) => (p.id === partnerId ? { ...p, is_active: isActive } : p))
+    );
+
+    try {
+      const res = await fetch(`${API_BASE}api/admin/community-partners/${partnerId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ is_active: isActive }),
+      });
+
+      if (res.ok) {
+        toast.success(`Partner ${isActive ? "activated" : "deactivated"} successfully`);
+      } else {
+        // Revert the optimistic update on failure
+        setCommunityPartners((prev) =>
+          prev.map((p) => (p.id === partnerId ? { ...p, is_active: !isActive } : p))
+        );
+        toast.error("Failed to update partner status");
+      }
+    } catch (error) {
+      // Revert the optimistic update on error
+      setCommunityPartners((prev) =>
+        prev.map((p) => (p.id === partnerId ? { ...p, is_active: !isActive } : p))
+      );
+      toast.error("Error updating partner status" + (error instanceof Error ? `: ${error.message}` : ""));
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -447,6 +535,7 @@ export default function AdminDashboard() {
               { id: "donations", label: "Donations" },
               { id: "contacts", label: "Contacts" },
               { id: "emails", label: "Emails" },
+              { id: "community_partners", label: "Community Partners" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -519,6 +608,17 @@ export default function AdminDashboard() {
 
         {activeTab === "emails" && (
           <EmailLogsTab />
+        )}
+
+        {activeTab === "community_partners" && (
+          <CommunityPartnersTab
+            partners={communityPartners}
+            onCreatePartner={createCommunityPartner}
+            onUpdatePartner={updateCommunityPartner}
+            onDeletePartner={deleteCommunityPartner}
+            onToggleStatus={toggleCommunityPartnerStatus}
+            onRefresh={fetchData}
+          />
         )}
       </div>
     </div>

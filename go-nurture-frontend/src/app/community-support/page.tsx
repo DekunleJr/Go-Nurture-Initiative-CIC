@@ -1,15 +1,40 @@
 "use client";
 
-import React from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight, Heart, Users, Building, Church, Shield } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/lib/LanguageContext";
 
+interface CommunityPartner {
+  id: string;
+  name: string;
+  is_active: boolean;
+  created_at: string;
+}
+
 export default function CommunitySupportPage() {
   const { t } = useLanguage();
+  const [partners, setPartners] = useState<CommunityPartner[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const partners = t("communitySupport.partnerList").split(" | ");
+  useEffect(() => {
+    const fetchPartners = async () => {
+      try {
+        const res = await fetch("/api/community/partners");
+        if (res.ok) {
+          const data = await res.json();
+          setPartners(data || []);
+        }
+      } catch (error) {
+        console.error("Error fetching community partners:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPartners();
+  }, []);
 
   return (
     <>
@@ -49,16 +74,22 @@ export default function CommunitySupportPage() {
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {partners.map((partner, i) => (
-              <div key={partner} className="flex items-center gap-3 rounded-xl border border-(--color-border) bg-(--color-bg-cream) p-4 transition-all hover:shadow-md">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--color-accent)/10 text-(--color-accent)">
-                  {i % 2 === 0 ? <Building size={20} /> : <Church size={20} />}
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-(--color-primary) border-t-transparent" />
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {partners.map((partner, i) => (
+                <div key={partner.id} className="flex items-center gap-3 rounded-xl border border-(--color-border) bg-(--color-bg-cream) p-4 transition-all hover:shadow-md">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--color-accent)/10 text-(--color-accent)">
+                    {i % 2 === 0 ? <Building size={20} /> : <Church size={20} />}
+                  </div>
+                  <span className="text-sm font-medium text-foreground">{partner.name}</span>
                 </div>
-                <span className="text-sm font-medium text-foreground">{partner.trim()}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

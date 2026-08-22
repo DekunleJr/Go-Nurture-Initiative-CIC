@@ -13,10 +13,12 @@ from app.models.donation import Donation
 from app.models.venue import Venue
 from app.models.cohort import Cohort
 from app.models.email_log import EmailLog
+from app.models.community_partner import CommunityPartner
 from app.schemas.referral import ReferralResponse, ReferralStatusUpdate
 from app.schemas.partner import PartnerResponse
 from app.schemas.donation import DonationResponse
 from app.schemas.contact import ContactResponse
+from app.schemas.community_partner import CommunityPartnerResponse, CommunityPartnerCreate
 from app.utils.auth import get_current_admin
 from app.services.geocode import geocode_address
 from app.services.email import send_referral_approval_email
@@ -481,3 +483,68 @@ def admin_delete_cohort(
     db.delete(cohort)
     db.commit()
     return {"message": "Cohort deleted successfully", "cohort_id": str(cohort_id)}
+
+
+@router.get("/community-partners", response_model=List[CommunityPartnerResponse])
+def admin_get_all_community_partners(
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    """Admin only: Get all community partners (active and inactive)."""
+    partners = (
+        db.query(CommunityPartner)
+        .order_by(CommunityPartner.created_at.desc())
+        .all()
+    )
+    return [CommunityPartnerResponse.model_validate(p) for p in partners]
+
+
+@router.post("/community-partners", response_model=dict)
+def admin_create_community_partner(
+    partner_data: CommunityPartnerCreate,
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    """Admin only: Create a new community partner."""
+    partner = CommunityPartner(name=partner_data.name)
+    db.add(partner)
+    db.commit()
+    db.refresh(partner)
+    return {"message": "Community partner created successfully", "partner_id": str(partner.id)}
+
+
+@router.patch("/community-partners/{partner_id}", response_model=dict)
+def admin_update_community_partner(
+    partner_id: UUID,
+    partner_data: dict,
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    """Admin only: Update a community partner."""
+    partner = db.query(CommunityPartner).filter(CommunityPartner.id == partner_id).first()
+    if not partner:
+        raise HTTPException(status_code=404, detail="Community partner not found")
+
+    allowed_fields = {"name", "is_active"}
+    for key, value in partner_data.items():
+        if key in allowed_fields:
+            setattr(partner, key, value)
+
+    db.commit()
+    db.refresh(partner)
+    return {"message": "Community partner updated successfully", "partner_id": str(partner_id)}
+
+
+@router.delete("/community-partners/{partner_id}", response_model=dict)
+def admin_delete_community_partner(
+    partner_id: UUID,
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    """Admin only: Delete a community partner."""
+    partner = db.query(CommunityPartner).filter(CommunityPartner.id == partner_id).first()
+    if not partner:
+        raise HTTPException(status_code=404, detail="Community partner not found")
+    db.delete(partner)
+    db.commit()
+    return {"message": "Community partner deleted successfully", "partner_id": str(partner_id)}

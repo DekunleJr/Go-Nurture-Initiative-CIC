@@ -5,6 +5,7 @@ from app.models.donation import Donation
 from app.models.cohort import Cohort
 from app.models.venue import Venue
 from app.models.email_log import EmailLog
+from app.models.community_partner import CommunityPartner
 
 __all__ = [
     "PartnerOrganisation",
@@ -14,4 +15,5 @@ __all__ = [
     "Cohort",
     "Venue",
     "EmailLog",
+    "CommunityPartner",
 ]
