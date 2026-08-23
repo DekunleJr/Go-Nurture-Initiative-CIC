@@ -17,8 +17,10 @@ class Cohort(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False)  # e.g., "Cohort 1 - Spring 2027"
     year = Column(Integer, nullable=False)
+    # Program type: birth_confidence (6 weekly classes) or breastfeeding_clinic (single appointment)
+    cohort_type = Column(String(100), nullable=False, default="birth_confidence")
     start_date = Column(Date, nullable=False)
-    end_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=True)  # Optional — clinic type has no end date
     max_participants = Column(Integer, default=30)
     is_active = Column(Boolean, default=True)
     description = Column(Text, nullable=True)

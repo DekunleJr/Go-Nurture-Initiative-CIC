@@ -22,15 +22,23 @@ class Referral(Base):
     # Mother's details
     mother_name = Column(String(255), nullable=False)
     mother_phone = Column(String(50), nullable=False)
+    mother_email = Column(String(255), nullable=True)
     estimated_due_date = Column(Date, nullable=False)
+    # Service the mother needs (birth_confidence or breastfeeding_clinic)
+    referral_type = Column(String(100), nullable=False, default="birth_confidence")
     language_requirement = Column(String(255), nullable=True)
     additional_notes = Column(Text, nullable=True)
     # Interpreter requirement
     requires_interpreter = Column(Boolean, default=False)
     # GDPR consent - mandatory
     consent_obtained = Column(Boolean, nullable=False, default=False)
-    # Cohort assignment
+    # Cohort assignments — one slot per program type.
+    # cohort_id: Birth Confidence Program cohort
+    # clinic_cohort_id: Breastfeeding Support Clinic cohort
     cohort_id = Column(
+        UUID(as_uuid=True), ForeignKey("cohorts.id"), nullable=True
+    )
+    clinic_cohort_id = Column(
         UUID(as_uuid=True), ForeignKey("cohorts.id"), nullable=True
     )
     # Status tracking
@@ -46,4 +54,9 @@ class Referral(Base):
 
     # Relationships
     partner = relationship("PartnerOrganisation", backref="referrals")
-    cohort = relationship("Cohort", backref="referrals")
+    cohort = relationship(
+        "Cohort", foreign_keys=[cohort_id], backref="birth_confidence_referrals"
+    )
+    clinic_cohort = relationship(
+        "Cohort", foreign_keys=[clinic_cohort_id], backref="clinic_referrals"
+    )

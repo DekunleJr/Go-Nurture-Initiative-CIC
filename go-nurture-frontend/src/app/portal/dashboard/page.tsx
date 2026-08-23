@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, FileText } from "lucide-react";
+import { Plus, FileText, Pencil, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { PortalNavbar } from "@/components/portal/PortalNavbar";
 import { useLocalStorage } from "@/lib/useLocalStorage";
@@ -14,11 +14,13 @@ interface Referral {
   id: string;
   mother_name: string;
   mother_phone: string;
+  mother_email: string | null;
   estimated_due_date: string;
   language_requirement: string | null;
   requires_interpreter: boolean;
   status: string;
   cohort_name: string | null;
+  clinic_cohort_name?: string | null;
   venue_name: string | null;
   created_at: string;
 }
@@ -33,7 +35,67 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [page, setPage] = useState(1);
+  const [editingReferral, setEditingReferral] = useState<Referral | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    mother_name: "",
+    mother_phone: "",
+    mother_email: "",
+    estimated_due_date: "",
+    referral_type: "birth_confidence",
+    language_requirement: "",
+    additional_notes: "",
+    requires_interpreter: false,
+  });
+  const [savingEdit, setSavingEdit] = useState(false);
   const partner = useLocalStorage<PartnerData>("partner");
+
+  const canEdit = (referral: Referral) => referral.status !== "completed" && referral.status !== "declined";
+
+  const handleEditClick = (referral: Referral) => {
+    setEditingReferral(referral);
+    setEditFormData({
+      mother_name: referral.mother_name,
+      mother_phone: referral.mother_phone,
+      mother_email: referral.mother_email || "",
+      estimated_due_date: referral.estimated_due_date ? referral.estimated_due_date.slice(0, 10) : "",
+      referral_type: (referral as unknown as { referral_type?: string }).referral_type || "birth_confidence",
+      language_requirement: referral.language_requirement || "",
+      additional_notes: "",
+      requires_interpreter: referral.requires_interpreter,
+    });
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingReferral) return;
+    setSavingEdit(true);
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`${API_URL}/api/referrals/${editingReferral.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(editFormData),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.detail || "Failed to update referral");
+      }
+      toast.success("Referral updated successfully");
+      setEditingReferral(null);
+      // Refresh the list
+      const refreshed = await fetch(`${API_URL}/api/referrals/`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
+      });
+      if (refreshed.ok) setReferrals(await refreshed.json());
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -129,6 +191,9 @@ export default function DashboardPage() {
                       Phone
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Due Date
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -149,6 +214,9 @@ export default function DashboardPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Submitted
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-(--color-border)">
@@ -159,6 +227,9 @@ export default function DashboardPage() {
                       </td>
                       <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                         {referral.mother_phone}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-(--color-text-muted)">
+                        {referral.mother_email || "-"}
                       </td>
                       <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                         {new Date(referral.estimated_due_date).toLocaleDateString()}
@@ -174,7 +245,7 @@ export default function DashboardPage() {
                         )}
                       </td>
                       <td className="px-6 py-4 text-sm text-(--color-text-muted)">
-                        {referral.cohort_name || "-"}
+                        {[referral.cohort_name, referral.clinic_cohort_name].filter(Boolean).join(" · ") || "-"}
                       </td>
                       <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                         {referral.venue_name || "-"}
@@ -195,6 +266,18 @@ export default function DashboardPage() {
                       <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                         {new Date(referral.created_at).toLocaleDateString()}
                       </td>
+                      <td className="px-6 py-4">
+                        {canEdit(referral) ? (
+                          <button
+                            onClick={() => handleEditClick(referral)}
+                            className="inline-flex items-center gap-1 text-xs font-medium text-(--color-accent) hover:text-(--color-primary)"
+                          >
+                            <Pencil size={14} /> Edit
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400">—</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -204,6 +287,128 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Edit Referral Modal */}
+      {editingReferral && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
+          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl my-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-heading text-xl font-bold text-gray-900">Edit Referral</h3>
+              <button onClick={() => setEditingReferral(null)} className="text-gray-400 hover:text-gray-600">
+                <X size={22} />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Mother's Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2"
+                    value={editFormData.mother_name}
+                    onChange={(e) => setEditFormData({ ...editFormData, mother_name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Phone *</label>
+                  <input
+                    type="tel"
+                    required
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2"
+                    value={editFormData.mother_phone}
+                    onChange={(e) => setEditFormData({ ...editFormData, mother_phone: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Email *</label>
+                  <input
+                    type="email"
+                    required
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2"
+                    value={editFormData.mother_email}
+                    onChange={(e) => setEditFormData({ ...editFormData, mother_email: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Program Type *</label>
+                  <select
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2"
+                    value={editFormData.referral_type}
+                    onChange={(e) => setEditFormData({ ...editFormData, referral_type: e.target.value })}
+                  >
+                    <option value="birth_confidence">Favour Oloye Birth Confidence Program</option>
+                    <option value="breastfeeding_clinic">Breastfeeding Support Clinic</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Due Date {editFormData.referral_type !== "breastfeeding_clinic" && "*"}
+                  </label>
+                  <input
+                    type="date"
+                    required={editFormData.referral_type !== "breastfeeding_clinic"}
+                    disabled={editFormData.referral_type === "breastfeeding_clinic"}
+                    className={`mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 ${
+                      editFormData.referral_type === "breastfeeding_clinic" ? "bg-gray-100 cursor-not-allowed" : ""
+                    }`}
+                    value={editFormData.estimated_due_date}
+                    onChange={(e) => setEditFormData({ ...editFormData, estimated_due_date: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Language Requirement</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Arabic, Somali"
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2"
+                    value={editFormData.language_requirement}
+                    onChange={(e) => setEditFormData({ ...editFormData, language_requirement: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Additional Notes</label>
+                <textarea
+                  rows={3}
+                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2"
+                  value={editFormData.additional_notes}
+                  onChange={(e) => setEditFormData({ ...editFormData, additional_notes: e.target.value })}
+                />
+              </div>
+
+              <label className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-gray-300"
+                  checked={editFormData.requires_interpreter}
+                  onChange={(e) => setEditFormData({ ...editFormData, requires_interpreter: e.target.checked })}
+                />
+                <span className="text-sm text-gray-700">Requires interpreter</span>
+              </label>
+
+              <div className="flex flex-col gap-2 pt-2 sm:flex-row">
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="w-full rounded-lg bg-(--color-primary) px-4 py-2 text-white hover:bg-(--color-primary)/90 disabled:opacity-50 sm:flex-1"
+                >
+                  {savingEdit ? "Saving..." : "Save Changes"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingReferral(null)}
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 sm:flex-1"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

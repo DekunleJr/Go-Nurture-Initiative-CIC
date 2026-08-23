@@ -14,7 +14,9 @@ export default function ReferralPage() {
   const [formData, setFormData] = useState({
     mother_name: "",
     mother_phone: "",
+    mother_email: "",
     estimated_due_date: "",
+    referral_type: "birth_confidence",
     language_requirement: "",
     additional_notes: "",
     requires_interpreter: false,
@@ -71,7 +73,7 @@ export default function ReferralPage() {
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-foreground">
-                Mother&apos;s Full Name *
+                Mother's Full Name *
               </label>
               <input
                 type="text"
@@ -84,7 +86,7 @@ export default function ReferralPage() {
 
             <div>
               <label className="block text-sm font-medium text-foreground">
-                Mother&apos;s Phone Number *
+                Mother's Phone Number *
               </label>
               <input
                 type="tel"
@@ -97,15 +99,52 @@ export default function ReferralPage() {
 
             <div>
               <label className="block text-sm font-medium text-foreground">
-                Estimated Due Date *
+                Mother's Email *
+              </label>
+              <input
+                type="email"
+                required
+                className="mt-1 w-full rounded-lg border border-(--color-border) px-4 py-2"
+                placeholder="Used to send her programme details"
+                value={formData.mother_email}
+                onChange={(e) => setFormData({ ...formData, mother_email: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground">
+                Program Type *
+              </label>
+              <select
+                required
+                className="mt-1 w-full rounded-lg border border-(--color-border) px-4 py-2"
+                value={formData.referral_type}
+                onChange={(e) => setFormData({ ...formData, referral_type: e.target.value })}
+              >
+                <option value="birth_confidence">Favour Oloye Birth Confidence Program</option>
+                <option value="breastfeeding_clinic">Breastfeeding Support Clinic</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground">
+                Estimated Due Date {formData.referral_type !== "breastfeeding_clinic" && "*"}
               </label>
               <input
                 type="date"
-                required
-                className="mt-1 w-full rounded-lg border border-(--color-border) px-4 py-2"
+                required={formData.referral_type !== "breastfeeding_clinic"}
+                disabled={formData.referral_type === "breastfeeding_clinic"}
+                className={`mt-1 w-full rounded-lg border border-(--color-border) px-4 py-2 ${
+                  formData.referral_type === "breastfeeding_clinic"
+                    ? "bg-gray-100 cursor-not-allowed text-gray-400"
+                    : ""
+                }`}
                 value={formData.estimated_due_date}
                 onChange={(e) => setFormData({ ...formData, estimated_due_date: e.target.value })}
               />
+              {formData.referral_type === "breastfeeding_clinic" && (
+                <p className="mt-1 text-xs text-gray-400">Not applicable for the clinic type.</p>
+              )}
             </div>
 
             <div>

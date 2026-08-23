@@ -226,12 +226,6 @@ export default function AboutPage() {
                 image: t("about.member1Image"),
               },
               {
-                name: t("about.member2Name"),
-                role: t("about.member2Role"),
-                bio: t("about.member2Bio"),
-                image: t("about.member2Image"),
-              },
-              {
                 name: t("about.member3Name"),
                 role: t("about.member3Role"),
                 bio: t("about.member3Bio"),
@@ -242,6 +236,12 @@ export default function AboutPage() {
                 role: t("about.member4Role"),
                 bio: t("about.member4Bio"),
                 image: t("about.member4Image"),
+              },
+              {
+                name: t("about.member2Name"),
+                role: t("about.member2Role"),
+                bio: t("about.member2Bio"),
+                image: t("about.member2Image"),
               },
               {
                 name: t("about.member5Name"),

@@ -35,11 +35,16 @@ interface Referral {
   id: string;
   mother_name: string;
   mother_phone: string;
+  mother_email: string | null;
   estimated_due_date: string;
+  referral_type?: string;
+  language_requirement: string | null;
+  requires_interpreter: boolean;
   status: string;
   partner_id: string;
   partner_name: string | null;
   cohort_id: string | null;
+  clinic_cohort_name?: string | null;
   cohort_name: string | null;
   venue_name: string | null;
   created_at: string;
@@ -76,8 +81,9 @@ interface Cohort {
   id: string;
   name: string;
   year: number;
+  cohort_type: string;
   start_date: string;
-  end_date: string;
+  end_date: string | null;
   max_participants: number;
   venue_name: string;
   venue_id: string | null;
@@ -238,6 +244,30 @@ export default function AdminDashboard() {
     }
   };
 
+  const editReferral = async (referralId: string, data: Record<string, unknown>) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_BASE}api/admin/referrals/${referralId}/edit`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Failed to update referral");
+      }
+    } catch (error) {
+      toast.error("Error updating referral" + (error instanceof Error ? `: ${error.message}` : ""));
+      throw error;
+    }
+  };
+
   const createPartner = async (partnerData: {
     organisation_name: string;
     contact_name: string;
@@ -387,8 +417,9 @@ export default function AdminDashboard() {
   const createCohort = async (cohortData: {
     name: string;
     year: number;
+    cohort_type: string;
     start_date: string;
-    end_date: string;
+    end_date: string | null;
     max_participants: number;
     venue_id: string;
   }) => {
@@ -410,8 +441,9 @@ export default function AdminDashboard() {
     cohortData: {
       name: string;
       year: number;
+      cohort_type: string;
       start_date: string;
-      end_date: string;
+      end_date: string | null;
       max_participants: number;
       venue_id: string;
     }
@@ -591,6 +623,7 @@ export default function AdminDashboard() {
             referrals={referrals}
             cohorts={cohorts}
             onUpdateStatus={updateReferralStatus}
+            onEditReferral={editReferral}
             onRefresh={fetchData}
           />
         )}

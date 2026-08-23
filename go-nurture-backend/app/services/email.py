@@ -2,8 +2,33 @@ import os
 import resend
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta, date as date_type
+from typing import Optional
 from app.models.email_log import EmailLog
+
+# Program display names
+PROGRAM_NAMES = {
+    "birth_confidence": "Favour Oloye Birth Confidence Program",
+    "breastfeeding_clinic": "Breastfeeding Support Clinic",
+}
+
+
+def compute_class_schedule(start_date: date_type, num_classes: int = 6) -> list:
+    """
+    Compute the class schedule for the Birth Confidence Program.
+    Class 1 is on the start date; each subsequent class is 7 days later
+    (same weekday). Returns a list of date objects.
+    """
+    return [start_date + timedelta(weeks=i) for i in range(num_classes)]
+
+
+def _format_schedule_lines(schedule: list) -> str:
+    """Format a list of dates into numbered class lines, e.g.
+    'Class 1 — Sunday, 5 October 2026'."""
+    lines = []
+    for i, d in enumerate(schedule, start=1):
+        lines.append(f"Class {i}: {d.strftime('%A, %d %B %Y')}")
+    return chr(10).join(lines)
 
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"))
 
@@ -191,6 +216,8 @@ def send_referral_notification_email(
     language_requirement: str | None,
     requires_interpreter: bool,
     additional_notes: str | None,
+    mother_email: str | None = None,
+    referral_type: str = "birth_confidence",
     db: Session = None,
 ) -> bool:
     """
@@ -212,7 +239,9 @@ A new referral has been submitted and requires your attention.
 Mother Details:
 - Name: {mother_name}
 - Phone: {mother_phone}
+- Email: {mother_email or "Not provided"}
 - Estimated Due Date: {due_date}
+- Program Type: {PROGRAM_NAMES.get(referral_type, referral_type)}
 - Language Requirement: {language_requirement or "None specified"}
 - Requires Interpreter: {"Yes" if requires_interpreter else "No"}
 
@@ -512,6 +541,270 @@ This email was sent automatically from the Go Nurture website contact form.
             subject=email_subject,
             body=body.strip(),
             email_type="contact",
+            status="success" if sent else "failed",
+            error_message=error_msg,
+        )
+
+    return sent
+
+
+def send_cohort_assignment_email_to_mother(
+    mother_name: str,
+    mother_email: str,
+    cohort_name: str,
+    cohort_type: str,
+    start_date: date_type,
+    venue_name: Optional[str],
+    venue_address: Optional[str],
+    venue_city: Optional[str],
+    db: Session = None,
+) -> bool:
+    """
+    Send a warm welcome/appointment email to the mother when she is assigned
+    to a cohort. Content differs by program type:
+      - birth_confidence: full 6-class weekly schedule
+      - breastfeeding_clinic: single appointment confirmation
+    """
+    api_key = os.getenv("RESEND_API_KEY", "")
+    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>")
+
+    program_name = PROGRAM_NAMES.get(cohort_type, cohort_type)
+    venue_block = ""
+    if venue_name:
+        venue_block = f"Where: {venue_name}"
+        if venue_address or venue_city:
+            location_bits = ", ".join(filter(None, [venue_address, venue_city]))
+            venue_block += f"{chr(10)}Address: {location_bits}"
+
+    if cohort_type == "breastfeeding_clinic":
+        subject = f"You're booked in! Your Breastfeeding Support Clinic appointment 💚"
+        body = f"""
+Dear {mother_name},
+
+Wonderful news! You have been booked into our Breastfeeding Support Clinic.
+
+We're so glad you're taking this step — our specialist team is here to support
+you and your little one every step of the way.
+
+─────────────────────────────
+YOUR APPOINTMENT
+─────────────────────────────
+Programme: {program_name}
+Group: {cohort_name}
+Date: {start_date.strftime('%A, %d %B %Y')}
+{venue_block}
+
+─────────────────────────────
+WHAT TO EXPECT
+─────────────────────────────
+• A relaxed, friendly one-to-one clinic session with a breastfeeding specialist
+• Time to ask any questions — no question is too small!
+• Practical hands-on support in a safe, judgement-free space
+• Refreshments provided
+
+Please arrive a few minutes early so we can welcome you properly.
+
+If you need to reschedule or have any questions before your appointment,
+just reply to this email or contact the Go Nurture team.
+
+We can't wait to meet you and your baby! 🌿
+
+With warmth,
+The Go Nurture Initiative Team
+"""
+    else:
+        schedule = compute_class_schedule(start_date)
+        end_note = (
+            f"{chr(10)}Your journey with us runs from {schedule[0].strftime('%d %B %Y')} "
+            f"to {schedule[-1].strftime('%d %B %Y')}."
+        )
+        subject = "Welcome to the Favour Oloye Birth Confidence Program! 🌸"
+        body = f"""
+Dear {mother_name},
+
+Congratulations, and welcome! You have been enrolled in the Favour Oloye
+Birth Confidence Program — a free, six-week programme designed to help you
+feel confident, informed, and supported as you prepare for your baby's arrival.
+
+You'll be joining a warm community of mothers on the same journey, learning
+together in a safe and culturally sensitive space.
+
+─────────────────────────────
+YOUR CLASS SCHEDULE (6 WEEKLY CLASSES)
+─────────────────────────────
+{_format_schedule_lines(schedule)}
+{venue_block}
+{end_note}
+
+Each class builds on the last, covering everything from birth preparation to
+newborn care — all at a pace that works for you.
+
+─────────────────────────────
+WHAT TO BRING
+─────────────────────────────
+• Yourself, just as you are — that's enough!
+• A notebook and pen if you like taking notes
+• Any questions you'd like answered
+
+If you require an interpreter, one will be arranged for you — just let us know.
+
+If anything changes and you can't make a class, please reply to this email or
+contact the Go Nurture team so we can support you.
+
+We are honoured to walk this journey with you. See you in Class 1! 💚
+
+With love and warmth,
+The Go Nurture Initiative Team
+"""
+
+    sent = False
+    error_msg = None
+
+    if not api_key or api_key == "re_xxxxxxxxxxxx":
+        print(f"=== COHORT ASSIGNMENT EMAIL TO MOTHER: {mother_email} ===")
+        print(f"From: {from_email}")
+        print(f"Subject: {subject}")
+        print(body)
+        print("=== END EMAIL ===")
+        sent = True
+    else:
+        try:
+            resend.api_key = api_key
+            response = resend.Emails.send({
+                "from": from_email,
+                "to": mother_email,
+                "subject": subject,
+                "text": body.strip(),
+            })
+            print(f"Cohort assignment email sent to mother {mother_email}: {response}")
+            sent = True
+        except Exception as e:
+            error_msg = str(e)
+            print(f"Failed to send cohort assignment email to mother via Resend: {e}")
+            print(f"=== COHORT ASSIGNMENT EMAIL TO MOTHER: {mother_email} ===")
+            print(f"Subject: {subject}")
+            print(body)
+            print("=== END EMAIL ===")
+
+    if db is not None:
+        log_email(
+            db=db,
+            recipient_email=mother_email,
+            subject=subject,
+            body=body.strip(),
+            email_type="cohort_assignment_mother",
+            status="success" if sent else "failed",
+            error_message=error_msg,
+        )
+
+    return sent
+
+
+def send_cohort_assignment_email_to_partner(
+    partner_email: str,
+    partner_name: str,
+    mother_name: str,
+    mother_email: Optional[str],
+    cohort_name: str,
+    cohort_type: str,
+    start_date: date_type,
+    venue_name: Optional[str],
+    db: Session = None,
+) -> bool:
+    """
+    Notify the referring partner organisation that their referred mother has
+    been assigned to a cohort, including program-specific details.
+    """
+    api_key = os.getenv("RESEND_API_KEY", "")
+    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>")
+
+    program_name = PROGRAM_NAMES.get(cohort_type, cohort_type)
+
+    if cohort_type == "breastfeeding_clinic":
+        subject = f"[Cohort Assigned] {mother_name} booked into the Breastfeeding Support Clinic"
+        body = f"""
+Hello {partner_name},
+
+Good news! The mother you referred has been assigned to a programme.
+
+Referral Details:
+- Mother: {mother_name}
+- Mother's Email: {mother_email or "Not provided"}
+- Programme: {program_name}
+- Group: {cohort_name}
+- Appointment Date: {start_date.strftime('%A, %d %B %Y')}
+- Venue: {venue_name or "To be confirmed"}
+
+The mother has been notified directly with her appointment details.
+
+Thank you for your continued partnership in supporting mothers in our community.
+
+Best regards,
+Go Nurture Initiative CIC
+"""
+    else:
+        schedule = compute_class_schedule(start_date)
+        subject = f"[Cohort Assigned] {mother_name} enrolled in the Birth Confidence Program"
+        body = f"""
+Hello {partner_name},
+
+Good news! The mother you referred has been enrolled in a programme.
+
+Referral Details:
+- Mother: {mother_name}
+- Mother's Email: {mother_email or "Not provided"}
+- Programme: {program_name}
+- Group: {cohort_name}
+- Venue: {venue_name or "To be confirmed"}
+
+Class Schedule (weekly):
+{_format_schedule_lines(schedule)}
+
+The mother has been notified directly with her full class schedule and
+welcome information.
+
+Thank you for your continued partnership in supporting mothers in our community.
+
+Best regards,
+Go Nurture Initiative CIC
+"""
+
+    sent = False
+    error_msg = None
+
+    if not api_key or api_key == "re_xxxxxxxxxxxx":
+        print(f"=== COHORT ASSIGNMENT EMAIL TO PARTNER: {partner_email} ===")
+        print(f"From: {from_email}")
+        print(f"Subject: {subject}")
+        print(body)
+        print("=== END EMAIL ===")
+        sent = True
+    else:
+        try:
+            resend.api_key = api_key
+            response = resend.Emails.send({
+                "from": from_email,
+                "to": partner_email,
+                "subject": subject,
+                "text": body.strip(),
+            })
+            print(f"Cohort assignment email sent to partner {partner_email}: {response}")
+            sent = True
+        except Exception as e:
+            error_msg = str(e)
+            print(f"Failed to send cohort assignment email to partner via Resend: {e}")
+            print(f"=== COHORT ASSIGNMENT EMAIL TO PARTNER: {partner_email} ===")
+            print(f"Subject: {subject}")
+            print(body)
+            print("=== END EMAIL ===")
+
+    if db is not None:
+        log_email(
+            db=db,
+            recipient_email=partner_email,
+            subject=subject,
+            body=body.strip(),
+            email_type="cohort_assignment_partner",
             status="success" if sent else "failed",
             error_message=error_msg,
         )

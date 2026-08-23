@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from typing import List, Optional
 from datetime import datetime, timedelta
 from uuid import UUID
@@ -14,14 +14,18 @@ from app.models.venue import Venue
 from app.models.cohort import Cohort
 from app.models.email_log import EmailLog
 from app.models.community_partner import CommunityPartner
-from app.schemas.referral import ReferralResponse, ReferralStatusUpdate
+from app.schemas.referral import ReferralResponse, ReferralStatusUpdate, ReferralUpdate
 from app.schemas.partner import PartnerResponse
 from app.schemas.donation import DonationResponse
 from app.schemas.contact import ContactResponse
 from app.schemas.community_partner import CommunityPartnerResponse, CommunityPartnerCreate
 from app.utils.auth import get_current_admin
 from app.services.geocode import geocode_address
-from app.services.email import send_referral_approval_email
+from app.services.email import (
+    send_referral_approval_email,
+    send_cohort_assignment_email_to_partner,
+    send_cohort_assignment_email_to_mother,
+)
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
@@ -52,7 +56,7 @@ def admin_get_all_referrals(
         # partner name
         partner = db.query(PartnerOrganisation).filter(PartnerOrganisation.id == r.partner_id).first()
         data["partner_name"] = partner.organisation_name if partner else None
-        # cohort name
+        # cohort name (birth confidence slot)
         if r.cohort_id:
             cohort = db.query(Cohort).filter(Cohort.id == r.cohort_id).first()
             data["cohort_name"] = cohort.name if cohort else None
@@ -65,6 +69,12 @@ def admin_get_all_referrals(
         else:
             data["cohort_name"] = None
             data["venue_name"] = None
+        # clinic cohort name (breastfeeding clinic slot)
+        if r.clinic_cohort_id:
+            clinic_cohort = db.query(Cohort).filter(Cohort.id == r.clinic_cohort_id).first()
+            data["clinic_cohort_name"] = clinic_cohort.name if clinic_cohort else None
+        else:
+            data["clinic_cohort_name"] = None
         enriched.append(data)
 
     return {
@@ -82,43 +92,91 @@ def admin_update_referral_status(
     db: Session = Depends(get_db),
     admin: PartnerOrganisation = Depends(get_current_admin),
 ):
-    """Admin only: Update referral status and assign to cohort."""
+    """Admin only: Update referral status and assign to cohort.
+
+    A mother can hold ONE cohort per program type:
+      - Birth Confidence Program cohorts fill `cohort_id`
+      - Breastfeeding Support Clinic cohorts fill `clinic_cohort_id`
+    Assigning within a type replaces the previous assignment of that type.
+    """
     referral = db.query(Referral).filter(Referral.id == referral_id).first()
     if not referral:
         raise HTTPException(status_code=404, detail="Referral not found")
 
-    referral.status = update.status
+    previous_bc_cohort_id = referral.cohort_id
+    previous_clinic_cohort_id = referral.clinic_cohort_id
+
+    target_cohort = None
     if update.cohort_id is not None:
-        cohort = db.query(Cohort).filter(Cohort.id == update.cohort_id).first()
-        if not cohort:
+        target_cohort = db.query(Cohort).filter(Cohort.id == update.cohort_id).first()
+        if not target_cohort:
             raise HTTPException(status_code=404, detail="Cohort not found")
-        referral.cohort_id = update.cohort_id
+
+    referral.status = update.status
+    assignment_changed = False
+    if target_cohort is not None:
+        if target_cohort.cohort_type == "breastfeeding_clinic":
+            assignment_changed = update.cohort_id != previous_clinic_cohort_id
+            referral.clinic_cohort_id = update.cohort_id  # replaces previous clinic slot
+        else:
+            assignment_changed = update.cohort_id != previous_bc_cohort_id
+            referral.cohort_id = update.cohort_id  # replaces previous birth-confidence slot
 
     db.commit()
     db.refresh(referral)
 
-    # If approved, send notification email to the partner organisation
-    if update.status == "approved":
-        partner = db.query(PartnerOrganisation).filter(PartnerOrganisation.id == referral.partner_id).first()
-        if partner:
-            cohort_name = None
-            venue_name = None
-            if referral.cohort_id:
-                cohort = db.query(Cohort).filter(Cohort.id == referral.cohort_id).first()
-                if cohort:
-                    cohort_name = cohort.name
-                    if cohort.venue_id:
-                        venue = db.query(Venue).filter(Venue.id == cohort.venue_id).first()
-                        if venue:
-                            venue_name = venue.name
+    partner = db.query(PartnerOrganisation).filter(PartnerOrganisation.id == referral.partner_id).first()
 
+    # When a mother is assigned (or re-assigned) to a cohort, notify BOTH the
+    # referring partner organisation AND the mother herself.
+    if assignment_changed and target_cohort is not None:
+        cohort = target_cohort
+        venue = None
+        if cohort.venue_id:
+            venue = db.query(Venue).filter(Venue.id == cohort.venue_id).first()
+
+        venue_name = venue.name if venue else None
+        venue_address = venue.address if venue else None
+        venue_city = venue.city if venue else None
+
+        if partner:
+            send_cohort_assignment_email_to_partner(
+                partner_email=partner.email,
+                partner_name=partner.organisation_name,
+                mother_name=referral.mother_name,
+                mother_email=referral.mother_email,
+                cohort_name=cohort.name,
+                cohort_type=cohort.cohort_type,
+                start_date=cohort.start_date,
+                venue_name=venue_name,
+                db=db,
+            )
+
+        if referral.mother_email:
+            send_cohort_assignment_email_to_mother(
+                mother_name=referral.mother_name,
+                mother_email=referral.mother_email,
+                cohort_name=cohort.name,
+                cohort_type=cohort.cohort_type,
+                start_date=cohort.start_date,
+                venue_name=venue_name,
+                venue_address=venue_address,
+                venue_city=venue_city,
+                db=db,
+            )
+        else:
+            print(f"[Assignment] No email on file for {referral.mother_name} — skipped mother notification.")
+
+    # If approved without a cohort assignment, send the standard approval email
+    elif update.status == "approved" and update.cohort_id is None:
+        if partner:
             send_referral_approval_email(
                 partner_email=partner.email,
                 partner_name=partner.organisation_name,
                 mother_name=referral.mother_name,
                 due_date=referral.estimated_due_date.isoformat() if referral.estimated_due_date else "",
-                cohort_name=cohort_name,
-                venue_name=venue_name,
+                cohort_name=None,
+                venue_name=None,
                 language_requirement=referral.language_requirement,
                 requires_interpreter=referral.requires_interpreter,
                 additional_notes=referral.additional_notes,
@@ -126,6 +184,30 @@ def admin_update_referral_status(
             )
 
     return {"message": "Referral updated successfully", "referral_id": referral.id}
+
+
+@router.patch("/referrals/{referral_id}/edit", response_model=dict)
+def admin_edit_referral(
+    referral_id: UUID,
+    update: ReferralUpdate,
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    """Admin only: Edit a referral's details (status & cohort handled separately)."""
+    referral = db.query(Referral).filter(Referral.id == referral_id).first()
+    if not referral:
+        raise HTTPException(status_code=404, detail="Referral not found")
+
+    updates = update.model_dump(exclude_unset=True)
+    for field, value in updates.items():
+        setattr(referral, field, value)
+
+    db.commit()
+    db.refresh(referral)
+    return {
+        "message": "Referral updated successfully",
+        "referral": ReferralResponse.model_validate(referral).model_dump(mode="json"),
+    }
 
 
 @router.get("/contacts", response_model=dict)
@@ -373,10 +455,10 @@ def admin_get_all_cohorts(
             data["venue_address"] = None
             data["venue_city"] = None
 
-        # Attach the referrals (people) assigned to this cohort
+        # Attach the referrals (people) assigned to this cohort — via either slot
         referrals = (
             db.query(Referral)
-            .filter(Referral.cohort_id == cohort.id)
+            .filter(or_(Referral.cohort_id == cohort.id, Referral.clinic_cohort_id == cohort.id))
             .order_by(Referral.created_at.desc())
             .all()
         )
@@ -425,7 +507,7 @@ def admin_update_cohort(
         raise HTTPException(status_code=404, detail="Cohort not found")
 
     allowed_fields = {
-        "name", "year", "start_date", "end_date",
+        "name", "year", "start_date", "end_date", "cohort_type",
         "max_participants", "is_active", "description", "venue_id",
     }
 

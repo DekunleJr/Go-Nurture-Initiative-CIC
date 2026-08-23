@@ -10,7 +10,8 @@ from app.models.cohort import Cohort
 from app.models.venue import Venue
 from app.schemas.referral import ReferralCreate, ReferralResponse, ReferralStatusUpdate
 from app.utils.auth import get_current_partner
-from app.services.email import send_referral_notification_email
+from app.schemas.referral import ReferralUpdate
+from app.services.email import send_referral_notification_email, PROGRAM_NAMES
 
 router = APIRouter(prefix="/api/referrals", tags=["Referrals"])
 
@@ -33,7 +34,9 @@ def create_referral(
         partner_id=current_partner.id,
         mother_name=data.mother_name,
         mother_phone=data.mother_phone,
+        mother_email=data.mother_email,
         estimated_due_date=data.estimated_due_date,
+        referral_type=data.referral_type,
         language_requirement=data.language_requirement,
         additional_notes=data.additional_notes,
         requires_interpreter=data.requires_interpreter,
@@ -48,8 +51,10 @@ def create_referral(
         send_referral_notification_email,
         mother_name=referral.mother_name,
         mother_phone=referral.mother_phone,
+        mother_email=referral.mother_email,
         due_date=referral.estimated_due_date.isoformat() if referral.estimated_due_date else "",
         partner_name=current_partner.organisation_name,
+        referral_type=referral.referral_type,
         language_requirement=referral.language_requirement,
         requires_interpreter=referral.requires_interpreter,
         additional_notes=referral.additional_notes,
@@ -88,6 +93,12 @@ def list_my_referrals(
         else:
             data["cohort_name"] = None
             data["venue_name"] = None
+        # clinic cohort name (breastfeeding clinic slot)
+        if r.clinic_cohort_id:
+            clinic_cohort = db.query(Cohort).filter(Cohort.id == r.clinic_cohort_id).first()
+            data["clinic_cohort_name"] = clinic_cohort.name if clinic_cohort else None
+        else:
+            data["clinic_cohort_name"] = None
         enriched.append(data)
 
     return enriched
@@ -105,4 +116,35 @@ def get_referral(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Referral not found")
     if referral.partner_id != current_partner.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your referral")
+    return ReferralResponse.model_validate(referral)
+
+
+@router.patch("/{referral_id}", response_model=ReferralResponse)
+def update_my_referral(
+    referral_id: UUID,
+    update: ReferralUpdate,
+    db: Session = Depends(get_db),
+    current_partner: PartnerOrganisation = Depends(get_current_partner),
+):
+    """
+    Edit a referral's details (partner who submitted it only).
+    Blocked once the referral is completed or declined.
+    """
+    referral = db.query(Referral).filter(Referral.id == referral_id).first()
+    if not referral:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Referral not found")
+    if referral.partner_id != current_partner.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your referral")
+    if referral.status in ("completed", "declined"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This referral can no longer be edited because it has been completed or declined.",
+        )
+
+    updates = update.model_dump(exclude_unset=True)
+    for field, value in updates.items():
+        setattr(referral, field, value)
+
+    db.commit()
+    db.refresh(referral)
     return ReferralResponse.model_validate(referral)

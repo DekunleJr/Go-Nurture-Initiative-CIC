@@ -22,12 +22,22 @@ interface CohortMember {
   created_at: string | null;
 }
 
+const COHORT_TYPES = [
+  { value: "birth_confidence", label: "Favour Oloye Birth Confidence Program" },
+  { value: "breastfeeding_clinic", label: "Breastfeeding Support Clinic" },
+];
+
+function cohortTypeLabel(type: string): string {
+  return COHORT_TYPES.find((t) => t.value === type)?.label || type;
+}
+
 interface Cohort {
   id: string;
   name: string;
   year: number;
+  cohort_type: string;
   start_date: string;
-  end_date: string;
+  end_date: string | null;
   max_participants: number;
   venue_name: string;
   venue_id: string | null;
@@ -42,8 +52,9 @@ interface CohortsTabProps {
   onCreateCohort: (cohortData: {
     name: string;
     year: number;
+    cohort_type: string;
     start_date: string;
-    end_date: string;
+    end_date: string | null;
     max_participants: number;
     venue_id: string;
   }) => Promise<void>;
@@ -52,8 +63,9 @@ interface CohortsTabProps {
     cohortData: {
       name: string;
       year: number;
+      cohort_type: string;
       start_date: string;
-      end_date: string;
+      end_date: string | null;
       max_participants: number;
       venue_id: string;
     }
@@ -77,6 +89,7 @@ export default function CohortsTab({ cohorts, venues, onCreateCohort, onUpdateCo
   const [viewingCohort, setViewingCohort] = useState<Cohort | null>(null);
   const [cohortName, setCohortName] = useState("");
   const [cohortYear, setCohortYear] = useState(new Date().getFullYear());
+  const [cohortType, setCohortType] = useState("birth_confidence");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [maxParticipants, setMaxParticipants] = useState(30);
@@ -94,6 +107,7 @@ export default function CohortsTab({ cohorts, venues, onCreateCohort, onUpdateCo
   const resetForm = () => {
     setCohortName("");
     setCohortYear(new Date().getFullYear());
+    setCohortType("birth_confidence");
     setStartDate("");
     setEndDate("");
     setMaxParticipants(30);
@@ -106,8 +120,9 @@ export default function CohortsTab({ cohorts, venues, onCreateCohort, onUpdateCo
     setEditingCohort(cohort);
     setCohortName(cohort.name);
     setCohortYear(cohort.year);
+    setCohortType(cohort.cohort_type || "birth_confidence");
     setStartDate(cohort.start_date.slice(0, 10));
-    setEndDate(cohort.end_date.slice(0, 10));
+    setEndDate(cohort.end_date ? cohort.end_date.slice(0, 10) : "");
     setMaxParticipants(cohort.max_participants);
     setSelectedVenueId(cohort.venue_id || "");
     setShowForm(true);
@@ -115,9 +130,19 @@ export default function CohortsTab({ cohorts, venues, onCreateCohort, onUpdateCo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!cohortName || !startDate || !endDate || !selectedVenueId) { toast.error("Please fill in all required fields"); return; }
+    const isClinic = cohortType === "breastfeeding_clinic";
+    if (!cohortName || !startDate || !selectedVenueId) { toast.error("Please fill in all required fields"); return; }
+    if (!isClinic && !endDate) { toast.error("End date is required for the Birth Confidence Program"); return; }
     try {
-      const cohortData = { name: cohortName, year: cohortYear, start_date: startDate, end_date: endDate, max_participants: maxParticipants, venue_id: selectedVenueId };
+      const cohortData = {
+        name: cohortName,
+        year: cohortYear,
+        cohort_type: cohortType,
+        start_date: startDate,
+        end_date: isClinic ? null : endDate,
+        max_participants: maxParticipants,
+        venue_id: selectedVenueId,
+      };
       if (editingCohort) { await onUpdateCohort(editingCohort.id, cohortData); toast.success("Cohort updated successfully"); }
       else { await onCreateCohort(cohortData); toast.success("Cohort created successfully"); }
       resetForm(); onRefresh();
@@ -159,13 +184,37 @@ export default function CohortsTab({ cohorts, venues, onCreateCohort, onUpdateCo
               <label className="block text-sm font-medium text-gray-700 mb-1">Year *</label>
               <input type="number" value={cohortYear} onChange={(e) => setCohortYear(parseInt(e.target.value))} className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
             </div>
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Program Type *</label>
+              <select value={cohortType} onChange={(e) => setCohortType(e.target.value)} className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)">
+                {COHORT_TYPES.map((t) => (<option key={t.value} value={t.value}>{t.label}</option>))}
+              </select>
+              {cohortType === "birth_confidence" && (
+                <p className="mt-1 text-xs text-gray-500">6 weekly classes — Class 1 starts on the start date, then weekly on the same day.</p>
+              )}
+              {cohortType === "breastfeeding_clinic" && (
+                <p className="mt-1 text-xs text-gray-500">Single appointment session — no end date needed.</p>
+              )}
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
               <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">End Date *</label>
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                End Date {cohortType !== "breastfeeding_clinic" && "*"}
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                disabled={cohortType === "breastfeeding_clinic"}
+                className={`w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent) ${cohortType === "breastfeeding_clinic" ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                required={cohortType !== "breastfeeding_clinic"}
+              />
+              {cohortType === "breastfeeding_clinic" && (
+                <p className="mt-1 text-xs text-gray-400">Not applicable for the clinic type.</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Max Participants</label>
@@ -191,7 +240,12 @@ export default function CohortsTab({ cohorts, venues, onCreateCohort, onUpdateCo
           <div className="flex items-start justify-between mb-4">
             <div>
               <h4 className="font-heading text-lg font-bold text-gray-900">{viewingCohort.name}</h4>
-              <p className="text-sm text-gray-600">{viewingCohort.year} | {new Date(viewingCohort.start_date).toLocaleDateString()} - {new Date(viewingCohort.end_date).toLocaleDateString()}</p>
+              <p className="text-sm text-gray-600">
+                {viewingCohort.year} | {new Date(viewingCohort.start_date).toLocaleDateString()}
+                {viewingCohort.end_date ? ` - ${new Date(viewingCohort.end_date).toLocaleDateString()}` : ""}
+                {" · "}
+                <span className="font-medium text-(--color-primary)">{cohortTypeLabel(viewingCohort.cohort_type)}</span>
+              </p>
             </div>
             <button onClick={() => setViewingCohort(null)} className="rounded-lg border border-gray-200 px-3 py-1 text-sm text-gray-700 hover:bg-gray-50">Close</button>
           </div>
@@ -247,6 +301,7 @@ export default function CohortsTab({ cohorts, venues, onCreateCohort, onUpdateCo
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Program Type</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Year</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
@@ -257,14 +312,19 @@ export default function CohortsTab({ cohorts, venues, onCreateCohort, onUpdateCo
           </thead>
           <tbody className="divide-y divide-gray-200">
             {visibleCohorts.length === 0 ? (
-              <tr><td colSpan={7} className="px-6"><EmptyState message="No cohorts yet." /></td></tr>
+              <tr><td colSpan={8} className="px-6"><EmptyState message="No cohorts yet." /></td></tr>
             ) : (
               visibleCohorts.map((cohort) => (
                 <tr key={cohort.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{cohort.name}</td>
+                  <td className="px-6 py-4 text-sm">
+                    <span className="inline-flex rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
+                      {cohortTypeLabel(cohort.cohort_type)}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 text-sm text-gray-600">{cohort.year}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{new Date(cohort.start_date).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{new Date(cohort.end_date).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{cohort.end_date ? new Date(cohort.end_date).toLocaleDateString() : "—"}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{cohort.max_participants}</td>
                   <td className="px-6 py-4 text-sm">
                     <div className="font-medium text-gray-900">{cohort.venue_name || "-"}</div>
