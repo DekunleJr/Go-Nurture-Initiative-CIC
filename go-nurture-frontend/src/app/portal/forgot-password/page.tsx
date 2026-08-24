@@ -4,9 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { Loader2, MailCheck, KeyRound } from "lucide-react";
 import toast from "react-hot-toast";
+import { api } from "@/lib/api-client";
 import { PortalNavbar } from "@/components/portal/PortalNavbar";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -18,17 +17,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/forgot-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.detail || "Failed to send reset link");
-      }
+      await api.post("/api/auth/forgot-password", { email });
 
       setSent(true);
     } catch (err: unknown) {
@@ -51,7 +40,7 @@ export default function ForgotPasswordPage() {
               </h1>
               <p className="mt-3 text-sm text-(--color-text-muted) leading-relaxed">
                 If an account exists with <span className="font-medium text-foreground">{email}</span>,
-                we've sent a password reset link. The link expires in 48 hours.
+                we&apos;ve sent a password reset link. The link expires in 48 hours.
               </p>
               <Link
                 href="/portal/login"
@@ -70,7 +59,7 @@ export default function ForgotPasswordPage() {
               </div>
               <p className="mt-3 text-sm text-(--color-text-muted)">
                 Enter the email address associated with your partner account and
-                we'll send you a link to choose a new password.
+                we&apos;ll send you a link to choose a new password.
               </p>
 
               <form onSubmit={handleSubmit} className="mt-6 space-y-4">

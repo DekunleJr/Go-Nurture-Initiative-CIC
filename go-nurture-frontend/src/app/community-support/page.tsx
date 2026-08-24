@@ -5,13 +5,8 @@ import Link from "next/link";
 import { ArrowRight, Heart, Users, Building, Church, Shield } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/lib/LanguageContext";
-
-interface CommunityPartner {
-  id: string;
-  name: string;
-  is_active: boolean;
-  created_at: string;
-}
+import { api } from "@/lib/api-client";
+import type { CommunityPartner } from "@/types";
 
 export default function CommunitySupportPage() {
   const { t } = useLanguage();
@@ -21,11 +16,8 @@ export default function CommunitySupportPage() {
   useEffect(() => {
     const fetchPartners = async () => {
       try {
-        const res = await fetch("/api/community/partners");
-        if (res.ok) {
-          const data = await res.json();
-          setPartners(data || []);
-        }
+        const data = await api.get<CommunityPartner[]>("/api/community/partners");
+        setPartners(data || []);
       } catch (error) {
         console.error("Error fetching community partners:", error);
       } finally {

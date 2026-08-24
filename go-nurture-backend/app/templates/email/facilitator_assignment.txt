@@ -1,0 +1,15 @@
+Hello {{ facilitator_name }},
+
+You have been assigned as the facilitator for the following {{ "session" if is_clinic else "cohort" }}:
+
+Programme: {{ program_name }}
+Group: {{ cohort_name }}
+{% if is_clinic %}Date: {{ date_text }}
+{% else %}Class Schedule (weekly):
+{{ schedule_lines }}
+{% endif %}{{ venue_line }}
+
+Please log into your facilitator portal to view enrolled participants and submit your delivery audit.
+
+Best regards,
+Go Nurture Initiative CIC

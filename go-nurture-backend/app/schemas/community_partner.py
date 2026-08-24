@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -14,4 +14,9 @@ class CommunityPartnerResponse(BaseModel):
 
 
 class CommunityPartnerCreate(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=255)
+
+
+class CommunityPartnerUpdate(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    is_active: Optional[bool] = None

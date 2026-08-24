@@ -6,8 +6,7 @@ import toast from "react-hot-toast";
 import { ArrowRight, Mail, MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/lib/LanguageContext";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { api } from "@/lib/api-client";
 
 export default function ContactPage() {
   const { t } = useLanguage();
@@ -30,17 +29,7 @@ export default function ContactPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/contact/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.detail || "Failed to send message");
-      }
+      await api.post("/api/contact/", formData);
 
       toast.success(t("contact.formSuccess"));
       setFormData({ name: "", email: "", subject: "", message: "" });

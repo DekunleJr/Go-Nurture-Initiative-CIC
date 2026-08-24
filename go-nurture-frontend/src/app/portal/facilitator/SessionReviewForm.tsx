@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { X, Loader2, Save, Send } from "lucide-react";
 import toast from "react-hot-toast";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { api } from "@/lib/api-client";
 
 const FIDELITY_ITEMS = [
   "Current slides, manual, participant resources and evidence log used.",
@@ -87,11 +86,7 @@ export default function SessionReviewForm({ cohortId, cohortName, schedulePrevie
     }
     setSaving(true);
     try {
-      const token = localStorage.getItem("access_token");
-      const res = await fetch(`${API_URL}/api/facilitator/reviews`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
+      await api.post("/api/facilitator/reviews", {
           cohort_id: cohortId,
           session_date: new Date(form.session_date + "T00:00:00Z").toISOString(),
           week_number: form.week_number,
@@ -111,12 +106,7 @@ export default function SessionReviewForm({ cohortId, cohortName, schedulePrevie
           incidents,
           reflection,
           status,
-        }),
       });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.detail || "Failed to save review");
-      }
       toast.success(status === "submitted" ? "Review submitted" : "Draft saved");
       onClose();
     } catch (error) {

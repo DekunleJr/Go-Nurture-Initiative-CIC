@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarDays, MapPin, Users, FileText, GraduationCap, ClipboardCheck } from "lucide-react";
+import { api } from "@/lib/api-client";
 import SessionReviewForm from "./SessionReviewForm";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface CohortMember {
   id: string;
@@ -56,17 +55,14 @@ export default function FacilitatorDashboardPage() {
         router.push(user.role === "admin" ? "/admin/dashboard" : "/portal/dashboard");
         return;
       }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFacilitatorName(user.name || "Facilitator");
     }
 
     let isMounted = true;
 
-    fetch(`${API_URL}/api/facilitator/my-cohorts`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error("Failed to load your cohorts.");
-        const data = await res.json();
+    api.get<AssignedCohort[]>("/api/facilitator/my-cohorts")
+      .then((data) => {
         if (isMounted) {
           setCohorts(data);
           setLoading(false);
@@ -218,7 +214,7 @@ export default function FacilitatorDashboardPage() {
                       </div>
                     )}
                     <p className="mt-3 text-xs text-gray-400 flex items-center gap-1">
-                      <FileText size={12} /> Use "Submit Review" after each meeting to complete the delivery audit.
+                      <FileText size={12} /> Use &quot;Submit Review&quot; after each meeting to complete the delivery audit.
                     </p>
                   </div>
                 )}

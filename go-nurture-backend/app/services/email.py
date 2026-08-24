@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timezone, timedelta, date as date_type
 from typing import Optional
 from app.models.email_log import EmailLog
+from app.services.email_templates import render_email, render_managed_email
+from app.services.email_queue import queue_and_process_email
 
 # Program display names
 PROGRAM_NAMES = {
@@ -65,58 +67,15 @@ def send_invite_email(
     Uses Resend (https://resend.com) for email delivery.
     Falls back to printing to console if Resend API key is not configured.
     """
-    api_key = os.getenv("RESEND_API_KEY", "")
-    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>")
-
-    subject = f"You've been invited to join {organisation_name} on Go Nurture Initiative"
-    body = f"""
-Hello {recipient_name},
-
-You have been registered as a partner organisation for Go Nurture Initiative CIC.
-
-To access the Partner Portal and start submitting referrals, please set your password using the link below:
-
-{invite_link}
-
-This link will expire in 48 hours.
-
-If you have any questions, please contact the Go Nurture team.
-
-Best regards,
-Go Nurture Initiative CIC
-"""
-
-    sent = False
-    error_msg = None
-
-    # If no API key is configured, print to console (for development/testing)
-    if not api_key or api_key == "re_xxxxxxxxxxxx":
-        print(f"=== EMAIL TO: {recipient_email} ===")
-        print(f"From: {from_email}")
-        print(f"Subject: {subject}")
-        print(body)
-        print("=== END EMAIL ===")
-        sent = True
-    else:
-        try:
-            resend.api_key = api_key
-            response = resend.Emails.send({
-                "from": from_email,
-                "to": recipient_email,
-                "subject": subject,
-                "text": body.strip(),
-            })
-            print(f"Email sent to {recipient_email}: {response}")
-            sent = True
-        except Exception as e:
-            error_msg = str(e)
-            print(f"Failed to send email via Resend: {e}")
-            # Fallback: print to console so development isn't blocked
-            print(f"=== EMAIL TO: {recipient_email} ===")
-            print(f"From: {from_email}")
-            print(f"Subject: {subject}")
-            print(body)
-            print("=== END EMAIL ===")
+    subject, body = render_managed_email(
+        db,
+        "partner_invite",
+        "partner_invite.txt",
+        {"recipient_name": recipient_name, "organisation_name": organisation_name, "invite_link": invite_link},
+        f"You've been invited to join {organisation_name} on Go Nurture Initiative",
+    )
+    sent = queue_and_process_email(db, "partner_invite", recipient_email, subject, body) if db is not None else False
+    error_msg = None if sent else "Email queued for delivery or failed"
 
     # Log to database if db session provided
     if db is not None:
@@ -126,7 +85,7 @@ Go Nurture Initiative CIC
             subject=subject,
             body=body.strip(),
             email_type="partner_invite",
-            status="success" if sent else "failed",
+            status="success" if sent else "pending",
             error_message=error_msg,
         )
 
@@ -143,56 +102,15 @@ def send_password_reset_email(
     Send a password reset email to a partner who forgot their password.
     Uses Resend for email delivery with console fallback for development.
     """
-    api_key = os.getenv("RESEND_API_KEY", "")
-    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>")
-
-    subject = "Reset your Go Nurture Initiative password"
-    body = f"""
-Hello {recipient_name},
-
-We received a request to reset your password for the Go Nurture Initiative Partner Portal.
-
-To choose a new password, please use the link below:
-
-{reset_link}
-
-This link will expire in 48 hours.
-
-If you did not request this, you can safely ignore this email — your password will remain unchanged.
-
-Best regards,
-Go Nurture Initiative CIC
-"""
-
-    sent = False
-    error_msg = None
-
-    if not api_key or api_key == "re_xxxxxxxxxxxx":
-        print(f"=== PASSWORD RESET EMAIL TO: {recipient_email} ===")
-        print(f"From: {from_email}")
-        print(f"Subject: {subject}")
-        print(body)
-        print("=== END EMAIL ===")
-        sent = True
-    else:
-        try:
-            resend.api_key = api_key
-            response = resend.Emails.send({
-                "from": from_email,
-                "to": recipient_email,
-                "subject": subject,
-                "text": body.strip(),
-            })
-            print(f"Password reset email sent to {recipient_email}: {response}")
-            sent = True
-        except Exception as e:
-            error_msg = str(e)
-            print(f"Failed to send password reset email via Resend: {e}")
-            print(f"=== PASSWORD RESET EMAIL TO: {recipient_email} ===")
-            print(f"From: {from_email}")
-            print(f"Subject: {subject}")
-            print(body)
-            print("=== END EMAIL ===")
+    subject, body = render_managed_email(
+        db,
+        "password_reset",
+        "password_reset.txt",
+        {"recipient_name": recipient_name, "reset_link": reset_link},
+        "Reset your Go Nurture Initiative password",
+    )
+    sent = queue_and_process_email(db, "password_reset", recipient_email, subject, body) if db is not None else False
+    error_msg = None if sent else "Email queued for delivery or failed"
 
     if db is not None:
         log_email(
@@ -201,7 +119,7 @@ Go Nurture Initiative CIC
             subject=subject,
             body=body.strip(),
             email_type="password_reset",
-            status="success" if sent else "failed",
+            status="success" if sent else "pending",
             error_message=error_msg,
         )
 
@@ -256,6 +174,18 @@ Please review and approve/reject this referral in the admin dashboard.
 ---
 This email was sent automatically from the Go Nurture referral system.
 """
+
+    email_subject, body = render_managed_email(db, "referral_notification", "referral_notification.txt", {
+        "mother_name": mother_name, "mother_phone": mother_phone, "mother_email": mother_email,
+        "due_date": due_date, "program_name": PROGRAM_NAMES.get(referral_type, referral_type),
+        "language_requirement": language_requirement, "requires_interpreter": requires_interpreter,
+        "partner_name": partner_name, "additional_notes": additional_notes,
+    }, email_subject)
+
+    if db is not None:
+        sent = queue_and_process_email(db, "referral_notification", contact_email, email_subject, body)
+        log_email(db, contact_email, email_subject, body.strip(), "referral", "success" if sent else "pending", None if sent else "Email queued for delivery or failed")
+        return sent
 
     sent = False
     error_msg = None
@@ -337,6 +267,16 @@ Please review the donation in the admin dashboard.
 ---
 This email was sent automatically from the Go Nurture donation system.
 """
+
+    email_subject, body = render_managed_email(db, "donation_notification", "donation_notification.txt", {
+        "donor_name": donor_name, "donor_email": donor_email, "amount": f"{amount:.2f}",
+        "currency": currency.upper(), "message": message,
+    }, email_subject)
+
+    if db is not None:
+        sent = queue_and_process_email(db, "donation_notification", contact_email, email_subject, body)
+        log_email(db, contact_email, email_subject, body.strip(), "donation", "success" if sent else "pending", None if sent else "Email queued for delivery or failed")
+        return sent
 
     sent = False
     error_msg = None
@@ -425,6 +365,17 @@ Best regards,
 Go Nurture Initiative CIC
 """
 
+    subject, body = render_managed_email(db, "referral_approval", "referral_approval.txt", {
+        "partner_name": partner_name, "mother_name": mother_name, "due_date": due_date,
+        "language_requirement": language_requirement, "requires_interpreter": requires_interpreter,
+        "cohort_name": cohort_name, "venue_name": venue_name, "additional_notes": additional_notes,
+    }, subject)
+
+    if db is not None:
+        sent = queue_and_process_email(db, "referral_approval", partner_email, subject, body)
+        log_email(db, partner_email, subject, body.strip(), "referral_approval", "success" if sent else "pending", None if sent else "Email queued for delivery or failed")
+        return sent
+
     sent = False
     error_msg = None
 
@@ -502,6 +453,16 @@ Message:
 ---
 This email was sent automatically from the Go Nurture website contact form.
 """
+
+    email_subject, body = render_managed_email(db, "contact", "contact_notification.txt", {
+        "sender_name": sender_name, "sender_email": sender_email,
+        "message_subject": subject, "message": message,
+    }, email_subject)
+
+    if db is not None:
+        sent = queue_and_process_email(db, "contact", contact_email, email_subject, body)
+        log_email(db, contact_email, email_subject, body.strip(), "contact", "success" if sent else "pending", None if sent else "Email queued for delivery or failed")
+        return sent
 
     sent = False
     error_msg = None
@@ -616,6 +577,17 @@ If you have any questions, please contact the Go Nurture team.
 Best regards,
 Go Nurture Initiative CIC
 """
+
+    subject, body = render_managed_email(db, "facilitator_assignment", "facilitator_assignment.txt", {
+        "facilitator_name": facilitator_name, "program_name": program_name, "cohort_name": cohort_name,
+        "is_clinic": cohort_type == "breastfeeding_clinic", "date_text": start_date.strftime('%A, %d %B %Y'),
+        "schedule_lines": _format_schedule_lines(compute_class_schedule(start_date)), "venue_line": venue_line,
+    }, subject)
+
+    if db is not None:
+        sent = queue_and_process_email(db, "facilitator_assignment", facilitator_email, subject, body)
+        log_email(db, facilitator_email, subject, body.strip(), "facilitator_assignment", "success" if sent else "pending", None if sent else "Email queued for delivery or failed")
+        return sent
 
     sent = False
     error_msg = None
@@ -769,6 +741,17 @@ With love and warmth,
 The Go Nurture Initiative Team
 """
 
+    subject, body = render_managed_email(db, "cohort_assignment_mother", "cohort_assignment_mother.txt", {
+        "mother_name": mother_name, "program_name": program_name, "cohort_name": cohort_name,
+        "is_clinic": cohort_type == "breastfeeding_clinic", "date_text": start_date.strftime('%A, %d %B %Y'),
+        "schedule_lines": _format_schedule_lines(compute_class_schedule(start_date)), "venue_block": venue_block,
+    }, subject)
+
+    if db is not None:
+        sent = queue_and_process_email(db, "cohort_assignment_mother", mother_email, subject, body)
+        log_email(db, mother_email, subject, body.strip(), "cohort_assignment", "success" if sent else "pending", None if sent else "Email queued for delivery or failed")
+        return sent
+
     sent = False
     error_msg = None
 
@@ -854,6 +837,7 @@ Thank you for your continued partnership in supporting mothers in our community.
 Best regards,
 Go Nurture Initiative CIC
 """
+
     else:
         schedule = compute_class_schedule(start_date)
         subject = f"[Cohort Assigned] {mother_name} enrolled in the Birth Confidence Program"
@@ -880,6 +864,18 @@ Thank you for your continued partnership in supporting mothers in our community.
 Best regards,
 Go Nurture Initiative CIC
 """
+
+    subject, body = render_managed_email(db, "cohort_assignment_partner", "cohort_assignment_partner.txt", {
+        "partner_name": partner_name, "mother_name": mother_name, "mother_email": mother_email,
+        "program_name": program_name, "cohort_name": cohort_name,
+        "is_clinic": cohort_type == "breastfeeding_clinic", "date_text": start_date.strftime('%A, %d %B %Y'),
+        "schedule_lines": _format_schedule_lines(compute_class_schedule(start_date)), "venue_name": venue_name,
+    }, subject)
+
+    if db is not None:
+        sent = queue_and_process_email(db, "cohort_assignment_partner", partner_email, subject, body)
+        log_email(db, partner_email, subject, body.strip(), "cohort_assignment", "success" if sent else "pending", None if sent else "Email queued for delivery or failed")
+        return sent
 
     sent = False
     error_msg = None

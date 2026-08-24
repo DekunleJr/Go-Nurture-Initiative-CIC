@@ -337,7 +337,7 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
             <form onSubmit={handleEditSubmit} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Mother's Full Name *</label>
+                  <label className="block text-sm font-medium text-gray-700">Mother&apos;s Full Name *</label>
                   <input name="mother_name" type="text" required defaultValue={editingReferral.mother_name} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2" />
                 </div>
                 <div>

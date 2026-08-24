@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 from typing import List, Optional
@@ -20,9 +21,11 @@ from app.schemas.referral import ReferralResponse, ReferralStatusUpdate, Referra
 from app.schemas.partner import PartnerResponse
 from app.schemas.donation import DonationResponse
 from app.schemas.contact import ContactResponse
-from app.schemas.community_partner import CommunityPartnerResponse, CommunityPartnerCreate
+from app.schemas.community_partner import CommunityPartnerResponse, CommunityPartnerCreate, CommunityPartnerUpdate
 from app.schemas.partner import FacilitatorResponse, FacilitatorCreate
 from app.schemas.session_review import SessionReviewResponse
+from app.schemas.admin import CohortCreate, CohortUpdate, FacilitatorAssignment, PartnerUpdate
+from app.schemas.venue import VenueCreate, VenueUpdate
 from app.utils.auth import get_current_admin
 from app.services.geocode import geocode_address
 from app.services.email import (
@@ -31,8 +34,165 @@ from app.services.email import (
     send_cohort_assignment_email_to_mother,
     send_facilitator_assignment_email,
 )
+from app.models.email_template import EmailTemplate, EmailQueueItem
+from app.schemas.email import (
+    EmailPreviewRequest,
+    EmailQueueResponse,
+    EmailTemplateResponse,
+    EmailTemplateUpdate,
+    EmailTestSendRequest,
+)
+from app.services.email_queue import enqueue_email, process_email_queue
+from app.services.email_templates import environment
+from jinja2 import UndefinedError
+import os
+import resend
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
+
+
+@router.get("/email-templates", response_model=List[EmailTemplateResponse])
+def admin_list_email_templates(
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    return db.query(EmailTemplate).order_by(EmailTemplate.template_key, EmailTemplate.version.desc()).all()
+
+
+@router.patch("/email-templates/{template_key}", response_model=EmailTemplateResponse)
+def admin_update_email_template(
+    template_key: str,
+    data: EmailTemplateUpdate,
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    current = (
+        db.query(EmailTemplate)
+        .filter(EmailTemplate.template_key == template_key, EmailTemplate.is_active.is_(True))
+        .order_by(EmailTemplate.version.desc())
+        .first()
+    )
+    if not current:
+        raise HTTPException(status_code=404, detail="Email template not found")
+    current.is_active = False
+    version = EmailTemplate(
+        template_key=template_key,
+        name=data.name,
+        subject=data.subject,
+        body=data.body,
+        version=current.version + 1,
+        is_active=True,
+        created_by=admin.email,
+    )
+    db.add(version)
+    db.commit()
+    db.refresh(version)
+    return version
+
+
+def _render_template(template_key: str, variables: dict[str, object], db: Session) -> tuple[str, str]:
+    template = (
+        db.query(EmailTemplate)
+        .filter(EmailTemplate.template_key == template_key, EmailTemplate.is_active.is_(True))
+        .order_by(EmailTemplate.version.desc())
+        .first()
+    )
+    if not template:
+        raise HTTPException(status_code=404, detail="Email template not found")
+    try:
+        subject = environment.from_string(template.subject).render(**variables).strip()
+        body = environment.from_string(template.body).render(**variables).strip()
+    except UndefinedError as exc:
+        missing_variable = str(exc).split("'")[1] if "'" in str(exc) else str(exc)
+        raise HTTPException(
+            status_code=422,
+            detail=f"Missing template variable: {missing_variable}",
+        ) from exc
+    return subject, body
+
+
+@router.post("/email-templates/{template_key}/preview", response_model=dict)
+def admin_preview_email_template(
+    template_key: str,
+    data: EmailPreviewRequest,
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    subject, body = _render_template(template_key, data.variables, db)
+    return {"template_key": template_key, "subject": subject, "body": body}
+
+
+@router.post("/email-templates/{template_key}/test-send", response_model=dict)
+def admin_test_send_email_template(
+    template_key: str,
+    data: EmailTestSendRequest,
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    subject, body = _render_template(template_key, data.variables, db)
+    api_key = os.getenv("RESEND_API_KEY", "")
+    if not api_key or api_key == "re_xxxxxxxxxxxx":
+        raise HTTPException(status_code=503, detail="Email provider is not configured")
+    resend.api_key = api_key
+    try:
+        response = resend.Emails.send({
+            "from": os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>"),
+            "to": data.recipient_email,
+            "subject": subject,
+            "text": body,
+        })
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Test email failed: {exc}") from exc
+    return {"message": "Test email sent", "provider_response": str(response)}
+
+
+@router.post("/email-templates/{template_key}/queue", response_model=EmailQueueResponse)
+def admin_queue_email_template(
+    template_key: str,
+    data: EmailTestSendRequest,
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    subject, body = _render_template(template_key, data.variables, db)
+    return enqueue_email(db, template_key, data.recipient_email, subject, body)
+
+
+@router.get("/email-queue", response_model=List[EmailQueueResponse])
+def admin_list_email_queue(
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+    status_filter: str | None = Query(None, alias="status"),
+    limit: int = Query(50, ge=1, le=100),
+):
+    query = db.query(EmailQueueItem)
+    if status_filter:
+        query = query.filter(EmailQueueItem.status == status_filter)
+    return query.order_by(EmailQueueItem.created_at.desc()).limit(limit).all()
+
+
+@router.post("/email-queue/process", response_model=dict)
+def admin_process_email_queue(
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    return {"processed": process_email_queue(db)}
+
+
+@router.post("/email-queue/{queue_id}/retry", response_model=EmailQueueResponse)
+def admin_retry_email(
+    queue_id: UUID,
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    item = db.query(EmailQueueItem).filter(EmailQueueItem.id == queue_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Queued email not found")
+    item.status = "pending"
+    item.next_attempt_at = datetime.utcnow()
+    item.last_error = None
+    db.commit()
+    db.refresh(item)
+    return item
 
 
 @router.get("/referrals", response_model=dict)
@@ -259,16 +419,18 @@ def admin_get_all_donations(
 def admin_get_all_partners(
     db: Session = Depends(get_db),
     admin: PartnerOrganisation = Depends(get_current_admin),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
 ):
     """Admin only: Get all partner organisations."""
-    partners = db.query(PartnerOrganisation).order_by(PartnerOrganisation.created_at.desc()).all()
+    partners = db.query(PartnerOrganisation).order_by(PartnerOrganisation.created_at.desc()).offset(skip).limit(limit).all()
     return [PartnerResponse.model_validate(p) for p in partners]
 
 
 @router.patch("/partners/{partner_id}", response_model=dict)
 def admin_update_partner(
     partner_id: UUID,
-    update_data: dict,
+    update_data: PartnerUpdate,
     db: Session = Depends(get_db),
     admin: PartnerOrganisation = Depends(get_current_admin),
 ):
@@ -278,7 +440,7 @@ def admin_update_partner(
         raise HTTPException(status_code=404, detail="Partner not found")
 
     allowed_fields = {"organisation_name", "contact_name", "phone", "organisation_type", "is_admin"}
-    for key, value in update_data.items():
+    for key, value in update_data.model_dump(exclude_unset=True).items():
         if key in allowed_fields:
             setattr(partner, key, value)
 
@@ -358,31 +520,34 @@ def admin_get_stats(
 def admin_get_all_venues(
     db: Session = Depends(get_db),
     admin: PartnerOrganisation = Depends(get_current_admin),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
 ):
     """Admin only: Get all venues with details."""
-    venues = db.query(Venue).all()
+    venues = db.query(Venue).offset(skip).limit(limit).all()
     return [v.to_dict() for v in venues]
 
 
 @router.post("/venues", response_model=dict)
 def admin_create_venue(
-    venue_data: dict,
+    venue_data: VenueCreate,
     db: Session = Depends(get_db),
     admin: PartnerOrganisation = Depends(get_current_admin),
 ):
     """Admin only: Create a new venue. Geocodes the address if no coordinates provided."""
     # If coordinates are missing, try to geocode from the address
-    if not venue_data.get("latitude") or not venue_data.get("longitude"):
+    venue_values = venue_data.model_dump()
+    if not venue_values.get("latitude") or not venue_values.get("longitude"):
         coords = geocode_address(
-            venue_data.get("address", ""),
-            venue_data.get("city"),
-            venue_data.get("postcode"),
+            venue_values.get("address", ""),
+            venue_values.get("city"),
+            venue_values.get("postcode"),
         )
         if coords:
-            venue_data["latitude"] = coords["lat"]
-            venue_data["longitude"] = coords["lon"]
+            venue_values["latitude"] = coords["lat"]
+            venue_values["longitude"] = coords["lon"]
 
-    venue = Venue(**venue_data)
+    venue = Venue(**venue_values)
     db.add(venue)
     db.commit()
     db.refresh(venue)
@@ -392,7 +557,7 @@ def admin_create_venue(
 @router.patch("/venues/{venue_id}", response_model=dict)
 def admin_update_venue(
     venue_id: UUID,
-    venue_data: dict,
+    venue_data: VenueUpdate,
     db: Session = Depends(get_db),
     admin: PartnerOrganisation = Depends(get_current_admin),
 ):
@@ -407,7 +572,7 @@ def admin_update_venue(
         "transport_links", "nearby_landmarks", "accessibility_info",
     }
 
-    for key, value in venue_data.items():
+    for key, value in venue_data.model_dump(exclude_unset=True).items():
         if key in allowed_fields:
             setattr(venue, key, value)
 
@@ -442,11 +607,15 @@ def admin_delete_venue(
 def admin_get_session_reviews(
     db: Session = Depends(get_db),
     admin: PartnerOrganisation = Depends(get_current_admin),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
 ):
     """Admin only: View all submitted session reviews with cohort & facilitator names."""
     reviews = (
         db.query(SessionReview)
         .order_by(SessionReview.session_date.desc())
+        .offset(skip)
+        .limit(limit)
         .all()
     )
     result = []
@@ -473,7 +642,7 @@ def admin_get_all_facilitators(
 @router.post("/cohorts/{cohort_id}/assign-facilitator", response_model=dict)
 def admin_assign_facilitator(
     cohort_id: UUID,
-    data: dict,
+    data: FacilitatorAssignment,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     admin: PartnerOrganisation = Depends(get_current_admin),
@@ -483,11 +652,7 @@ def admin_assign_facilitator(
     if not cohort:
         raise HTTPException(status_code=404, detail="Cohort not found")
 
-    facilitator_id = data.get("facilitator_id")
-    if not facilitator_id:
-        raise HTTPException(status_code=400, detail="facilitator_id is required")
-
-    facilitator = db.query(Facilitator).filter(Facilitator.id == facilitator_id).first()
+    facilitator = db.query(Facilitator).filter(Facilitator.id == data.facilitator_id).first()
     if not facilitator:
         raise HTTPException(status_code=404, detail="Facilitator not found")
 
@@ -520,9 +685,11 @@ def admin_assign_facilitator(
 def admin_get_all_cohorts(
     db: Session = Depends(get_db),
     admin: PartnerOrganisation = Depends(get_current_admin),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
 ):
     """Admin only: Get all cohorts with venue details and assigned referrals."""
-    cohorts = db.query(Cohort).order_by(Cohort.start_date.desc()).all()
+    cohorts = db.query(Cohort).order_by(Cohort.start_date.desc()).offset(skip).limit(limit).all()
     result = []
     for cohort in cohorts:
         data = cohort.to_dict()
@@ -572,12 +739,12 @@ def admin_get_all_cohorts(
 
 @router.post("/cohorts", response_model=dict)
 def admin_create_cohort(
-    cohort_data: dict,
+    cohort_data: CohortCreate,
     db: Session = Depends(get_db),
     admin: PartnerOrganisation = Depends(get_current_admin),
 ):
     """Admin only: Create a new cohort."""
-    cohort = Cohort(**cohort_data)
+    cohort = Cohort(**cohort_data.model_dump())
     db.add(cohort)
     db.commit()
     db.refresh(cohort)
@@ -587,7 +754,7 @@ def admin_create_cohort(
 @router.patch("/cohorts/{cohort_id}", response_model=dict)
 def admin_update_cohort(
     cohort_id: UUID,
-    cohort_data: dict,
+    cohort_data: CohortUpdate,
     db: Session = Depends(get_db),
     admin: PartnerOrganisation = Depends(get_current_admin),
 ):
@@ -601,7 +768,7 @@ def admin_update_cohort(
         "max_participants", "is_active", "description", "venue_id",
     }
 
-    for key, value in cohort_data.items():
+    for key, value in cohort_data.model_dump(exclude_unset=True).items():
         if key in allowed_fields:
             setattr(cohort, key, value)
 
@@ -662,11 +829,15 @@ def admin_delete_cohort(
 def admin_get_all_community_partners(
     db: Session = Depends(get_db),
     admin: PartnerOrganisation = Depends(get_current_admin),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
 ):
     """Admin only: Get all community partners (active and inactive)."""
     partners = (
         db.query(CommunityPartner)
         .order_by(CommunityPartner.created_at.desc())
+        .offset(skip)
+        .limit(limit)
         .all()
     )
     return [CommunityPartnerResponse.model_validate(p) for p in partners]
@@ -689,7 +860,7 @@ def admin_create_community_partner(
 @router.patch("/community-partners/{partner_id}", response_model=dict)
 def admin_update_community_partner(
     partner_id: UUID,
-    partner_data: dict,
+    partner_data: CommunityPartnerUpdate,
     db: Session = Depends(get_db),
     admin: PartnerOrganisation = Depends(get_current_admin),
 ):
@@ -699,7 +870,7 @@ def admin_update_community_partner(
         raise HTTPException(status_code=404, detail="Community partner not found")
 
     allowed_fields = {"name", "is_active"}
-    for key, value in partner_data.items():
+    for key, value in partner_data.model_dump(exclude_unset=True).items():
         if key in allowed_fields:
             setattr(partner, key, value)
 

@@ -1,0 +1,9 @@
+A new donation has been received.
+
+Donor Details:
+- Name: {{ donor_name or "Anonymous" }}
+- Email: {{ donor_email or "N/A" }}
+- Amount: {{ amount }} {{ currency }}
+- Message: {{ message or "No message" }}
+
+Please review the donation in the admin dashboard.

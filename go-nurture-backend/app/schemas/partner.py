@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -16,12 +16,12 @@ class AdminPartnerCreate(BaseModel):
 class SetPassword(BaseModel):
     """First-time password set using the token from email."""
     token: str
-    password: str
+    password: str = Field(min_length=8, max_length=256)
 
 
 class PartnerLogin(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=1, max_length=256)
 
 
 class PartnerResponse(BaseModel):

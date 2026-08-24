@@ -8,6 +8,7 @@ from app.models.cohort import Cohort
 from app.models.venue import Venue
 from app.models.email_log import EmailLog
 from app.models.community_partner import CommunityPartner
+from app.models.email_template import EmailTemplate, EmailQueueItem
 
 __all__ = [
     "PartnerOrganisation",
@@ -20,4 +21,6 @@ __all__ = [
     "Venue",
     "EmailLog",
     "CommunityPartner",
+    "EmailTemplate",
+    "EmailQueueItem",
 ]

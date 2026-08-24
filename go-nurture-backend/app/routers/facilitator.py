@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from typing import List
 from uuid import UUID
 
 from app.database.session import get_db
-from app.models.facilitator import Facilitator
 from app.models.cohort import Cohort
 from app.models.referral import Referral
 from app.models.venue import Venue
@@ -41,6 +41,31 @@ def get_my_cohorts(
         .all()
     )
 
+    cohort_ids = [cohort.id for cohort in cohorts]
+    venue_ids = [cohort.venue_id for cohort in cohorts if cohort.venue_id]
+    venues_by_id = {
+        venue.id: venue
+        for venue in db.query(Venue).filter(Venue.id.in_(venue_ids)).all()
+    } if venue_ids else {}
+
+    referrals_by_cohort: dict[UUID, list[Referral]] = {cohort_id: [] for cohort_id in cohort_ids}
+    if cohort_ids:
+        referrals = (
+            db.query(Referral)
+            .filter(
+                or_(
+                    Referral.cohort_id.in_(cohort_ids),
+                    Referral.clinic_cohort_id.in_(cohort_ids),
+                )
+            )
+            .order_by(Referral.mother_name.asc())
+            .all()
+        )
+        for referral in referrals:
+            for assigned_cohort_id in (referral.cohort_id, referral.clinic_cohort_id):
+                if assigned_cohort_id in referrals_by_cohort:
+                    referrals_by_cohort[assigned_cohort_id].append(referral)
+
     result = []
     for cohort in cohorts:
         data = cohort.to_dict()
@@ -52,8 +77,8 @@ def get_my_cohorts(
             data["schedule"] = [d.isoformat() for d in compute_class_schedule(cohort.start_date)]
 
         # Venue details
-        if cohort.venue_id:
-            venue = db.query(Venue).filter(Venue.id == cohort.venue_id).first()
+        venue = venues_by_id.get(cohort.venue_id)
+        if venue:
             data["venue_name"] = venue.name if venue else None
             data["venue_address"] = venue.address if venue else None
             data["venue_city"] = venue.city if venue else None
@@ -63,14 +88,7 @@ def get_my_cohorts(
             data["venue_city"] = None
 
         # Enrolled mothers (via either assignment slot)
-        referrals = (
-            db.query(Referral)
-            .filter(
-                (Referral.cohort_id == cohort.id) | (Referral.clinic_cohort_id == cohort.id)
-            )
-            .order_by(Referral.mother_name.asc())
-            .all()
-        )
+        referrals = referrals_by_cohort.get(cohort.id, [])
         data["members"] = [
             {
                 "id": str(r.id),

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Mail, Eye, X } from "lucide-react";
+import { api } from "@/lib/api-client";
 import Pagination from "./Pagination";
 
 interface EmailLog {
@@ -24,18 +25,12 @@ export default function EmailLogsTab() {
   const fetchLogs = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("access_token");
       const params = new URLSearchParams();
       params.append("limit", "20");
       if (filterType) params.append("email_type", filterType);
 
-      const res = await fetch(`/api/admin/email-logs?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setLogs(data.logs || []);
-      }
+      const data = await api.get<{ logs?: EmailLog[] }>(`/api/admin/email-logs?${params.toString()}`);
+      setLogs(data.logs || []);
     } catch (error) {
       console.error("Error fetching email logs:", error);
     } finally {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { MapPin, Navigation, Landmark } from "lucide-react";
+import { api } from "@/lib/api-client";
 
 const VenueMap = dynamic(() => import("./VenueMap"), {
   ssr: false,
@@ -12,8 +13,6 @@ const VenueMap = dynamic(() => import("./VenueMap"), {
     </div>
   ),
 });
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface Venue {
   id: string;
@@ -37,14 +36,9 @@ export default function VenuesPage() {
   useEffect(() => {
     const loadVenues = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/venues/`);
-        if (res.ok) {
-          const data = await res.json();
-          setVenues(data);
-          if (data.length > 0 && !selectedVenue) {
-            setSelectedVenue(data[0]);
-          }
-        }
+        const data = await api.get<Venue[]>("/api/venues/");
+        setVenues(data);
+        if (data.length > 0) setSelectedVenue((current) => current ?? data[0]);
       } catch (error) {
         console.error("Error fetching venues:", error);
       } finally {

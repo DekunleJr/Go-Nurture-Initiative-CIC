@@ -1,0 +1,18 @@
+Hello {{ partner_name }},
+
+Good news! A referral you submitted has been approved by the admin team.
+
+Referral Details:
+- Mother: {{ mother_name }}
+- Estimated Due Date: {{ due_date }}
+- Language Requirement: {{ language_requirement or "None specified" }}
+- Requires Interpreter: {{ "Yes" if requires_interpreter else "No" }}
+
+Approved Cohort: {{ cohort_name or "Not assigned yet" }}
+Venue: {{ venue_name or "Not assigned yet" }}
+
+Additional Notes:
+{{ additional_notes or "None" }}
+
+Best regards,
+Go Nurture Initiative CIC

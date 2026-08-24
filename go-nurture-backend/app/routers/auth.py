@@ -1,7 +1,7 @@
 import os
 from uuid import UUID
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Request
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
@@ -28,6 +28,7 @@ from app.utils.auth import (
     get_current_admin,
 )
 from app.services.email import send_invite_email, send_password_reset_email
+from app.middleware.rate_limit import limiter
 
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"))
 
@@ -41,7 +42,9 @@ class ForgotPasswordRequest(BaseModel):
 
 
 @router.post("/forgot-password", response_model=dict)
+@limiter.limit("5/15minutes")
 def forgot_password(
+    request: Request,
     data: ForgotPasswordRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
@@ -251,7 +254,8 @@ def admin_resend_invite(
 
 
 @router.post("/set-password", response_model=TokenResponse)
-def set_password(data: SetPassword, db: Session = Depends(get_db)):
+@limiter.limit("5/15minutes")
+def set_password(request: Request, data: SetPassword, db: Session = Depends(get_db)):
     """
     First-time password set using the token from an invite email.
     Works for both partner organisations and facilitators.
@@ -327,7 +331,8 @@ def set_password(data: SetPassword, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(data: PartnerLogin, db: Session = Depends(get_db)):
+@limiter.limit("5/15minutes")
+def login(request: Request, data: PartnerLogin, db: Session = Depends(get_db)):
     """
     Unified login for all user types (partner organisations, admins and
     facilitators). The response includes a `role` so clients can route the

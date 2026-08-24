@@ -9,6 +9,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import StripeProvider from "./StripeProvider";
+import { api } from "@/lib/api-client";
 
 interface Donation {
   id: string;
@@ -33,33 +34,19 @@ function DonationForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
 
     try {
-      const res = await fetch(`${apiBase}/api/donations/create-payment-intent`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const data = await api.post<{ client_secret: string; donation_id: string }>("/api/donations/create-payment-intent", {
           amount: parseFloat(amount),
           donor_name: anonymous ? "Anonymous" : name,
           donor_email: email || null,
           message: message || null,
           is_anonymous: anonymous,
-        }),
       });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        const errMsg = errData.detail || `Failed to create payment intent (HTTP ${res.status})`;
-        console.error("[DonationForm] PaymentIntent creation failed:", errMsg, { status: res.status, url: `${apiBase}/api/donations/create-payment-intent` });
-        throw new Error(errMsg);
-      }
-      const data = await res.json();
       console.log("[DonationForm] PaymentIntent created:", { donationId: data.donation_id, hasSecret: !!data.client_secret });
       onIntentCreated(data.client_secret, data.donation_id);
     } catch (err) {
@@ -223,25 +210,15 @@ export default function TransparencyContent() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [donationId, setDonationId] = useState<string | null>(null);
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
-
   useEffect(() => {
-    fetch(`${apiBase}/api/donations/total`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch total");
-        return res.json();
-      })
+    api.get<{ total: number }>("/api/donations/total")
       .then((data: { total: number }) => setTotal(data.total))
       .catch(() => {});
-    fetch(`${apiBase}/api/donations/`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch donations");
-        return res.json();
-      })
+    api.get<Donation[]>("/api/donations/")
       .then((data: Donation[]) => setDonations(data))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [apiBase]);
+  }, []);
 
   const handleIntentCreated = (secret: string, id: string) => {
     setClientSecret(secret);
@@ -251,31 +228,23 @@ export default function TransparencyContent() {
   const confirmDonation = useCallback(async (id: string) => {
     try {
       console.log("[Transparency] Confirming donation:", id);
-      const confirmRes = await fetch(`${apiBase}/api/donations/confirm/${id}`, {
-        method: "POST",
-      });
-      if (!confirmRes.ok) {
-        const errData = await confirmRes.json().catch(() => ({}));
-        const errMsg = errData.detail || `Failed to confirm donation (HTTP ${confirmRes.status})`;
-        console.error("[Transparency] Donation confirmation failed:", errMsg);
-        throw new Error(errMsg);
-      }
+      await api.post(`/api/donations/confirm/${id}`);
 
       console.log("[Transparency] Donation confirmed successfully:", id);
       setSuccess(true);
       setClientSecret(null);
       setDonationId(null);
 
-      const updated = await fetch(`${apiBase}/api/donations/`).then((r) => r.json());
+      const updated = await api.get<Donation[]>("/api/donations/");
       setDonations(updated);
-      const totalRes = await fetch(`${apiBase}/api/donations/total`).then((r) => r.json());
+      const totalRes = await api.get<{ total: number }>("/api/donations/total");
       setTotal(totalRes.total);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Something went wrong";
       console.error("[Transparency] Confirmation error:", message);
       setError(message);
     }
-  }, [apiBase]);
+  }, []);
 
   useEffect(() => {
     const paymentIntent = searchParams.get("payment_intent");

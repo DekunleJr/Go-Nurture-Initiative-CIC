@@ -6,6 +6,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SITE_CONFIG } from "@/lib/constants";
 import { LanguageProvider } from "@/lib/LanguageContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -101,6 +102,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
       <LanguageProvider>
+          <ErrorBoundary>
           <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
@@ -136,6 +138,7 @@ export default function RootLayout({
               },
             }}
           />
+          </ErrorBoundary>
         </LanguageProvider>
       </body>
     </html>

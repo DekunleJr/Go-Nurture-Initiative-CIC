@@ -6,9 +6,9 @@ import Link from "next/link";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import { SITE_CONFIG } from "@/lib/constants";
+import { api } from "@/lib/api-client";
+import { authClient } from "@/lib/auth-client";
 import { PortalNavbar } from "@/components/portal/PortalNavbar";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,17 +22,17 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.detail || "Login failed");
-      }
+      const data = await api.post<{
+        access_token: string;
+        role?: string;
+        partner?: {
+          contact_name: string;
+          email: string;
+          organisation_name: string;
+          is_admin?: boolean;
+        };
+        facilitator?: { name: string; email: string };
+      }>("/api/auth/login", { email, password });
 
       // Normalise the user object and route by role
       const role: string = data.role || "partner";
@@ -47,10 +47,10 @@ export default function LoginPage() {
               is_admin: data.partner?.is_admin,
             };
 
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("user", JSON.stringify(user));
+      authClient.setToken(data.access_token);
+      authClient.setUser(user);
       if (data.partner) {
-        localStorage.setItem("partner", JSON.stringify(data.partner));
+        authClient.setPartner(data.partner);
       }
 
       toast.success("Welcome back! Redirecting...");

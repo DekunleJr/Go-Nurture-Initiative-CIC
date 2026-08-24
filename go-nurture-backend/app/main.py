@@ -1,15 +1,24 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 import os
 from dotenv import load_dotenv
 import logging
+from pathlib import Path
 from sqlalchemy import text
 
 from app.routers import auth, referrals, contact, donations, venues, admin, community, facilitator
 from app.database.session import SessionLocal, engine
 from app.models.partner import PartnerOrganisation
 from app.models.community_partner import CommunityPartner
+from app.models.email_template import EmailTemplate
 from app.utils.auth import hash_password
+from app.utils.exceptions import AppException, error_payload
+from app.middleware.rate_limit import limiter
+from app.middleware.request_logging import RequestLoggingMiddleware
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
@@ -21,6 +30,36 @@ app = FastAPI(
     description="Backend API for Go Nurture Initiative CIC - Perinatal education and community support platform",
     version="1.0.0",
 )
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(RequestLoggingMiddleware)
+
+
+@app.exception_handler(AppException)
+async def app_exception_handler(request: Request, exc: AppException) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=error_payload(exc.code, exc.message, exc.details),
+    )
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.status_code,
+        headers=exc.headers,
+        content=error_payload("HTTP_ERROR", str(exc.detail)),
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content=error_payload("VALIDATION_ERROR", "Request validation failed", exc.errors()),
+    )
 
 
 @app.on_event("startup")
@@ -36,6 +75,7 @@ def startup_events():
 
     seed_admin()
     seed_community_partners()
+    seed_email_templates()
 
 
 def seed_admin():
@@ -107,6 +147,41 @@ def seed_community_partners():
     except Exception as e:
         logger.error(f"Failed to seed community partners: {e}")
         db.rollback()
+    finally:
+        db.close()
+
+
+def seed_email_templates():
+    """Create the initial editable email templates when the table is empty."""
+    templates = [
+        ("partner_invite", "Partner invitation", "You've been invited to join {{ organisation_name }} on Go Nurture Initiative", "partner_invite.txt"),
+        ("password_reset", "Password reset", "Reset your Go Nurture Initiative password", "password_reset.txt"),
+        ("referral_notification", "New referral notification", "[New Referral] A new mother needs approval", "referral_notification.txt"),
+        ("donation_notification", "Donation notification", "[New Donation] A new donation has been received", "donation_notification.txt"),
+        ("referral_approval", "Referral approval", "[Referral Approved] {{ mother_name }}'s referral has been approved", "referral_approval.txt"),
+        ("contact", "Contact form notification", "[Contact Form] {{ message_subject }}", "contact_notification.txt"),
+        ("facilitator_assignment", "Facilitator assignment", "You've been assigned: {{ cohort_name }}", "facilitator_assignment.txt"),
+        ("cohort_assignment_mother", "Cohort assignment to mother", "Your Go Nurture programme booking", "cohort_assignment_mother.txt"),
+        ("cohort_assignment_partner", "Cohort assignment to partner", "[Cohort Assigned] {{ mother_name }}", "cohort_assignment_partner.txt"),
+    ]
+    template_dir = Path(__file__).resolve().parent / "templates" / "email"
+    db = SessionLocal()
+    try:
+        for key, name, subject, filename in templates:
+            exists = db.query(EmailTemplate).filter(EmailTemplate.template_key == key).first()
+            if not exists:
+                db.add(EmailTemplate(
+                    template_key=key,
+                    name=name,
+                    subject=subject,
+                    body=(template_dir / filename).read_text(encoding="utf-8"),
+                    version=1,
+                    is_active=True,
+                ))
+        db.commit()
+    except Exception:
+        db.rollback()
+        logger.exception("Failed to seed email templates")
     finally:
         db.close()
 
