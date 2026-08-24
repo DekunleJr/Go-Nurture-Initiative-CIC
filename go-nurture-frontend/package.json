@@ -12,6 +12,7 @@
     "@sentry/nextjs": "^10.69.0",
     "@stripe/react-stripe-js": "^6.8.0",
     "@stripe/stripe-js": "^9.12.1",
+    "axios": "^1.19.0",
     "clsx": "^2.1.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.24.0",
@@ -19,7 +20,8 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hot-toast": "^2.6.0",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

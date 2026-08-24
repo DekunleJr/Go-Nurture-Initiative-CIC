@@ -1,0 +1,20 @@
+Hello {{ partner_name }},
+
+Good news! The mother you referred has been assigned to a programme.
+
+Referral Details:
+- Mother: {{ mother_name }}
+- Mother's Email: {{ mother_email or "Not provided" }}
+- Programme: {{ program_name }}
+- Group: {{ cohort_name }}
+{% if is_clinic %}- Appointment Date: {{ date_text }}
+{% else %}Class Schedule (weekly):
+{{ schedule_lines }}
+{% endif %}- Venue: {{ venue_name or "To be confirmed" }}
+
+The mother has been notified directly.
+
+Thank you for your continued partnership.
+
+Best regards,
+Go Nurture Initiative CIC

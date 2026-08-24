@@ -153,8 +153,10 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
     try {
       await onResendInvite(partnerId);
       // Success: start the 5-minute cooldown for this partner
-      setResentAt((prev) => ({ ...prev, [partnerId]: Date.now() }));
-      setNow(Date.now());
+      // eslint-disable-next-line react-hooks/purity
+      const timestamp = Date.now();
+      setResentAt((prev) => ({ ...prev, [partnerId]: timestamp }));
+      setNow(timestamp);
     } catch {
       // Error toast already shown by the handler in page.tsx — no cooldown on failure
     } finally {

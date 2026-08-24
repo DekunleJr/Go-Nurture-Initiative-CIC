@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Eye, Users, MapPin } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, Users, MapPin, UserCheck, X } from "lucide-react";
 import toast from "react-hot-toast";
 import ConfirmDialog from "./ConfirmDialog";
 import Pagination from "./Pagination";
@@ -9,6 +9,13 @@ import Pagination from "./Pagination";
 interface Venue {
   id: string;
   name: string;
+}
+
+interface FacilitatorOption {
+  id: string;
+  name: string;
+  email: string;
+  is_active: boolean;
 }
 
 interface CohortMember {
@@ -43,12 +50,15 @@ interface Cohort {
   venue_id: string | null;
   venue_address: string | null;
   venue_city: string | null;
+  facilitator_name?: string | null;
   members: CohortMember[];
 }
 
 interface CohortsTabProps {
   cohorts: Cohort[];
   venues: Venue[];
+  facilitators: FacilitatorOption[];
+  onAssignFacilitator: (cohortId: string, facilitatorId: string) => Promise<void>;
   onCreateCohort: (cohortData: {
     name: string;
     year: number;
@@ -83,10 +93,13 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
-export default function CohortsTab({ cohorts, venues, onCreateCohort, onUpdateCohort, onDeleteCohort, onRefresh }: CohortsTabProps) {
+export default function CohortsTab({ cohorts, venues, facilitators, onAssignFacilitator, onCreateCohort, onUpdateCohort, onDeleteCohort, onRefresh }: CohortsTabProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingCohort, setEditingCohort] = useState<Cohort | null>(null);
   const [viewingCohort, setViewingCohort] = useState<Cohort | null>(null);
+  const [assigningCohort, setAssigningCohort] = useState<Cohort | null>(null);
+  const [selectedFacilitatorId, setSelectedFacilitatorId] = useState("");
+  const [assigning, setAssigning] = useState(false);
   const [cohortName, setCohortName] = useState("");
   const [cohortYear, setCohortYear] = useState(new Date().getFullYear());
   const [cohortType, setCohortType] = useState("birth_confidence");
@@ -147,6 +160,25 @@ export default function CohortsTab({ cohorts, venues, onCreateCohort, onUpdateCo
       else { await onCreateCohort(cohortData); toast.success("Cohort created successfully"); }
       resetForm(); onRefresh();
     } catch { toast.error((editingCohort ? "Failed to update cohort" : "Failed to create cohort")); }
+  };
+
+  const handleAssignClick = (cohort: Cohort) => {
+    setAssigningCohort(cohort);
+    setSelectedFacilitatorId("");
+  };
+
+  const handleAssignSubmit = async () => {
+    if (!assigningCohort || !selectedFacilitatorId) return;
+    setAssigning(true);
+    try {
+      await onAssignFacilitator(assigningCohort.id, selectedFacilitatorId);
+      setAssigningCohort(null);
+      onRefresh();
+    } catch {
+      // Error toast shown by handler in page.tsx
+    } finally {
+      setAssigning(false);
+    }
   };
 
   const handleDeleteClick = (cohortId: string) => { setCohortToDelete(cohortId); setShowDeleteConfirm(true); };
@@ -307,12 +339,13 @@ export default function CohortsTab({ cohorts, venues, onCreateCohort, onUpdateCo
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Max Participants</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Venue</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Facilitator</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {visibleCohorts.length === 0 ? (
-              <tr><td colSpan={8} className="px-6"><EmptyState message="No cohorts yet." /></td></tr>
+              <tr><td colSpan={9} className="px-6"><EmptyState message="No cohorts yet." /></td></tr>
             ) : (
               visibleCohorts.map((cohort) => (
                 <tr key={cohort.id} className="hover:bg-gray-50">
@@ -330,12 +363,25 @@ export default function CohortsTab({ cohorts, venues, onCreateCohort, onUpdateCo
                     <div className="font-medium text-gray-900">{cohort.venue_name || "-"}</div>
                     {venueLocation(cohort) && (<div className="text-xs text-gray-500 flex items-center gap-1"><MapPin size={12} /> {venueLocation(cohort)}</div>)}
                   </td>
+                  <td className="px-6 py-4 text-sm">
+                    {cohort.facilitator_name ? (
+                      <span className="inline-flex items-center gap-1 text-gray-700"><UserCheck size={14} /> {cohort.facilitator_name}</span>
+                    ) : (
+                      <span className="text-xs text-gray-400">Unassigned</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <button onClick={() => setViewingCohort(cohort)} className="inline-flex items-center justify-center p-1 text-blue-600 hover:bg-blue-50 rounded-lg" title="View cohort details"><Eye size={16} /></button>
                       <button onClick={() => handleEditClick(cohort)} className="inline-flex items-center justify-center p-1 text-(--color-accent) hover:bg-(--color-accent)/10 rounded-lg" title="Edit cohort"><Pencil size={16} /></button>
                       <button onClick={() => handleDeleteClick(cohort.id)} className="inline-flex items-center justify-center p-1 text-red-600 hover:bg-red-50 rounded-lg" title="Delete cohort"><Trash2 size={16} /></button>
                     </div>
+                    <button
+                      onClick={() => handleAssignClick(cohort)}
+                      className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-(--color-primary) hover:text-(--color-primary-dark)"
+                    >
+                      <UserCheck size={13} /> {cohort.facilitator_name ? "Change Facilitator" : "Assign Facilitator"}
+                    </button>
                   </td>
                 </tr>
               ))
@@ -345,6 +391,49 @@ export default function CohortsTab({ cohorts, venues, onCreateCohort, onUpdateCo
       </div>
 
       {visibleCohorts.length > 0 && (<Pagination page={currentPage} pageSize={PAGE_SIZE} total={cohorts.length} onPageChange={setPage} />)}
+
+      {/* Assign Facilitator Modal */}
+      {assigningCohort && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-heading text-xl font-bold text-gray-900">Assign Facilitator</h3>
+              <button onClick={() => setAssigningCohort(null)} className="text-gray-400 hover:text-gray-600"><X size={22} /></button>
+            </div>
+            <p className="text-sm text-gray-600 mb-1">Cohort:</p>
+            <p className="font-medium text-gray-900 mb-4">{assigningCohort.name}</p>
+
+            <label className="block text-sm font-medium text-gray-700 mb-1">Select Facilitator *</label>
+            <select
+              value={selectedFacilitatorId}
+              onChange={(e) => setSelectedFacilitatorId(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
+            >
+              <option value="">Choose a facilitator...</option>
+              {facilitators.filter((f) => f.is_active).map((f) => (
+                <option key={f.id} value={f.id}>{f.name} ({f.email})</option>
+              ))}
+            </select>
+            {facilitators.filter((f) => f.is_active).length === 0 && (
+              <p className="mt-2 text-xs text-amber-600">No active facilitators yet — create one in the Facilitators tab first.</p>
+            )}
+            <p className="mt-2 text-xs text-gray-500">The facilitator will be emailed the cohort details and class schedule.</p>
+
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+              <button
+                onClick={handleAssignSubmit}
+                disabled={!selectedFacilitatorId || assigning}
+                className="w-full rounded-lg bg-(--color-primary) px-4 py-2 text-white hover:bg-(--color-primary)/90 disabled:opacity-50 sm:flex-1"
+              >
+                {assigning ? "Assigning..." : "Assign & Email"}
+              </button>
+              <button onClick={() => setAssigningCohort(null)} className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 sm:flex-1">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ConfirmDialog isOpen={showDeleteConfirm} title="Delete Cohort" message="Are you sure you want to delete this cohort? This action cannot be undone." onConfirm={handleDeleteConfirm} onCancel={handleDeleteCancel} />
     </div>

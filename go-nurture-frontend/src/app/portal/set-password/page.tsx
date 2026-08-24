@@ -4,9 +4,9 @@ import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2, AlertCircle, CheckCircle, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
+import { api } from "@/lib/api-client";
+import { authClient } from "@/lib/auth-client";
 import { PortalNavbar } from "@/components/portal/PortalNavbar";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 function SetPasswordForm() {
   const searchParams = useSearchParams();
@@ -36,21 +36,11 @@ function SetPasswordForm() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/set-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.detail || (isReset ? "Failed to reset password" : "Failed to set password"));
-      }
+      const data = await api.post<{ access_token: string; partner: unknown }>("/api/auth/set-password", { token, password });
 
       if (typeof window !== "undefined") {
-        localStorage.setItem("access_token", data.access_token);
-        localStorage.setItem("partner", JSON.stringify(data.partner));
+        authClient.setToken(data.access_token);
+        authClient.setPartner(data.partner);
       }
       toast.success(isReset ? "Password updated! Redirecting to dashboard..." : "Password set! Redirecting to dashboard...");
       setSuccess(true);

@@ -1,0 +1,14 @@
+Hello {{ recipient_name }},
+
+You have been registered as a partner organisation for Go Nurture Initiative CIC.
+
+To access the Partner Portal and start submitting referrals, please set your password using the link below:
+
+{{ invite_link }}
+
+This link will expire in 48 hours.
+
+If you have any questions, please contact the Go Nurture team.
+
+Best regards,
+Go Nurture Initiative CIC

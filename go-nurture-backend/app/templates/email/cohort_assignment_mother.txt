@@ -1,0 +1,14 @@
+Dear {{ mother_name }},
+
+Wonderful news! You have been booked into the {{ program_name }}.
+
+Group: {{ cohort_name }}
+{% if is_clinic %}Appointment date: {{ date_text }}
+{% else %}Class schedule (weekly):
+{{ schedule_lines }}
+{% endif %}{{ venue_block }}
+
+If anything changes, please contact the Go Nurture team so we can support you.
+
+With warmth,
+The Go Nurture Initiative Team

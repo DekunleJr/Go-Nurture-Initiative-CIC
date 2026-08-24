@@ -7,7 +7,17 @@ load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file_
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://gonurture:gonurture_password@localhost:5432/gonurture_db")
 
-engine = create_engine(DATABASE_URL)
+pool_size = int(os.getenv("DB_POOL_SIZE", "5"))
+max_overflow = int(os.getenv("DB_MAX_OVERFLOW", "10"))
+pool_recycle = int(os.getenv("DB_POOL_RECYCLE", "1800"))
+
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=pool_size,
+    max_overflow=max_overflow,
+    pool_recycle=pool_recycle,
+    pool_pre_ping=True,
+)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

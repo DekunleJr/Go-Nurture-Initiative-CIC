@@ -4,6 +4,20 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
+import { api } from "@/lib/api-client";
+import type {
+  Cohort,
+  CommunityPartner,
+  Contact,
+  Donation,
+  Facilitator,
+  Partner,
+  Referral,
+  SessionReview,
+  Stats,
+  Venue,
+  EmailTemplate,
+} from "@/types";
 import { PortalNavbar } from "@/components/portal/PortalNavbar";
 import OverviewTab from "./components/OverviewTab";
 import ReferralsTab from "./components/ReferralsTab";
@@ -13,123 +27,12 @@ import CohortsTab from "./components/CohortsTab";
 import DonationsTab from "./components/DonationsTab";
 import ContactsTab from "./components/ContactsTab";
 import EmailLogsTab from "./components/EmailLogsTab";
+import EmailTemplatesTab from "./components/EmailTemplatesTab";
 import CommunityPartnersTab from "./components/CommunityPartnersTab";
+import FacilitatorsTab from "./components/FacilitatorsTab";
+import SessionReviewsTab from "./components/SessionReviewsTab";
 
-const API_BASE = "/";
-
-interface Stats {
-  total_partners: number;
-  active_partners: number;
-  total_referrals: number;
-  pending_referrals: number;
-  recent_referrals: number;
-  total_donations: number;
-  total_donation_amount: number;
-  total_contacts: number;
-  total_venues: number;
-  total_cohorts: number;
-  referrals_by_status: Record<string, number>;
-}
-
-interface Referral {
-  id: string;
-  mother_name: string;
-  mother_phone: string;
-  mother_email: string | null;
-  estimated_due_date: string;
-  referral_type?: string;
-  language_requirement: string | null;
-  requires_interpreter: boolean;
-  status: string;
-  partner_id: string;
-  partner_name: string | null;
-  cohort_id: string | null;
-  clinic_cohort_name?: string | null;
-  cohort_name: string | null;
-  venue_name: string | null;
-  created_at: string;
-}
-
-interface Partner {
-  id: string;
-  organisation_name: string;
-  contact_name: string;
-  email: string;
-  phone: string;
-  organisation_type: string;
-  is_active: boolean;
-  is_verified: boolean;
-  is_admin: boolean;
-  created_at: string;
-}
-
-interface Venue {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-  postcode: string | null;
-  capacity: number;
-  description: string;
-  transport_links: string;
-  nearby_landmarks: string;
-  latitude: number | null;
-  longitude: number | null;
-}
-
-interface Cohort {
-  id: string;
-  name: string;
-  year: number;
-  cohort_type: string;
-  start_date: string;
-  end_date: string | null;
-  max_participants: number;
-  venue_name: string;
-  venue_id: string | null;
-  venue_address: string | null;
-  venue_city: string | null;
-  members: {
-    id: string;
-    mother_name: string;
-    mother_phone: string;
-    estimated_due_date: string | null;
-    status: string;
-    language_requirement: string | null;
-    requires_interpreter: boolean;
-    created_at: string | null;
-  }[];
-}
-
-interface Donation {
-  id: string;
-  amount: number;
-  currency: string;
-  donor_name: string | null;
-  donor_email: string | null;
-  message: string | null;
-  is_anonymous: boolean;
-  status: string;
-  created_at: string;
-}
-
-interface Contact {
-  id: string;
-  name: string;
-  email: string;
-  subject: string | null;
-  message: string;
-  created_at: string;
-}
-
-interface CommunityPartner {
-  id: string;
-  name: string;
-  is_active: boolean;
-  created_at: string;
-}
-
-type Tab = "overview" | "referrals" | "partners" | "venues" | "cohorts" | "donations" | "contacts" | "emails" | "community_partners";
+type Tab = "overview" | "referrals" | "partners" | "venues" | "cohorts" | "facilitators" | "donations" | "contacts" | "emails" | "community_partners" | "session_reviews";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -143,6 +46,9 @@ export default function AdminDashboard() {
   const [donationTotal, setDonationTotal] = useState(0);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [communityPartners, setCommunityPartners] = useState<CommunityPartner[]>([]);
+  const [facilitators, setFacilitators] = useState<Facilitator[]>([]);
+  const [sessionReviews, setSessionReviews] = useState<SessionReview[]>([]);
+  const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [isAdmin, setIsAdmin] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -166,45 +72,32 @@ export default function AdminDashboard() {
     setRefreshing(true);
 
     try {
-      const [statsRes, referralsRes, partnersRes, venuesRes, cohortsRes, donationsRes, contactsRes, communityPartnersRes] = await Promise.all([
-        fetch(`${API_BASE}api/admin/stats`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_BASE}api/admin/referrals?limit=20`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_BASE}api/admin/partners`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_BASE}api/admin/venues`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_BASE}api/admin/cohorts`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_BASE}api/admin/donations`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_BASE}api/admin/contacts`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_BASE}api/admin/community-partners`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+      const [statsData, referralsData, partnersData, venuesData, cohortsData, donationsData, contactsData, communityPartnersData, facilitatorsData, sessionReviewsData, emailTemplatesData] = await Promise.all([
+        api.get<Stats>("/api/admin/stats"),
+        api.get<{ referrals?: Referral[] }>("/api/admin/referrals?limit=20"),
+        api.get<Partner[]>("/api/admin/partners"),
+        api.get<Venue[]>("/api/admin/venues"),
+        api.get<Cohort[]>("/api/admin/cohorts"),
+        api.get<{ donations?: Donation[]; total_amount?: number }>("/api/admin/donations"),
+        api.get<{ contacts?: Contact[] }>("/api/admin/contacts"),
+        api.get<CommunityPartner[]>("/api/admin/community-partners"),
+        api.get<Facilitator[]>("/api/admin/facilitators"),
+        api.get<SessionReview[]>("/api/admin/session-reviews"),
+        api.get<EmailTemplate[]>("/api/admin/email-templates"),
       ]);
 
-      if (statsRes.ok) setStats(await statsRes.json());
-      if (referralsRes.ok) setReferrals((await referralsRes.json()).referrals || []);
-      if (partnersRes.ok) setPartners(await partnersRes.json());
-      if (venuesRes.ok) setVenues(await venuesRes.json());
-      if (cohortsRes.ok) setCohorts(await cohortsRes.json());
-      if (donationsRes.ok) {
-        const data = await donationsRes.json();
-        setDonations(data.donations || []);
-        setDonationTotal(data.total_amount || 0);
-      }
-      if (contactsRes.ok) setContacts((await contactsRes.json()).contacts || []);
-      if (communityPartnersRes.ok) setCommunityPartners(await communityPartnersRes.json());
+      setStats(statsData);
+      setReferrals(referralsData.referrals || []);
+      setPartners(partnersData);
+      setVenues(venuesData);
+      setCohorts(cohortsData);
+      setDonations(donationsData.donations || []);
+      setDonationTotal(donationsData.total_amount || 0);
+      setContacts(contactsData.contacts || []);
+      setCommunityPartners(communityPartnersData);
+      setFacilitators(facilitatorsData);
+      setSessionReviews(sessionReviewsData);
+      setEmailTemplates(emailTemplatesData);
     } catch (error) {
       console.error("Error fetching admin data:", error);
       toast.error("Failed to load dashboard data");
@@ -220,50 +113,41 @@ export default function AdminDashboard() {
   }, [fetchData]);
 
   const updateReferralStatus = async (referralId: string, status: string, cohortId?: string) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
     try {
-      const res = await fetch(`${API_BASE}api/admin/referrals/${referralId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status, cohort_id: cohortId || null }),
-      });
-
-      if (res.ok) {
-        toast.success("Referral updated successfully");
-        fetchData();
-      } else {
-        toast.error("Failed to update referral");
-      }
+      await api.patch(`/api/admin/referrals/${referralId}`, { status, cohort_id: cohortId || null });
+      toast.success("Referral updated successfully");
+      fetchData();
     } catch (error) {
       toast.error("Error updating referral" + (error instanceof Error ? `: ${error.message}` : ""));
     }
   };
 
   const editReferral = async (referralId: string, data: Record<string, unknown>) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
     try {
-      const res = await fetch(`${API_BASE}api/admin/referrals/${referralId}/edit`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.detail || "Failed to update referral");
-      }
+      await api.patch(`/api/admin/referrals/${referralId}/edit`, data);
     } catch (error) {
       toast.error("Error updating referral" + (error instanceof Error ? `: ${error.message}` : ""));
+      throw error;
+    }
+  };
+
+  const createFacilitator = async (data: { name: string; email: string; phone: string }) => {
+    try {
+      await api.post("/api/auth/admin/create-facilitator", data);
+    } catch (error) {
+      toast.error("Error creating facilitator" + (error instanceof Error ? `: ${error.message}` : ""));
+      throw error;
+    }
+  };
+
+  const assignFacilitator = async (cohortId: string, facilitatorId: string) => {
+    try {
+      await api.post(`/api/admin/cohorts/${cohortId}/assign-facilitator`, { facilitator_id: facilitatorId });
+
+      toast.success("Facilitator assigned — they have been emailed the cohort details");
+      fetchData();
+    } catch (error) {
+      toast.error("Error assigning facilitator" + (error instanceof Error ? `: ${error.message}` : ""));
       throw error;
     }
   };
@@ -275,17 +159,7 @@ export default function AdminDashboard() {
     phone: string;
     organisation_type: string;
   }) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    await fetch(`${API_BASE}api/auth/admin/create-partner`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(partnerData),
-    });
+    await api.post("/api/auth/admin/create-partner", partnerData);
   };
 
   const updatePartner = async (partnerId: string, updateData: {
@@ -295,55 +169,20 @@ export default function AdminDashboard() {
     organisation_type?: string;
     is_admin?: boolean;
   }) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    await fetch(`${API_BASE}api/admin/partners/${partnerId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(updateData),
-    });
+    await api.patch(`/api/admin/partners/${partnerId}`, updateData);
   };
 
   const activatePartner = async (partnerId: string) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    await fetch(`${API_BASE}api/admin/partners/${partnerId}/activate`, {
-      method: "PATCH",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await api.patch(`/api/admin/partners/${partnerId}/activate`);
   };
 
   const deactivatePartner = async (partnerId: string) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    await fetch(`${API_BASE}api/admin/partners/${partnerId}/deactivate`, {
-      method: "PATCH",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await api.patch(`/api/admin/partners/${partnerId}/deactivate`);
   };
 
   const resendInvite = async (partnerId: string) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
     try {
-      const res = await fetch(`${API_BASE}api/auth/admin/resend-invite/${partnerId}`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.detail || "Failed to resend invite");
-      }
-
+      await api.post(`/api/auth/admin/resend-invite/${partnerId}`);
       toast.success("Invitation email resent successfully");
     } catch (error) {
       toast.error("Failed to resend invite" + (error instanceof Error ? `: ${error.message}` : ""));
@@ -363,17 +202,7 @@ export default function AdminDashboard() {
     latitude?: number | null;
     longitude?: number | null;
   }) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    await fetch(`${API_BASE}api/admin/venues`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(venueData),
-    });
+    await api.post("/api/admin/venues", venueData);
   };
 
   const updateVenue = async (
@@ -391,27 +220,11 @@ export default function AdminDashboard() {
       longitude?: number | null;
     }
   ) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    await fetch(`${API_BASE}api/admin/venues/${venueId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(venueData),
-    });
+    await api.patch(`/api/admin/venues/${venueId}`, venueData);
   };
 
   const deleteVenue = async (venueId: string) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    await fetch(`${API_BASE}api/admin/venues/${venueId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await api.delete(`/api/admin/venues/${venueId}`);
   };
 
   const createCohort = async (cohortData: {
@@ -423,17 +236,7 @@ export default function AdminDashboard() {
     max_participants: number;
     venue_id: string;
   }) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    await fetch(`${API_BASE}api/admin/cohorts`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(cohortData),
-    });
+    await api.post("/api/admin/cohorts", cohortData);
   };
 
   const updateCohort = async (
@@ -448,95 +251,34 @@ export default function AdminDashboard() {
       venue_id: string;
     }
   ) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    await fetch(`${API_BASE}api/admin/cohorts/${cohortId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(cohortData),
-    });
+    await api.patch(`/api/admin/cohorts/${cohortId}`, cohortData);
   };
 
   const deleteCohort = async (cohortId: string) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    await fetch(`${API_BASE}api/admin/cohorts/${cohortId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await api.delete(`/api/admin/cohorts/${cohortId}`);
   };
 
   const createCommunityPartner = async (name: string) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    await fetch(`${API_BASE}api/admin/community-partners`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ name }),
-    });
+    await api.post("/api/admin/community-partners", { name });
   };
 
   const updateCommunityPartner = async (partnerId: string, name: string) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    await fetch(`${API_BASE}api/admin/community-partners/${partnerId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ name }),
-    });
+    await api.patch(`/api/admin/community-partners/${partnerId}`, { name });
   };
 
   const deleteCommunityPartner = async (partnerId: string) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    await fetch(`${API_BASE}api/admin/community-partners/${partnerId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await api.delete(`/api/admin/community-partners/${partnerId}`);
   };
 
   const toggleCommunityPartnerStatus = async (partnerId: string, isActive: boolean) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
     // Optimistic update: move the toggle immediately in the UI
     setCommunityPartners((prev) =>
       prev.map((p) => (p.id === partnerId ? { ...p, is_active: isActive } : p))
     );
 
     try {
-      const res = await fetch(`${API_BASE}api/admin/community-partners/${partnerId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ is_active: isActive }),
-      });
-
-      if (res.ok) {
-        toast.success(`Partner ${isActive ? "activated" : "deactivated"} successfully`);
-      } else {
-        // Revert the optimistic update on failure
-        setCommunityPartners((prev) =>
-          prev.map((p) => (p.id === partnerId ? { ...p, is_active: !isActive } : p))
-        );
-        toast.error("Failed to update partner status");
-      }
+      await api.patch(`/api/admin/community-partners/${partnerId}`, { is_active: isActive });
+      toast.success(`Partner ${isActive ? "activated" : "deactivated"} successfully`);
     } catch (error) {
       // Revert the optimistic update on error
       setCommunityPartners((prev) =>
@@ -593,10 +335,12 @@ export default function AdminDashboard() {
               { id: "partners", label: "Partners" },
               { id: "venues", label: "Venues" },
               { id: "cohorts", label: "Cohorts" },
+              { id: "facilitators", label: "Facilitators" },
               { id: "donations", label: "Donations" },
               { id: "contacts", label: "Contacts" },
               { id: "emails", label: "Emails" },
               { id: "community_partners", label: "Community Partners" },
+              { id: "session_reviews", label: "Session Reviews" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -654,9 +398,19 @@ export default function AdminDashboard() {
           <CohortsTab
             cohorts={cohorts}
             venues={venues}
+            facilitators={facilitators}
+            onAssignFacilitator={assignFacilitator}
             onCreateCohort={createCohort}
             onUpdateCohort={updateCohort}
             onDeleteCohort={deleteCohort}
+            onRefresh={fetchData}
+          />
+        )}
+
+        {activeTab === "facilitators" && (
+          <FacilitatorsTab
+            facilitators={facilitators}
+            onCreateFacilitator={createFacilitator}
             onRefresh={fetchData}
           />
         )}
@@ -670,7 +424,10 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === "emails" && (
-          <EmailLogsTab />
+          <div className="space-y-6">
+            <EmailTemplatesTab initialTemplates={emailTemplates} />
+            <EmailLogsTab />
+          </div>
         )}
 
         {activeTab === "community_partners" && (
@@ -682,6 +439,10 @@ export default function AdminDashboard() {
             onToggleStatus={toggleCommunityPartnerStatus}
             onRefresh={fetchData}
           />
+        )}
+
+        {activeTab === "session_reviews" && (
+          <SessionReviewsTab reviews={sessionReviews} />
         )}
       </div>
     </div>

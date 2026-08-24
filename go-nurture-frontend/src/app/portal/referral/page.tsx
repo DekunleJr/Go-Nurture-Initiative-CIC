@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { api } from "@/lib/api-client";
+import { authClient } from "@/lib/auth-client";
 import { PortalNavbar } from "@/components/portal/PortalNavbar";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function ReferralPage() {
   const router = useRouter();
@@ -27,7 +27,7 @@ export default function ReferralPage() {
     e.preventDefault();
     setLoading(true);
 
-    const token = localStorage.getItem("access_token");
+    const token = authClient.getToken();
     if (!token) {
       toast.error("You must be logged in to submit a referral.");
       setLoading(false);
@@ -35,19 +35,7 @@ export default function ReferralPage() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/api/referrals/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.detail || "Failed to submit referral");
-      }
+      await api.post("/api/referrals/", formData);
 
       toast.success("Referral submitted successfully!");
       router.push("/portal/dashboard");
@@ -73,7 +61,7 @@ export default function ReferralPage() {
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-foreground">
-                Mother's Full Name *
+                Mother&apos;s Full Name *
               </label>
               <input
                 type="text"
@@ -86,7 +74,7 @@ export default function ReferralPage() {
 
             <div>
               <label className="block text-sm font-medium text-foreground">
-                Mother's Phone Number *
+                Mother&apos;s Phone Number *
               </label>
               <input
                 type="tel"
@@ -99,7 +87,7 @@ export default function ReferralPage() {
 
             <div>
               <label className="block text-sm font-medium text-foreground">
-                Mother's Email *
+                Mother&apos;s Email *
               </label>
               <input
                 type="email"

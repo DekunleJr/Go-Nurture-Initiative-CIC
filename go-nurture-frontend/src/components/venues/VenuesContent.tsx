@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
+import { api } from "@/lib/api-client";
 
 interface Venue {
   id: string;
@@ -18,11 +19,7 @@ export default function VenuesContent() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/venues/`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch venues");
-        return res.json();
-      })
+    api.get<Venue[]>("/api/venues/")
       .then((data: Venue[]) => {
         setVenues(data);
         setLoading(false);

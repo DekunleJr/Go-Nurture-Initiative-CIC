@@ -6,9 +6,9 @@ import Link from "next/link";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import { SITE_CONFIG } from "@/lib/constants";
+import { api } from "@/lib/api-client";
+import { authClient } from "@/lib/auth-client";
 import { PortalNavbar } from "@/components/portal/PortalNavbar";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,22 +22,41 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const data = await api.post<{
+        access_token: string;
+        role?: string;
+        partner?: {
+          contact_name: string;
+          email: string;
+          organisation_name: string;
+          is_admin?: boolean;
+        };
+        facilitator?: { name: string; email: string };
+      }>("/api/auth/login", { email, password });
 
-      const data = await res.json();
+      // Normalise the user object and route by role
+      const role: string = data.role || "partner";
+      const user =
+        role === "facilitator"
+          ? { role, name: data.facilitator?.name, email: data.facilitator?.email }
+          : {
+              role,
+              name: data.partner?.contact_name,
+              email: data.partner?.email,
+              organisation_name: data.partner?.organisation_name,
+              is_admin: data.partner?.is_admin,
+            };
 
-      if (!res.ok) {
-        throw new Error(data.detail || "Login failed");
+      authClient.setToken(data.access_token);
+      authClient.setUser(user);
+      if (data.partner) {
+        authClient.setPartner(data.partner);
       }
 
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("partner", JSON.stringify(data.partner));
-      toast.success("Welcome back! Redirecting to dashboard...");
-      router.push("/portal/dashboard");
+      toast.success("Welcome back! Redirecting...");
+      if (role === "admin") router.push("/admin/dashboard");
+      else if (role === "facilitator") router.push("/portal/facilitator");
+      else router.push("/portal/dashboard");
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {

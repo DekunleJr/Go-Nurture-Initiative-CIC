@@ -13,10 +13,13 @@ from dotenv import load_dotenv
 
 from app.database.session import get_db
 from app.models.partner import PartnerOrganisation
+from app.models.facilitator import Facilitator
 
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"))
 
-SECRET_KEY = os.getenv("SECRET_KEY", "change-this-secret-key")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY must be set before starting the application")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
@@ -37,8 +40,13 @@ def generate_set_password_token() -> str:
     return secrets.token_urlsafe(48)
 
 
-def create_access_token(partner_id: UUID, expires_delta: Optional[timedelta] = None) -> str:
-    to_encode = {"sub": str(partner_id)}
+def create_access_token(
+    user_id: UUID,
+    expires_delta: Optional[timedelta] = None,
+    role: str = "partner",
+) -> str:
+    """Create a JWT. `role` is one of: partner, admin, facilitator."""
+    to_encode = {"sub": str(user_id), "role": role}
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
@@ -83,3 +91,29 @@ def get_current_admin(
             detail="Admin access required",
         )
     return current_partner
+
+
+def get_current_facilitator(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+) -> Facilitator:
+    """Dependency to extract and verify the current facilitator from JWT token."""
+    token = credentials.credentials
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        role: str = payload.get("role", "")
+        if user_id is None or role != "facilitator":
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    facilitator = db.query(Facilitator).filter(Facilitator.id == user_id).first()
+    if facilitator is None:
+        raise credentials_exception
+    return facilitator

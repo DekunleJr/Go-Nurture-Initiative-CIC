@@ -4,26 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, FileText, Pencil, X } from "lucide-react";
 import toast from "react-hot-toast";
+import { api } from "@/lib/api-client";
+import { authClient } from "@/lib/auth-client";
+import type { Referral } from "@/types";
 import { PortalNavbar } from "@/components/portal/PortalNavbar";
 import { useLocalStorage } from "@/lib/useLocalStorage";
 import Pagination from "../../admin/dashboard/components/Pagination";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
-interface Referral {
-  id: string;
-  mother_name: string;
-  mother_phone: string;
-  mother_email: string | null;
-  estimated_due_date: string;
-  language_requirement: string | null;
-  requires_interpreter: boolean;
-  status: string;
-  cohort_name: string | null;
-  clinic_cohort_name?: string | null;
-  venue_name: string | null;
-  created_at: string;
-}
 
 interface PartnerData {
   contact_name: string;
@@ -70,26 +56,11 @@ export default function DashboardPage() {
     if (!editingReferral) return;
     setSavingEdit(true);
     try {
-      const token = localStorage.getItem("access_token");
-      const res = await fetch(`${API_URL}/api/referrals/${editingReferral.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(editFormData),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.detail || "Failed to update referral");
-      }
+      await api.patch(`/api/referrals/${editingReferral.id}`, editFormData);
       toast.success("Referral updated successfully");
       setEditingReferral(null);
       // Refresh the list
-      const refreshed = await fetch(`${API_URL}/api/referrals/`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
-      });
-      if (refreshed.ok) setReferrals(await refreshed.json());
+      setReferrals(await api.get<Referral[]>("/api/referrals/"));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -100,7 +71,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const token = localStorage.getItem("access_token");
+    const token = authClient.getToken();
     if (!token) {
       router.push("/portal/login");
       return;
@@ -108,14 +79,8 @@ export default function DashboardPage() {
 
     let isMounted = true;
 
-    fetch(`${API_URL}/api/referrals/`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          throw new Error("The backend server is not reachable. Make sure it is running.");
-        }
-        const data = await res.json();
+    api.get<Referral[]>("/api/referrals/")
+      .then((data) => {
         if (isMounted) {
           setReferrals(data);
           setLoading(false);
@@ -302,7 +267,7 @@ export default function DashboardPage() {
             <form onSubmit={handleEditSubmit} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Mother's Full Name *</label>
+                  <label className="block text-sm font-medium text-gray-700">Mother&apos;s Full Name *</label>
                   <input
                     type="text"
                     required

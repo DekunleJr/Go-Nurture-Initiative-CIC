@@ -1,0 +1,10 @@
+You have received a new message from the Go Nurture Initiative website contact form.
+
+Sender: {{ sender_name }}
+Email: {{ sender_email }}
+Subject: {{ message_subject }}
+
+Message:
+{{ message }}
+
+This email was sent automatically from the Go Nurture website contact form.

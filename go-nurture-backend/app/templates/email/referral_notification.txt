@@ -1,0 +1,18 @@
+A new referral has been submitted and requires your attention.
+
+Mother Details:
+- Name: {{ mother_name }}
+- Phone: {{ mother_phone }}
+- Email: {{ mother_email or "Not provided" }}
+- Estimated Due Date: {{ due_date }}
+- Program Type: {{ program_name }}
+- Language Requirement: {{ language_requirement or "None specified" }}
+- Requires Interpreter: {{ "Yes" if requires_interpreter else "No" }}
+
+Referral Source:
+- Partner Organisation: {{ partner_name }}
+
+Additional Notes:
+{{ additional_notes or "None" }}
+
+Please review and approve/reject this referral in the admin dashboard.
