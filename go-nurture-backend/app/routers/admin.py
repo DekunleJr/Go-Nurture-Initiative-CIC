@@ -603,7 +603,7 @@ def admin_delete_venue(
     return {"message": "Venue deleted successfully", "venue_id": str(venue_id)}
 
 
-@router.get("/session-reviews", response_model=List[dict])
+@router.get("/session-reviews", response_model=List[SessionReviewResponse])
 def admin_get_session_reviews(
     db: Session = Depends(get_db),
     admin: PartnerOrganisation = Depends(get_current_admin),
@@ -622,9 +622,9 @@ def admin_get_session_reviews(
     for r in reviews:
         cohort = db.query(Cohort).filter(Cohort.id == r.cohort_id).first()
         facilitator = db.query(Facilitator).filter(Facilitator.id == r.facilitator_id).first()
-        data = r.__dict__
-        data["cohort_name"] = cohort.name if cohort else None
-        data["facilitator_name"] = facilitator.name if facilitator else None
+        data = SessionReviewResponse.model_validate(r)
+        data.cohort_name = cohort.name if cohort else None
+        data.facilitator_name = facilitator.name if facilitator else None
         result.append(data)
     return result
 
