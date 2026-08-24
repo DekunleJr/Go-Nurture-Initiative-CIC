@@ -25,6 +25,7 @@ class Cohort(Base):
     is_active = Column(Boolean, default=True)
     description = Column(Text, nullable=True)
     venue_id = Column(UUID(as_uuid=True), ForeignKey("venues.id"), nullable=True)
+    facilitator_id = Column(UUID(as_uuid=True), ForeignKey("facilitators.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):

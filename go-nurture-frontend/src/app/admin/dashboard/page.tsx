@@ -14,6 +14,8 @@ import DonationsTab from "./components/DonationsTab";
 import ContactsTab from "./components/ContactsTab";
 import EmailLogsTab from "./components/EmailLogsTab";
 import CommunityPartnersTab from "./components/CommunityPartnersTab";
+import FacilitatorsTab from "./components/FacilitatorsTab";
+import SessionReviewsTab from "./components/SessionReviewsTab";
 
 const API_BASE = "/";
 
@@ -129,7 +131,46 @@ interface CommunityPartner {
   created_at: string;
 }
 
-type Tab = "overview" | "referrals" | "partners" | "venues" | "cohorts" | "donations" | "contacts" | "emails" | "community_partners";
+interface Facilitator {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  is_active: boolean;
+  is_verified: boolean;
+  created_at: string;
+}
+
+interface SessionReview {
+  id: string;
+  cohort_id: string;
+  facilitator_id: string;
+  session_date: string;
+  week_number: number | null;
+  mode: string | null;
+  venue_or_platform: string | null;
+  lead_facilitator: string | null;
+  co_facilitator: string | null;
+  start_time: string | null;
+  finish_time: string | null;
+  registered_count: number | null;
+  attended_count: number | null;
+  supporter_count: number | null;
+  reasonable_adjustments: string | null;
+  fidelity_checked: string[] | null;
+  quality_ratings: Record<string, { score: number; comment: string }> | null;
+  deviations: string | null;
+  incidents: Array<Record<string, string>> | null;
+  reflection: Record<string, string> | null;
+  status: string;
+  submitted_at: string | null;
+  created_at: string;
+  updated_at: string;
+  cohort_name: string | null;
+  facilitator_name: string | null;
+}
+
+type Tab = "overview" | "referrals" | "partners" | "venues" | "cohorts" | "facilitators" | "donations" | "contacts" | "emails" | "community_partners" | "session_reviews";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -143,6 +184,8 @@ export default function AdminDashboard() {
   const [donationTotal, setDonationTotal] = useState(0);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [communityPartners, setCommunityPartners] = useState<CommunityPartner[]>([]);
+  const [facilitators, setFacilitators] = useState<Facilitator[]>([]);
+  const [sessionReviews, setSessionReviews] = useState<SessionReview[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [isAdmin, setIsAdmin] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -166,7 +209,7 @@ export default function AdminDashboard() {
     setRefreshing(true);
 
     try {
-      const [statsRes, referralsRes, partnersRes, venuesRes, cohortsRes, donationsRes, contactsRes, communityPartnersRes] = await Promise.all([
+      const [statsRes, referralsRes, partnersRes, venuesRes, cohortsRes, donationsRes, contactsRes, communityPartnersRes, facilitatorsRes, sessionReviewsRes] = await Promise.all([
         fetch(`${API_BASE}api/admin/stats`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
@@ -191,6 +234,12 @@ export default function AdminDashboard() {
         fetch(`${API_BASE}api/admin/community-partners`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
+        fetch(`${API_BASE}api/admin/facilitators`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_BASE}api/admin/session-reviews`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
 
       if (statsRes.ok) setStats(await statsRes.json());
@@ -205,6 +254,8 @@ export default function AdminDashboard() {
       }
       if (contactsRes.ok) setContacts((await contactsRes.json()).contacts || []);
       if (communityPartnersRes.ok) setCommunityPartners(await communityPartnersRes.json());
+      if (facilitatorsRes.ok) setFacilitators(await facilitatorsRes.json());
+      if (sessionReviewsRes.ok) setSessionReviews(await sessionReviewsRes.json());
     } catch (error) {
       console.error("Error fetching admin data:", error);
       toast.error("Failed to load dashboard data");
@@ -264,6 +315,57 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       toast.error("Error updating referral" + (error instanceof Error ? `: ${error.message}` : ""));
+      throw error;
+    }
+  };
+
+  const createFacilitator = async (data: { name: string; email: string; phone: string }) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_BASE}api/auth/admin/create-facilitator`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Failed to create facilitator");
+      }
+    } catch (error) {
+      toast.error("Error creating facilitator" + (error instanceof Error ? `: ${error.message}` : ""));
+      throw error;
+    }
+  };
+
+  const assignFacilitator = async (cohortId: string, facilitatorId: string) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_BASE}api/admin/cohorts/${cohortId}/assign-facilitator`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ facilitator_id: facilitatorId }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.detail || "Failed to assign facilitator");
+      }
+
+      toast.success("Facilitator assigned — they have been emailed the cohort details");
+      fetchData();
+    } catch (error) {
+      toast.error("Error assigning facilitator" + (error instanceof Error ? `: ${error.message}` : ""));
       throw error;
     }
   };
@@ -593,10 +695,12 @@ export default function AdminDashboard() {
               { id: "partners", label: "Partners" },
               { id: "venues", label: "Venues" },
               { id: "cohorts", label: "Cohorts" },
+              { id: "facilitators", label: "Facilitators" },
               { id: "donations", label: "Donations" },
               { id: "contacts", label: "Contacts" },
               { id: "emails", label: "Emails" },
               { id: "community_partners", label: "Community Partners" },
+              { id: "session_reviews", label: "Session Reviews" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -654,9 +758,19 @@ export default function AdminDashboard() {
           <CohortsTab
             cohorts={cohorts}
             venues={venues}
+            facilitators={facilitators}
+            onAssignFacilitator={assignFacilitator}
             onCreateCohort={createCohort}
             onUpdateCohort={updateCohort}
             onDeleteCohort={deleteCohort}
+            onRefresh={fetchData}
+          />
+        )}
+
+        {activeTab === "facilitators" && (
+          <FacilitatorsTab
+            facilitators={facilitators}
+            onCreateFacilitator={createFacilitator}
             onRefresh={fetchData}
           />
         )}
@@ -682,6 +796,10 @@ export default function AdminDashboard() {
             onToggleStatus={toggleCommunityPartnerStatus}
             onRefresh={fetchData}
           />
+        )}
+
+        {activeTab === "session_reviews" && (
+          <SessionReviewsTab reviews={sessionReviews} />
         )}
       </div>
     </div>

@@ -34,10 +34,29 @@ export default function LoginPage() {
         throw new Error(data.detail || "Login failed");
       }
 
+      // Normalise the user object and route by role
+      const role: string = data.role || "partner";
+      const user =
+        role === "facilitator"
+          ? { role, name: data.facilitator?.name, email: data.facilitator?.email }
+          : {
+              role,
+              name: data.partner?.contact_name,
+              email: data.partner?.email,
+              organisation_name: data.partner?.organisation_name,
+              is_admin: data.partner?.is_admin,
+            };
+
       localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("partner", JSON.stringify(data.partner));
-      toast.success("Welcome back! Redirecting to dashboard...");
-      router.push("/portal/dashboard");
+      localStorage.setItem("user", JSON.stringify(user));
+      if (data.partner) {
+        localStorage.setItem("partner", JSON.stringify(data.partner));
+      }
+
+      toast.success("Welcome back! Redirecting...");
+      if (role === "admin") router.push("/admin/dashboard");
+      else if (role === "facilitator") router.push("/portal/facilitator");
+      else router.push("/portal/dashboard");
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {

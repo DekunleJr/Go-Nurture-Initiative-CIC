@@ -1,4 +1,6 @@
 from app.models.partner import PartnerOrganisation
+from app.models.facilitator import Facilitator
+from app.models.session_review import SessionReview
 from app.models.referral import Referral
 from app.models.contact import ContactSubmission
 from app.models.donation import Donation
@@ -9,6 +11,8 @@ from app.models.community_partner import CommunityPartner
 
 __all__ = [
     "PartnerOrganisation",
+    "Facilitator",
+    "SessionReview",
     "Referral",
     "ContactSubmission",
     "Donation",

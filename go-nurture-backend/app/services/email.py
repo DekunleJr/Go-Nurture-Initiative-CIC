@@ -548,6 +548,118 @@ This email was sent automatically from the Go Nurture website contact form.
     return sent
 
 
+def send_facilitator_assignment_email(
+    facilitator_email: str,
+    facilitator_name: str,
+    cohort_name: str,
+    cohort_type: str,
+    start_date: date_type,
+    venue_name: Optional[str],
+    db: Session = None,
+) -> bool:
+    """
+    Notify a facilitator that they have been assigned to a cohort,
+    including the class schedule or appointment details.
+    """
+    api_key = os.getenv("RESEND_API_KEY", "")
+    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>")
+
+    program_name = PROGRAM_NAMES.get(cohort_type, cohort_type)
+    venue_line = f"Venue: {venue_name}" if venue_name else "Venue: To be confirmed"
+
+    if cohort_type == "breastfeeding_clinic":
+        subject = f"You've been assigned: {cohort_name} (Breastfeeding Support Clinic)"
+        body = f"""
+Hello {facilitator_name},
+
+You have been assigned as the facilitator for the following session:
+
+─────────────────────────────
+SESSION DETAILS
+─────────────────────────────
+Programme: {program_name}
+Group: {cohort_name}
+Date: {start_date.strftime('%A, %d %B %Y')}
+{venue_line}
+
+Please log into your facilitator portal to view enrolled participants
+and submit your delivery audit after the session.
+
+If you have any questions, please contact the Go Nurture team.
+
+Best regards,
+Go Nurture Initiative CIC
+"""
+    else:
+        schedule = compute_class_schedule(start_date)
+        subject = f"You've been assigned: {cohort_name} (Birth Confidence Program)"
+        body = f"""
+Hello {facilitator_name},
+
+You have been assigned as the lead facilitator for the following cohort:
+
+─────────────────────────────
+COHORT DETAILS
+─────────────────────────────
+Programme: {program_name}
+Group: {cohort_name}
+{venue_line}
+
+Class Schedule (weekly):
+{_format_schedule_lines(schedule)}
+
+Please log into your facilitator portal to view enrolled participants
+and submit your delivery audit after each meeting.
+
+If you have any questions, please contact the Go Nurture team.
+
+Best regards,
+Go Nurture Initiative CIC
+"""
+
+    sent = False
+    error_msg = None
+
+    if not api_key or api_key == "re_xxxxxxxxxxxx":
+        print(f"=== FACILITATOR ASSIGNMENT EMAIL TO: {facilitator_email} ===")
+        print(f"From: {from_email}")
+        print(f"Subject: {subject}")
+        print(body)
+        print("=== END EMAIL ===")
+        sent = True
+    else:
+        try:
+            resend.api_key = api_key
+            response = resend.Emails.send({
+                "from": from_email,
+                "to": facilitator_email,
+                "subject": subject,
+                "text": body.strip(),
+            })
+            print(f"Facilitator assignment email sent to {facilitator_email}: {response}")
+            sent = True
+        except Exception as e:
+            error_msg = str(e)
+            print(f"Failed to send facilitator assignment email via Resend: {e}")
+            print(f"=== FACILITATOR ASSIGNMENT EMAIL TO: {facilitator_email} ===")
+            print(f"Subject: {subject}")
+            print(body)
+            print("=== END EMAIL ===")
+
+    if db is not None:
+        log_email(
+            db=db,
+            recipient_email=facilitator_email,
+            subject=subject,
+            body=body.strip(),
+            email_type="facilitator_assignment",
+            status="success" if sent else "failed",
+            error_message=error_msg,
+        )
+
+    return sent
+
+
 def send_cohort_assignment_email_to_mother(
     mother_name: str,
     mother_email: str,

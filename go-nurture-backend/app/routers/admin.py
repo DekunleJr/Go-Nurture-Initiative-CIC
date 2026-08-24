@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 from typing import List, Optional
@@ -14,17 +14,22 @@ from app.models.venue import Venue
 from app.models.cohort import Cohort
 from app.models.email_log import EmailLog
 from app.models.community_partner import CommunityPartner
+from app.models.facilitator import Facilitator
+from app.models.session_review import SessionReview
 from app.schemas.referral import ReferralResponse, ReferralStatusUpdate, ReferralUpdate
 from app.schemas.partner import PartnerResponse
 from app.schemas.donation import DonationResponse
 from app.schemas.contact import ContactResponse
 from app.schemas.community_partner import CommunityPartnerResponse, CommunityPartnerCreate
+from app.schemas.partner import FacilitatorResponse, FacilitatorCreate
+from app.schemas.session_review import SessionReviewResponse
 from app.utils.auth import get_current_admin
 from app.services.geocode import geocode_address
 from app.services.email import (
     send_referral_approval_email,
     send_cohort_assignment_email_to_partner,
     send_cohort_assignment_email_to_mother,
+    send_facilitator_assignment_email,
 )
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
@@ -433,6 +438,84 @@ def admin_delete_venue(
     return {"message": "Venue deleted successfully", "venue_id": str(venue_id)}
 
 
+@router.get("/session-reviews", response_model=List[dict])
+def admin_get_session_reviews(
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    """Admin only: View all submitted session reviews with cohort & facilitator names."""
+    reviews = (
+        db.query(SessionReview)
+        .order_by(SessionReview.session_date.desc())
+        .all()
+    )
+    result = []
+    for r in reviews:
+        cohort = db.query(Cohort).filter(Cohort.id == r.cohort_id).first()
+        facilitator = db.query(Facilitator).filter(Facilitator.id == r.facilitator_id).first()
+        data = r.__dict__
+        data["cohort_name"] = cohort.name if cohort else None
+        data["facilitator_name"] = facilitator.name if facilitator else None
+        result.append(data)
+    return result
+
+
+@router.get("/facilitators", response_model=List[FacilitatorResponse])
+def admin_get_all_facilitators(
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    """Admin only: Get all facilitators."""
+    facilitators = db.query(Facilitator).order_by(Facilitator.created_at.desc()).all()
+    return [FacilitatorResponse.model_validate(f) for f in facilitators]
+
+
+@router.post("/cohorts/{cohort_id}/assign-facilitator", response_model=dict)
+def admin_assign_facilitator(
+    cohort_id: UUID,
+    data: dict,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    """Admin only: Assign a lead facilitator to a cohort and email them."""
+    cohort = db.query(Cohort).filter(Cohort.id == cohort_id).first()
+    if not cohort:
+        raise HTTPException(status_code=404, detail="Cohort not found")
+
+    facilitator_id = data.get("facilitator_id")
+    if not facilitator_id:
+        raise HTTPException(status_code=400, detail="facilitator_id is required")
+
+    facilitator = db.query(Facilitator).filter(Facilitator.id == facilitator_id).first()
+    if not facilitator:
+        raise HTTPException(status_code=404, detail="Facilitator not found")
+
+    cohort.facilitator_id = facilitator.id
+    db.commit()
+    db.refresh(cohort)
+
+    venue = None
+    if cohort.venue_id:
+        venue = db.query(Venue).filter(Venue.id == cohort.venue_id).first()
+
+    background_tasks.add_task(
+        send_facilitator_assignment_email,
+        facilitator_email=facilitator.email,
+        facilitator_name=facilitator.name,
+        cohort_name=cohort.name,
+        cohort_type=cohort.cohort_type,
+        start_date=cohort.start_date,
+        venue_name=venue.name if venue else None,
+        db=db,
+    )
+
+    return {
+        "message": f"{facilitator.name} assigned to {cohort.name}",
+        "facilitator": FacilitatorResponse.model_validate(facilitator).model_dump(mode="json"),
+    }
+
+
 @router.get("/cohorts", response_model=List[dict])
 def admin_get_all_cohorts(
     db: Session = Depends(get_db),
@@ -454,6 +537,13 @@ def admin_get_all_cohorts(
             data["venue_name"] = None
             data["venue_address"] = None
             data["venue_city"] = None
+
+        # Attach the assigned facilitator name
+        if cohort.facilitator_id:
+            facilitator = db.query(Facilitator).filter(Facilitator.id == cohort.facilitator_id).first()
+            data["facilitator_name"] = facilitator.name if facilitator else None
+        else:
+            data["facilitator_name"] = None
 
         # Attach the referrals (people) assigned to this cohort — via either slot
         referrals = (

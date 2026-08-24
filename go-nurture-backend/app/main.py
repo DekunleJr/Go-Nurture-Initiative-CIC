@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import logging
 from sqlalchemy import text
 
-from app.routers import auth, referrals, contact, donations, venues, admin, community
+from app.routers import auth, referrals, contact, donations, venues, admin, community, facilitator
 from app.database.session import SessionLocal, engine
 from app.models.partner import PartnerOrganisation
 from app.models.community_partner import CommunityPartner
@@ -134,6 +134,7 @@ app.include_router(donations.router)
 app.include_router(venues.router)
 app.include_router(admin.router)
 app.include_router(community.router)
+app.include_router(facilitator.router)
 
 
 @app.get("/")

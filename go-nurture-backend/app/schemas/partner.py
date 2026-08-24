@@ -39,10 +39,32 @@ class PartnerResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class FacilitatorCreate(BaseModel):
+    """Admin-only: create a facilitator account (no password - invite will be sent)."""
+    name: str
+    email: EmailStr
+    phone: Optional[str] = None
+
+
+class FacilitatorResponse(BaseModel):
+    id: UUID
+    name: str
+    email: str
+    phone: Optional[str] = None
+    is_active: bool
+    is_verified: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
-    partner: PartnerResponse
+    # Role of the authenticated user: "partner", "admin" or "facilitator"
+    role: str = "partner"
+    partner: Optional[PartnerResponse] = None
+    facilitator: Optional["FacilitatorResponse"] = None
 
 
 class PartnerInviteResponse(BaseModel):
