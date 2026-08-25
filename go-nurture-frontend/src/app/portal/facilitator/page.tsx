@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays, MapPin, Users, FileText, GraduationCap, ClipboardCheck, Pencil } from "lucide-react";
+import { CalendarDays, MapPin, Users, FileText, GraduationCap, ClipboardCheck, Pencil, Eye } from "lucide-react";
 import { api } from "@/lib/api-client";
 import SessionReviewForm from "./SessionReviewForm";
+import SessionReviewViewer from "./SessionReviewViewer";
 import type { SessionReview } from "@/types/api";
 
 interface CohortMember {
@@ -41,6 +42,7 @@ export default function FacilitatorDashboardPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [reviewingCohort, setReviewingCohort] = useState<AssignedCohort | null>(null);
   const [reviewingExisting, setReviewingExisting] = useState<SessionReview | null>(null);
+  const [viewingReview, setViewingReview] = useState<SessionReview | null>(null);
   const [reviews, setReviews] = useState<SessionReview[]>([]);
 
   useEffect(() => {
@@ -177,14 +179,22 @@ export default function FacilitatorDashboardPage() {
                       >
                         {review.status === "submitted" ? "Submitted" : "Draft"}
                       </span>
-                      {review.status !== "submitted" && (
+                      <div className="flex items-center gap-2">
                         <button
-                          onClick={() => openEditReview(review)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                          onClick={() => setViewingReview(review)}
+                          className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50"
                         >
-                          <Pencil size={14} /> Edit
+                          <Eye size={14} /> View
                         </button>
-                      )}
+                        {review.status !== "submitted" && (
+                          <button
+                            onClick={() => openEditReview(review)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                          >
+                            <Pencil size={14} /> Edit
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -326,6 +336,14 @@ export default function FacilitatorDashboardPage() {
             setReviewingExisting(null);
             refreshReviews();
           }}
+        />
+      )}
+
+      {/* Read-only Session Review Viewer */}
+      {viewingReview && (
+        <SessionReviewViewer
+          review={viewingReview}
+          onClose={() => setViewingReview(null)}
         />
       )}
     </div>
