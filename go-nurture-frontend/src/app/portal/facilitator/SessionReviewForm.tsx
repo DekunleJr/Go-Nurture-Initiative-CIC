@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Loader2, Save, Send } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "@/lib/api-client";
+import type { SessionReview } from "@/types/api";
 
 const FIDELITY_ITEMS = [
   "Current slides, manual, participant resources and evidence log used.",
@@ -52,21 +53,34 @@ interface Props {
   cohortId: string;
   cohortName: string;
   schedulePreview: string;
+  venueName?: string | null;
+  facilitatorName?: string | null;
+  memberCount?: number;
+  existingReview?: SessionReview | null;
   onClose: () => void;
 }
 
-export default function SessionReviewForm({ cohortId, cohortName, schedulePreview, onClose }: Props) {
+export default function SessionReviewForm({
+  cohortId,
+  cohortName,
+  schedulePreview,
+  venueName,
+  facilitatorName,
+  memberCount,
+  existingReview,
+  onClose,
+}: Props) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     session_date: "",
     week_number: 4,
     mode: "face_to_face",
-    venue_or_platform: "",
-    lead_facilitator: "",
+    venue_or_platform: venueName || "",
+    lead_facilitator: facilitatorName || "",
     co_facilitator: "",
     start_time: "",
     finish_time: "",
-    registered_count: 0,
+    registered_count: memberCount || 0,
     attended_count: 0,
     supporter_count: 0,
     reasonable_adjustments: "",
@@ -74,10 +88,55 @@ export default function SessionReviewForm({ cohortId, cohortName, schedulePrevie
   });
   const [fidelity, setFidelity] = useState<string[]>([]);
   const [ratings, setRatings] = useState<Record<string, { score: number; comment: string }>>({});
-  const [incidents, setIncidents] = useState<{ ref: string; type: string; action: string; escalated_to: string; closed_at: string }[]>([]);
+  const [incidents, setIncidents] = useState<Record<string, string>[]>([]);
   const [reflection, setReflection] = useState<Record<string, string>>({});
 
   const setField = (key: string, value: unknown) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  // Load saved form data when editing an existing draft review; reset to prefilled defaults otherwise.
+  useEffect(() => {
+    if (existingReview) {
+      setForm({
+        session_date: existingReview.session_date.slice(0, 10),
+        week_number: existingReview.week_number ?? 4,
+        mode: "face_to_face",
+        venue_or_platform: existingReview.venue_or_platform ?? "",
+        lead_facilitator: existingReview.lead_facilitator ?? "",
+        co_facilitator: existingReview.co_facilitator ?? "",
+        start_time: existingReview.start_time ?? "",
+        finish_time: existingReview.finish_time ?? "",
+        registered_count: existingReview.registered_count ?? (memberCount || 0),
+        attended_count: existingReview.attended_count ?? 0,
+        supporter_count: existingReview.supporter_count ?? 0,
+        reasonable_adjustments: existingReview.reasonable_adjustments ?? "",
+        deviations: existingReview.deviations ?? "",
+      });
+      setFidelity(existingReview.fidelity_checked ?? []);
+      setRatings(existingReview.quality_ratings ?? {});
+      setIncidents(existingReview.incidents ?? []);
+      setReflection(existingReview.reflection ?? {});
+    } else {
+      setForm({
+        session_date: "",
+        week_number: 4,
+        mode: "face_to_face",
+        venue_or_platform: venueName || "",
+        lead_facilitator: facilitatorName || "",
+        co_facilitator: "",
+        start_time: "",
+        finish_time: "",
+        registered_count: memberCount || 0,
+        attended_count: 0,
+        supporter_count: 0,
+        reasonable_adjustments: "",
+        deviations: "",
+      });
+      setFidelity([]);
+      setRatings({});
+      setIncidents([]);
+      setReflection({});
+    }
+  }, [existingReview, cohortId, venueName, facilitatorName, memberCount]);
 
   const submit = async (status: "draft" | "submitted") => {
     if (!form.session_date) {
@@ -134,11 +193,7 @@ export default function SessionReviewForm({ cohortId, cohortName, schedulePrevie
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Mode</label>
-            <select value={form.mode} onChange={(e) => setField("mode", e.target.value)} className="w-full rounded-lg border border-gray-200 px-3 py-2">
-              <option value="face_to_face">Face-to-face</option>
-              <option value="online">Online</option>
-              <option value="hybrid">Hybrid</option>
-            </select>
+            <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-gray-600">Face-to-face</div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Venue / Platform</label>

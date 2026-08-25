@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays, MapPin, Users, FileText, GraduationCap, ClipboardCheck } from "lucide-react";
+import { CalendarDays, MapPin, Users, FileText, GraduationCap, ClipboardCheck, Pencil } from "lucide-react";
 import { api } from "@/lib/api-client";
 import SessionReviewForm from "./SessionReviewForm";
+import type { SessionReview } from "@/types/api";
 
 interface CohortMember {
   id: string;
@@ -39,6 +40,8 @@ export default function FacilitatorDashboardPage() {
   const [cohorts, setCohorts] = useState<AssignedCohort[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [reviewingCohort, setReviewingCohort] = useState<AssignedCohort | null>(null);
+  const [reviewingExisting, setReviewingExisting] = useState<SessionReview | null>(null);
+  const [reviews, setReviews] = useState<SessionReview[]>([]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -61,10 +64,14 @@ export default function FacilitatorDashboardPage() {
 
     let isMounted = true;
 
-    api.get<AssignedCohort[]>("/api/facilitator/my-cohorts")
-      .then((data) => {
+    Promise.all([
+      api.get<AssignedCohort[]>("/api/facilitator/my-cohorts"),
+      api.get<SessionReview[]>("/api/facilitator/reviews"),
+    ])
+      .then(([cohortData, reviewData]) => {
         if (isMounted) {
-          setCohorts(data);
+          setCohorts(cohortData);
+          setReviews(reviewData);
           setLoading(false);
         }
       })
@@ -80,6 +87,37 @@ export default function FacilitatorDashboardPage() {
 
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+  const refreshReviews = () => {
+    api.get<SessionReview[]>("/api/facilitator/reviews")
+      .then(setReviews)
+      .catch((error) => console.error(error));
+  };
+
+  const openEditReview = (review: SessionReview) => {
+    const cohort = cohorts.find((c) => c.id === review.cohort_id);
+    if (cohort) {
+      setReviewingCohort(cohort);
+    } else {
+      // Cohort no longer assigned — open with the review's own data so it stays editable.
+      setReviewingCohort({
+        id: review.cohort_id,
+        name: review.cohort_name || "Cohort",
+        year: 0,
+        cohort_type: "birth_confidence",
+        start_date: review.session_date,
+        end_date: null,
+        max_participants: 0,
+        description: null,
+        schedule: [review.session_date],
+        venue_name: null,
+        venue_address: null,
+        venue_city: null,
+        members: [],
+      });
+    }
+    setReviewingExisting(review);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -109,6 +147,52 @@ export default function FacilitatorDashboardPage() {
           Your assigned cohorts and their schedules. Open a cohort to view enrolled mothers, or submit a delivery review after a meeting.
         </p>
 
+        {/* My Session Reviews */}
+        {!loading && (
+          <section className="mt-10">
+            <div className="flex items-center gap-2">
+              <FileText size={20} className="text-(--color-primary)" />
+              <h3 className="font-heading text-2xl font-bold text-(--color-primary)">My Session Reviews</h3>
+            </div>
+            <p className="mt-1 text-sm text-(--color-text-muted)">
+              Drafts can be edited and submitted later; submitted reviews are read-only.
+            </p>
+            {reviews.length === 0 ? (
+              <p className="mt-4 text-gray-500">You have not added any session reviews yet.</p>
+            ) : (
+              <div className="mt-4 overflow-hidden rounded-xl bg-white shadow-sm">
+                <div className="divide-y divide-gray-200">
+                  {reviews.map((review) => (
+                    <div key={review.id} className="flex items-center gap-4 px-6 py-4">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-gray-900">{review.cohort_name || "Cohort"}</p>
+                        <p className="mt-0.5 text-xs text-gray-500">{formatDate(review.session_date)}</p>
+                      </div>
+                      <span
+                        className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                          review.status === "submitted"
+                            ? "bg-green-50 text-green-700"
+                            : "bg-yellow-50 text-yellow-700"
+                        }`}
+                      >
+                        {review.status === "submitted" ? "Submitted" : "Draft"}
+                      </span>
+                      {review.status !== "submitted" && (
+                        <button
+                          onClick={() => openEditReview(review)}
+                          className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        >
+                          <Pencil size={14} /> Edit
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
         {loading ? (
           <p className="mt-10 text-gray-500">Loading your cohorts...</p>
         ) : cohorts.length === 0 ? (
@@ -135,7 +219,10 @@ export default function FacilitatorDashboardPage() {
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <button
-                        onClick={() => setReviewingCohort(cohort)}
+                        onClick={() => {
+                          setReviewingExisting(null);
+                          setReviewingCohort(cohort);
+                        }}
                         className="inline-flex items-center gap-2 rounded-lg bg-(--color-accent) px-4 py-2 text-sm text-white hover:bg-(--color-accent)/90"
                       >
                         <ClipboardCheck size={16} /> Submit Review
@@ -230,7 +317,15 @@ export default function FacilitatorDashboardPage() {
           cohortId={reviewingCohort.id}
           cohortName={reviewingCohort.name}
           schedulePreview={reviewingCohort.schedule.map((d, i) => `Class ${i + 1}: ${formatDate(d)}`).join(" · ")}
-          onClose={() => setReviewingCohort(null)}
+          venueName={reviewingCohort.venue_name}
+          facilitatorName={facilitatorName}
+          memberCount={reviewingCohort.members.length}
+          existingReview={reviewingExisting}
+          onClose={() => {
+            setReviewingCohort(null);
+            setReviewingExisting(null);
+            refreshReviews();
+          }}
         />
       )}
     </div>

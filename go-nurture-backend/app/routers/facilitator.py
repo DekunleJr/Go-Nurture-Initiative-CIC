@@ -156,7 +156,7 @@ def submit_session_review(
     return {"message": "Review submitted", "review_id": str(review.id), "status": review.status}
 
 
-@router.get("/reviews", response_model=List[dict])
+@router.get("/reviews", response_model=List[SessionReviewResponse])
 def list_my_reviews(
     db: Session = Depends(get_db),
     current_facilitator: Facilitator = Depends(get_current_facilitator),
@@ -171,8 +171,8 @@ def list_my_reviews(
     result = []
     for r in reviews:
         cohort = db.query(Cohort).filter(Cohort.id == r.cohort_id).first()
-        data = r.__dict__
-        data["cohort_name"] = cohort.name if cohort else None
-        data["facilitator_name"] = current_facilitator.name
+        data = SessionReviewResponse.model_validate(r)
+        data.cohort_name = cohort.name if cohort else None
+        data.facilitator_name = current_facilitator.name
         result.append(data)
     return result
