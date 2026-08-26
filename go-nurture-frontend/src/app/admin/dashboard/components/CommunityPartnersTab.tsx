@@ -95,8 +95,8 @@ export default function CommunityPartnersTab({
   };
 
   return (
-    <div className="rounded-xl bg-white shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="rounded-2xl bg-white shadow-sm ring-1 ring-(--color-border) overflow-hidden">
+      <div className="px-6 py-4 border-b border-(--color-border) flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="font-heading text-xl font-bold text-gray-900">
           Community Partners ({partners.length})
         </h3>
@@ -111,7 +111,7 @@ export default function CommunityPartnersTab({
 
       {/* Create/Edit Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="p-6 border-b border-gray-200 bg-gray-50">
+        <form onSubmit={handleSubmit} className="p-6 border-b border-(--color-border) bg-(--color-bg-sage)">
           <h4 className="font-heading text-lg font-bold text-gray-900 mb-4">
             {editMode ? "Edit Partner" : "Add New Partner"}
           </h4>
@@ -122,7 +122,7 @@ export default function CommunityPartnersTab({
               value={partnerName}
               onChange={(e) => setPartnerName(e.target.value)}
               placeholder="e.g., NHS Norfolk & Waveney"
-              className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
+              className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
               required
             />
           </div>
@@ -136,7 +136,7 @@ export default function CommunityPartnersTab({
             <button
               type="button"
               onClick={() => { resetForm(); setShowForm(false); }}
-              className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 sm:w-auto"
+              className="w-full rounded-lg border border-(--color-border) px-4 py-2 text-gray-700 hover:bg-(--color-bg-sage) sm:w-auto"
             >
               Cancel
             </button>
@@ -146,25 +146,25 @@ export default function CommunityPartnersTab({
 
       {/* Partners List */}
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-(--color-border)">
+          <thead className="bg-(--color-bg-sage)">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date Added</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Date Added</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-(--color-border)">
             {visiblePartners.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={4} className="px-6 py-8 text-center text-(--color-text-muted)">
                   No community partners found.
                 </td>
               </tr>
             ) : (
               visiblePartners.map((partner) => (
-                <tr key={partner.id} className="hover:bg-gray-50">
+                <tr key={partner.id} className="hover:bg-(--color-bg-sage)">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{partner.name}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -188,7 +188,7 @@ export default function CommunityPartnersTab({
                       </button>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                     {new Date(partner.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4">

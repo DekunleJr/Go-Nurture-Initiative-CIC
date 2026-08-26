@@ -19,29 +19,37 @@ const formatDate = (iso: string) =>
 
 export default function SessionReviewViewer({ review, onClose }: Props) {
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto">
-      <div className="w-full max-3xl rounded-xl bg-white p-6 shadow-xl my-8">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h3 className="font-heading text-2xl font-bold text-gray-900">Session Review</h3>
-            <p className="text-sm text-gray-600 mt-1">
-              {review.cohort_name || "Cohort"} · {review.facilitator_name}
-            </p>
-            <span
-              className={`mt-2 inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                review.status === "submitted"
-                  ? "bg-green-50 text-green-700"
-                  : "bg-yellow-50 text-yellow-700"
-              }`}
-            >
-              {review.status === "submitted" ? "Submitted" : "Draft"}
-            </span>
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto backdrop-blur-sm">
+      <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl my-8 overflow-hidden animate-scale-in">
+        {/* Modal header */}
+        <div className="relative overflow-hidden bg-(--color-primary) bg-gradient-to-br from-(--color-primary) via-(--color-primary-dark) to-(--color-accent) px-6 py-5 text-white">
+          <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+            <div className="absolute -top-10 -right-8 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+            <div className="absolute -bottom-12 left-1/3 h-32 w-32 rounded-full bg-(--color-accent-light)/30 blur-2xl" />
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X size={24} />
-          </button>
+          <div className="relative flex items-start justify-between gap-3">
+            <div>
+              <h3 className="font-heading text-2xl font-bold">Session Review</h3>
+              <p className="mt-1 text-sm text-white/80">
+                {review.cohort_name || "Cohort"} · {review.facilitator_name}
+              </p>
+              <span
+                className={`mt-2 inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                  review.status === "submitted"
+                    ? "bg-green-500/90 text-white"
+                    : "bg-yellow-400/90 text-yellow-900"
+                }`}
+              >
+                {review.status === "submitted" ? "Submitted" : "Draft"}
+              </span>
+            </div>
+            <button onClick={onClose} className="rounded-lg p-1.5 text-white/80 transition hover:bg-white/15 hover:text-white">
+              <X size={22} />
+            </button>
+          </div>
         </div>
 
+        <div className="p-6">
         <div className="grid gap-3 sm:grid-cols-2 text-sm">
           <div className="flex items-center gap-2">
             <CalendarDays size={14} className="text-gray-400" />
@@ -114,10 +122,11 @@ export default function SessionReviewViewer({ review, onClose }: Props) {
         <div className="mt-6 flex justify-end">
           <button
             onClick={onClose}
-            className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className="rounded-lg border border-(--color-border) px-4 py-2 text-sm text-gray-700 hover:bg-(--color-bg-sage)"
           >
             Close
           </button>
+        </div>
         </div>
       </div>
     </div>

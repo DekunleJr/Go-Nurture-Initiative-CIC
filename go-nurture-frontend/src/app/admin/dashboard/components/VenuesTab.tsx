@@ -179,8 +179,8 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
   const handleDeleteCancel = () => { setShowDeleteConfirm(false); setVenueToDelete(null); };
 
   return (
-    <div className="rounded-xl bg-white shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="rounded-2xl bg-white shadow-sm ring-1 ring-(--color-border) overflow-hidden">
+      <div className="px-6 py-4 border-b border-(--color-border) flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="font-heading text-xl font-bold text-gray-900">Venues ({venues.length})</h3>
         <button onClick={() => { if (showForm) resetForm(); else setShowForm(true); }} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto">
           <Plus size={18} /> New Venue
@@ -188,89 +188,89 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="p-6 border-b border-gray-200 bg-gray-50">
+        <form onSubmit={handleSubmit} className="p-6 border-b border-(--color-border) bg-(--color-bg-sage)">
           <h4 className="font-heading text-lg font-bold text-gray-900 mb-4">{editingVenue ? "Edit Venue" : "Create New Venue"}</h4>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Venue Name *</label>
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Community Centre" className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Community Centre" className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Address *</label>
-              <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street address" className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
+              <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street address" className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
-              <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
+              <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Postcode</label>
-              <input type="text" value={postcode} onChange={(e) => setPostcode(e.target.value)} placeholder="Postcode (optional)" className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
+              <input type="text" value={postcode} onChange={(e) => setPostcode(e.target.value)} placeholder="Postcode (optional)" className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
-              <input type="number" value={capacity} onChange={(e) => setCapacity(parseInt(e.target.value))} className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
+              <input type="number" value={capacity} onChange={(e) => setCapacity(parseInt(e.target.value))} className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Brief description" className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
+              <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Brief description" className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
             </div>
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Transport Links</label>
-              <textarea value={transportLinks} onChange={(e) => setTransportLinks(e.target.value)} placeholder="e.g., Bus routes 10/11 stop outside; 10 min walk from Norwich station" rows={2} className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
+              <textarea value={transportLinks} onChange={(e) => setTransportLinks(e.target.value)} placeholder="e.g., Bus routes 10/11 stop outside; 10 min walk from Norwich station" rows={2} className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
             </div>
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Nearby Landmarks</label>
-              <textarea value={nearbyLandmarks} onChange={(e) => setNearbyLandmarks(e.target.value)} placeholder="e.g., Next to the library, opposite the parish church" rows={2} className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
+              <textarea value={nearbyLandmarks} onChange={(e) => setNearbyLandmarks(e.target.value)} placeholder="e.g., Next to the library, opposite the parish church" rows={2} className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
             </div>
           </div>
 
           <div className="mt-4 flex items-end gap-3">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-1"><MapPin size={14} className="inline mr-1" /> Find Location on Map</label>
-              <p className="text-xs text-gray-500 mb-2">Search the address to place a pin on the map. The venue will be geocoded automatically if you skip this.</p>
-              <button type="button" onClick={geocodeAddress} disabled={searching} className="inline-flex items-center gap-2 rounded-lg bg-(--color-primary) px-4 py-2 text-white hover:bg-(--color-primary)/90 disabled:opacity-50">
+              <p className="text-xs text-(--color-text-muted) mb-2">Search the address to place a pin on the map. The venue will be geocoded automatically if you skip this.</p>
+              <button type="button" onClick={geocodeAddress} disabled={searching} className="inline-flex items-center gap-2 rounded-lg bg-(--color-accent) bg-gradient-to-br from-(--color-primary) to-(--color-accent) px-4 py-2 text-white hover:opacity-95 disabled:opacity-50">
                 <Search size={16} /> {searching ? "Searching..." : "Search Address"}
               </button>
             </div>
           </div>
 
           <div className="mt-4">
-            <div ref={mapContainerRef} className="h-64 w-full rounded-xl overflow-hidden border border-gray-200" />
-            {latitude != null && longitude != null && (<p className="mt-2 text-xs text-gray-600">Pin placed at: {latitude.toFixed(5)}, {longitude.toFixed(5)}</p>)}
+            <div ref={mapContainerRef} className="h-64 w-full rounded-xl overflow-hidden border border-(--color-border)" />
+            {latitude != null && longitude != null && (<p className="mt-2 text-xs text-(--color-text-muted)">Pin placed at: {latitude.toFixed(5)}, {longitude.toFixed(5)}</p>)}
           </div>
 
           <div className="mt-4 flex flex-col gap-3 sm:flex-row">
             <button type="submit" className="w-full rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto">{editingVenue ? "Save Changes" : "Create Venue"}</button>
-            <button type="button" onClick={resetForm} className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 sm:w-auto">Cancel</button>
+            <button type="button" onClick={resetForm} className="w-full rounded-lg border border-(--color-border) px-4 py-2 text-gray-700 hover:bg-(--color-bg-sage) sm:w-auto">Cancel</button>
           </div>
         </form>
       )}
 
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-(--color-border)">
+          <thead className="bg-(--color-bg-sage)">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Address</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">City</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Postcode</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Capacity</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Map</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Address</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">City</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Postcode</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Capacity</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Map</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-(--color-border)">
             {visibleVenues.length === 0 ? (
               <tr><td colSpan={7} className="px-6"><EmptyState message="No venues yet." /></td></tr>
             ) : (
               visibleVenues.map((venue) => (
-                <tr key={venue.id} className="hover:bg-gray-50">
+                <tr key={venue.id} className="hover:bg-(--color-bg-sage)">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{venue.name}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{venue.address}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{venue.city}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{venue.postcode}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{venue.capacity}</td>
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">{venue.address}</td>
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">{venue.city}</td>
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">{venue.postcode}</td>
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">{venue.capacity}</td>
                   <td className="px-6 py-4 text-sm">
                     {venue.latitude != null && venue.longitude != null ? (<span className="inline-flex items-center gap-1 text-xs font-medium text-green-600"><MapPin size={14} /> Plotted</span>) : (<span className="text-xs text-gray-400">No coords</span>)}
                   </td>

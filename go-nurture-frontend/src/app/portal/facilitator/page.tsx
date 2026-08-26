@@ -1,9 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays, MapPin, Users, FileText, GraduationCap, ClipboardCheck, Pencil, Eye } from "lucide-react";
+import {
+  CalendarDays,
+  MapPin,
+  Users,
+  FileText,
+  ClipboardCheck,
+  Pencil,
+  Eye,
+  LogOut,
+  ShieldCheck,
+  BookOpen,
+  Sparkles,
+  ClipboardList,
+} from "lucide-react";
 import { api } from "@/lib/api-client";
+import { PortalNavbar } from "@/components/portal/PortalNavbar";
 import SessionReviewForm from "./SessionReviewForm";
 import SessionReviewViewer from "./SessionReviewViewer";
 import type { SessionReview } from "@/types/api";
@@ -96,6 +110,16 @@ export default function FacilitatorDashboardPage() {
       .catch((error) => console.error(error));
   };
 
+  // Derived dashboard stats
+  const stats = useMemo(() => {
+    const totalMothers = cohorts.reduce((sum, c) => sum + c.members.length, 0);
+    const submitted = reviews.filter((r) => r.status === "submitted").length;
+    const drafts = reviews.filter((r) => r.status === "draft").length;
+    return { cohorts: cohorts.length, mothers: totalMothers, submitted, drafts };
+  }, [cohorts, reviews]);
+
+  const firstName = facilitatorName.trim().split(/\s+/)[0] || "Facilitator";
+
   const openEditReview = (review: SessionReview) => {
     const cohort = cohorts.find((c) => c.id === review.cohort_id);
     if (cohort) {
@@ -122,36 +146,129 @@ export default function FacilitatorDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <GraduationCap size={22} className="text-(--color-primary)" />
-            <h1 className="font-heading text-xl font-bold text-(--color-primary)">Facilitator Portal</h1>
-          </div>
+    <div className="min-h-screen bg-(--color-bg-cream)">
+      <PortalNavbar
+        title="Facilitator Portal"
+        subtitle="Go Nurture Initiative · Delivery Audits"
+        actions={
           <button
+            aria-label="Sign out"
             onClick={() => {
               localStorage.removeItem("access_token");
               localStorage.removeItem("user");
               router.push("/portal/login");
             }}
-            className="text-sm text-gray-600 hover:text-gray-900"
+            className="inline-flex items-center gap-2 rounded-lg border border-(--color-border) bg-white px-3 py-2 text-sm font-medium text-(--color-primary) sm:px-4 transition hover:bg-(--color-bg-sage)"
           >
-            Sign out
+            <LogOut size={16} /><span className="hidden sm:inline">Sign out</span>
           </button>
+        }
+      />
+
+      {/* ===== Hero Header ===== */}
+      <header className="relative overflow-hidden bg-(--color-primary) bg-gradient-to-br from-(--color-primary) via-(--color-primary-dark) to-(--color-accent) text-white">
+        {/* Decorative floating shapes */}
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <div className="absolute -top-24 -right-16 h-72 w-72 rounded-full bg-white/10 blur-2xl animate-float" />
+          <div className="absolute bottom-0 left-1/4 h-56 w-56 rounded-full bg-(--color-accent-light)/30 blur-2xl animate-float-slow" />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+          {/* Greeting */}
+          <div className="flex flex-col gap-5 animate-fade-in-up sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-medium uppercase tracking-widest text-white/70">Welcome back</p>
+              <h2 className="mt-2 font-heading text-4xl font-bold sm:text-5xl">
+                <span className="font-accent italic">{firstName}</span>
+              </h2>
+              <p className="mt-3 max-w-xl text-sm text-white/80 sm:text-base">
+                Your assigned cohorts, schedules and delivery audits — all in one place.
+              </p>
+            </div>
+
+            {/* Quick stats */}
+            <div className="flex flex-wrap gap-3 animate-fade-in-up animation-delay-200">
+              {[
+                { label: "Cohorts", value: stats.cohorts, icon: <BookOpen size={16} /> },
+                { label: "Mothers", value: stats.mothers, icon: <Users size={16} /> },
+                { label: "Reviews", value: stats.submitted + stats.drafts, icon: <ClipboardList size={16} /> },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-3 backdrop-blur-sm"
+                >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15">
+                    {s.icon}
+                  </span>
+                  <div>
+                    <p className="text-xl font-bold leading-none">{s.value}</p>
+                    <p className="mt-1 text-xs text-white/70">{s.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <h2 className="font-heading text-3xl font-bold text-(--color-primary)">Welcome, {facilitatorName}</h2>
-        <p className="mt-2 text-(--color-text-muted)">
-          Your assigned cohorts and their schedules. Open a cohort to view enrolled mothers, or submit a delivery review after a meeting.
-        </p>
+      {/* ========= Main Content ========= */}
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        {/* Sub-stat strip */}
+        {loading ? (
+          <div className="mb-10 grid gap-4 sm:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <div className="h-3 w-24 animate-pulse rounded bg-gray-200" />
+                    <div className="h-7 w-12 animate-pulse rounded bg-gray-200" />
+                  </div>
+                  <div className="h-12 w-12 animate-pulse rounded-xl bg-gray-200" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mb-10 grid gap-4 sm:grid-cols-3">
+          <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-(--color-text-muted)">Pending drafts</p>
+                <p className="mt-1 text-3xl font-bold text-(--color-primary)">{stats.drafts}</p>
+              </div>
+              <div className="rounded-xl bg-(--color-bg-sage) p-3 text-(--color-accent)">
+                <ClipboardList size={22} />
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-(--color-text-muted)">Submitted reviews</p>
+                <p className="mt-1 text-3xl font-bold text-(--color-primary)">{stats.submitted}</p>
+              </div>
+              <div className="rounded-xl bg-green-50 p-3 text-green-700">
+                <ShieldCheck size={22} />
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-(--color-text-muted)">Mothers to support</p>
+                <p className="mt-1 text-3xl font-bold text-(--color-primary)">{stats.mothers}</p>
+              </div>
+              <div className="rounded-xl bg-yellow-50 p-3 text-yellow-700">
+                <Sparkles size={22} />
+              </div>
+            </div>
+          </div>
+          </div>
+        )}
 
         {/* My Session Reviews */}
         {!loading && (
-          <section className="mt-10">
+          <section className="mt-4">
             <div className="flex items-center gap-2">
               <FileText size={20} className="text-(--color-primary)" />
               <h3 className="font-heading text-2xl font-bold text-(--color-primary)">My Session Reviews</h3>
@@ -162,10 +279,10 @@ export default function FacilitatorDashboardPage() {
             {reviews.length === 0 ? (
               <p className="mt-4 text-gray-500">You have not added any session reviews yet.</p>
             ) : (
-              <div className="mt-4 overflow-hidden rounded-xl bg-white shadow-sm">
+              <div className="mt-4 overflow-hidden rounded-2xl bg-white shadow-sm">
                 <div className="divide-y divide-gray-200">
                   {reviews.map((review) => (
-                    <div key={review.id} className="flex items-center gap-4 px-6 py-4">
+                    <div key={review.id} className="flex items-center gap-4 px-6 py-4 hover:bg-(--color-bg-sage)">
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium text-gray-900">{review.cohort_name || "Cohort"}</p>
                         <p className="mt-0.5 text-xs text-gray-500">{formatDate(review.session_date)}</p>
@@ -182,14 +299,14 @@ export default function FacilitatorDashboardPage() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => setViewingReview(review)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50"
+                          className="inline-flex items-center gap-1 rounded-lg border border-(--color-border) px-3 py-1.5 text-sm font-medium text-(--color-accent) hover:bg-(--color-bg-sage)"
                         >
                           <Eye size={14} /> View
                         </button>
                         {review.status !== "submitted" && (
                           <button
                             onClick={() => openEditReview(review)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            className="inline-flex items-center gap-1 rounded-lg border border-(--color-border) px-3 py-1.5 text-sm font-medium text-(--color-primary) hover:bg-(--color-bg-sage)"
                           >
                             <Pencil size={14} /> Edit
                           </button>
@@ -204,90 +321,125 @@ export default function FacilitatorDashboardPage() {
         )}
 
         {loading ? (
-          <p className="mt-10 text-gray-500">Loading your cohorts...</p>
+          <div className="mt-6 space-y-6">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-(--color-border)">
+                <div className="flex items-center gap-3 border-b border-(--color-border) bg-(--color-bg-sage) px-6 py-4">
+                  <div className="h-10 w-10 animate-pulse rounded-xl bg-gray-200" />
+                  <div className="space-y-2">
+                    <div className="h-4 w-48 animate-pulse rounded bg-gray-200" />
+                    <div className="h-3 w-28 animate-pulse rounded bg-gray-200" />
+                  </div>
+                </div>
+                <div className="px-6 py-5">
+                  <div className="h-3 w-20 animate-pulse rounded bg-gray-200" />
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {[...Array(6)].map((_, j) => (
+                      <div key={j} className="h-10 animate-pulse rounded-lg bg-gray-200" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         ) : cohorts.length === 0 ? (
-          <div className="mt-10 rounded-xl border border-gray-200 bg-white p-12 text-center">
+          <div className="mt-10 rounded-2xl border border-(--color-border) bg-white p-12 text-center shadow-sm">
             <CalendarDays size={48} className="mx-auto text-gray-300 mb-4" />
             <h3 className="font-heading text-xl font-semibold text-gray-800 mb-2">No cohorts assigned yet</h3>
             <p className="text-gray-500">You will see your cohorts here once an administrator assigns you.</p>
           </div>
         ) : (
-          <div className="mt-8 space-y-6">
+          <div className="mt-6 space-y-6">
             {cohorts.map((cohort) => (
-              <div key={cohort.id} className="rounded-xl bg-white shadow-sm overflow-hidden">
-                <div className="px-6 py-5">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div key={cohort.id} className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-(--color-border) transition hover:shadow-lg hover:-translate-y-0.5">
+                {/* Cohort header */}
+                <div className="flex flex-col gap-3 border-b border-(--color-border) bg-(--color-bg-sage) px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-(--color-primary) text-white shadow-sm">
+                      <BookOpen size={20} />
+                    </div>
                     <div>
-                      <h3 className="font-heading text-xl font-bold text-gray-900">{cohort.name}</h3>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <h3 className="font-heading text-lg font-bold text-(--color-primary)">{cohort.name}</h3>
+                      <p className="text-sm text-(--color-text-muted)">
                         {cohort.cohort_type === "breastfeeding_clinic"
                           ? "Breastfeeding Support Clinic"
                           : "Favour Oloye Birth Confidence Program"}
-                        {" · "}
-                        {cohort.members.length} enrolled
                       </p>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        onClick={() => {
-                          setReviewingExisting(null);
-                          setReviewingCohort(cohort);
-                        }}
-                        className="inline-flex items-center gap-2 rounded-lg bg-(--color-accent) px-4 py-2 text-sm text-white hover:bg-(--color-accent)/90"
-                      >
-                        <ClipboardCheck size={16} /> Submit Review
-                      </button>
-                      <button
-                        onClick={() => setExpandedId(expandedId === cohort.id ? null : cohort.id)}
-                        className="inline-flex items-center gap-2 rounded-lg bg-(--color-primary) px-4 py-2 text-sm text-white hover:bg-(--color-primary)/90"
-                      >
-                        <Users size={16} />
-                        {expandedId === cohort.id ? "Hide Mothers" : "View Mothers"}
-                      </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => {
+                        setReviewingExisting(null);
+                        setReviewingCohort(cohort);
+                      }}
+                      className="inline-flex items-center gap-2 rounded-lg bg-(--color-accent) px-4 py-2 text-sm text-white shadow-sm transition hover:bg-(--color-accent-dark) hover:shadow"
+                    >
+                      <ClipboardCheck size={16} /> Submit Review
+                    </button>
+                    <button
+                      onClick={() => setExpandedId(expandedId === cohort.id ? null : cohort.id)}
+                      className="inline-flex items-center gap-2 rounded-lg border border-(--color-primary) px-4 py-2 text-sm font-medium text-(--color-primary) transition hover:bg-(--color-primary) hover:text-white"
+                    >
+                      <Users size={16} />
+                      {expandedId === cohort.id ? "Hide Mothers" : "View Mothers"}
+                      <span className="rounded-full bg-(--color-primary)/10 px-2 py-0.5 text-xs font-bold text-(--color-primary)">
+                        {cohort.members.length}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Body */}
+                <div className="px-6 py-5">
+                  {/* Schedule */}
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-(--color-text-muted) mb-3 flex items-center gap-1">
+                        <CalendarDays size={14} className="text-(--color-accent)" /> Schedule
+                      </p>
+                      <ol className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                        {cohort.schedule.map((date, i) => (
+                          <li
+                            key={i}
+                            className="flex items-start gap-2 rounded-lg border border-(--color-border) bg-white px-3 py-2 text-sm text-gray-700 transition hover:border-(--color-accent)"
+                          >
+                            <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-(--color-bg-sage) text-xs font-semibold text-(--color-primary)">
+                              {i + 1}
+                            </span>
+                            {formatDate(date)}
+                          </li>
+                        ))}
+                      </ol>
+
+                      {/* Venue */}
+                      {cohort.venue_name && (
+                        <p className="mt-4 flex items-start gap-1.5 text-sm text-(--color-text-muted)">
+                          <MapPin size={14} className="mt-0.5 text-(--color-accent)" />
+                          {cohort.venue_name}
+                          {(cohort.venue_address || cohort.venue_city) &&
+                            ` — ${[cohort.venue_address, cohort.venue_city].filter(Boolean).join(", ")}`}
+                        </p>
+                      )}
                     </div>
                   </div>
-
-                  {/* Schedule */}
-                  <div className="mt-4">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-1">
-                      <CalendarDays size={14} /> Schedule
-                    </p>
-                    <ol className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
-                      {cohort.schedule.map((date, i) => (
-                        <li key={i} className="text-sm text-gray-700">
-                          <span className="font-medium text-(--color-primary)">Class {i + 1}:</span>{" "}
-                          {formatDate(date)}
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-
-                  {/* Venue */}
-                  {cohort.venue_name && (
-                    <p className="mt-3 text-sm text-gray-600 flex items-center gap-1">
-                      <MapPin size={14} className="text-(--color-accent)" />
-                      {cohort.venue_name}
-                      {(cohort.venue_address || cohort.venue_city) &&
-                        ` — ${[cohort.venue_address, cohort.venue_city].filter(Boolean).join(", ")}`}
-                    </p>
-                  )}
                 </div>
 
                 {/* Members */}
                 {expandedId === cohort.id && (
-                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                  <div className="mx-6 mb-6 rounded-xl bg-(--color-bg-sage) p-4">
                     {cohort.members.length === 0 ? (
-                      <p className="text-sm text-gray-500 text-center py-4">No mothers enrolled yet.</p>
+                      <p className="py-4 text-center text-sm text-(--color-text-muted)">No mothers enrolled yet.</p>
                     ) : (
-                      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+                      <div className="overflow-x-auto rounded-lg border border-(--color-border) bg-white">
                         <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-gray-50">
+                          <thead className="bg-(--color-bg-sage)">
                             <tr>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Mother</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Language</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Interpreter</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-(--color-text-muted) uppercase">Mother</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-(--color-text-muted) uppercase">Phone</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-(--color-text-muted) uppercase">Due Date</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-(--color-text-muted) uppercase">Language</th>
+                                <th className="px-4 py-2 text-left text-xs font-medium text-(--color-text-muted) uppercase">Interpreter</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200">

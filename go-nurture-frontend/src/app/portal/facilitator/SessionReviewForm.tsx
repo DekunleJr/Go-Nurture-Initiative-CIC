@@ -176,13 +176,28 @@ export default function SessionReviewForm({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto">
-      <div className="w-full max-w-3xl rounded-xl bg-white p-6 shadow-xl my-8">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-heading text-2xl font-bold text-gray-900">Session Review — {cohortName}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={22} /></button>
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto backdrop-blur-sm">
+      <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl my-8 overflow-hidden animate-scale-in">
+        {/* Modal header */}
+        <div className="relative overflow-hidden bg-(--color-primary) bg-gradient-to-br from-(--color-primary) via-(--color-primary-dark) to-(--color-accent) px-6 py-5 text-white">
+          <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+            <div className="absolute -top-10 -right-8 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+            <div className="absolute -bottom-12 left-1/3 h-32 w-32 rounded-full bg-(--color-accent-light)/30 blur-2xl" />
+          </div>
+          <div className="relative flex items-start justify-between gap-3">
+            <div>
+              <h3 className="font-heading text-2xl font-bold">Session Review</h3>
+              <p className="mt-1 text-sm text-white/80">{cohortName}</p>
+              <p className="mt-0.5 text-xs text-white/60">{schedulePreview}</p>
+            </div>
+            <button onClick={onClose} className="rounded-lg p-1.5 text-white/80 transition hover:bg-white/15 hover:text-white">
+              <X size={22} />
+            </button>
+          </div>
         </div>
-        <p className="text-sm text-gray-500 mb-4">{schedulePreview}</p>
+
+        {/* Body */}
+        <div className="p-6">
 
         {/* Delivery record */}
         <h4 className="font-heading text-lg font-bold text-(--color-primary) mt-6 mb-3">1. Delivery Record</h4>
@@ -313,14 +328,15 @@ export default function SessionReviewForm({
           ))}
         </div>
 
-        <div className="mt-8 flex flex-col gap-2 sm:flex-row">
-          <button type="button" disabled={saving} onClick={() => submit("draft")} className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 inline-flex items-center justify-center gap-2 sm:flex-1">
+        <div className="mt-8 flex flex-col gap-2 border-t border-(--color-border) pt-5 sm:flex-row">
+          <button type="button" disabled={saving} onClick={() => submit("draft")} className="w-full rounded-lg border border-(--color-border) px-4 py-2.5 text-(--color-primary) hover:bg-(--color-bg-sage) inline-flex items-center justify-center gap-2 transition sm:flex-1">
             <Save size={16} /> Save Draft
           </button>
-          <button type="button" disabled={saving} onClick={() => submit("submitted")} className="w-full rounded-lg bg-(--color-primary) px-4 py-2 text-white hover:bg-(--color-primary)/90 inline-flex items-center justify-center gap-2 disabled:opacity-50 sm:flex-1">
+          <button type="button" disabled={saving} onClick={() => submit("submitted")} className="w-full rounded-lg bg-(--color-accent) bg-gradient-to-br from-(--color-primary) to-(--color-accent) px-4 py-2.5 text-white hover:opacity-95 inline-flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm transition sm:flex-1">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />} Submit Review
           </button>
-          <button type="button" onClick={onClose} className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 sm:flex-1">Cancel</button>
+          <button type="button" onClick={onClose} className="w-full rounded-lg border border-(--color-border) px-4 py-2.5 text-gray-700 hover:bg-gray-50 sm:flex-1">Cancel</button>
+        </div>
         </div>
       </div>
     </div>

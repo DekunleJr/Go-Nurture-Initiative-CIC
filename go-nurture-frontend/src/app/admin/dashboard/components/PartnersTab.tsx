@@ -179,8 +179,8 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
   };
 
   return (
-    <div className="rounded-xl bg-white shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="rounded-2xl bg-white shadow-sm ring-1 ring-(--color-border) overflow-hidden">
+      <div className="px-6 py-4 border-b border-(--color-border) flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="font-heading text-xl font-bold text-gray-900">
           Partner Organisations ({partners.length})
         </h3>
@@ -195,31 +195,31 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
 
       {/* Create/Edit Partner Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="p-6 border-b border-gray-200 bg-gray-50">
+        <form onSubmit={handleSubmit} className="p-6 border-b border-(--color-border) bg-(--color-bg-sage)">
           <h4 className="font-heading text-lg font-bold text-gray-900 mb-4">
             {editMode ? "Edit Partner" : "Create New Partner"}
           </h4>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Organisation Name *</label>
-              <input type="text" value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder="e.g., Norfolk Community Health" className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
+              <input type="text" value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder="e.g., Norfolk Community Health" className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Contact Name *</label>
-              <input type="text" value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="e.g., Jane Smith" className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
+              <input type="text" value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="e.g., Jane Smith" className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contact@organisation.org" className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required disabled={editMode} />
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="contact@organisation.org" className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required disabled={editMode} />
               {editMode && <p className="mt-1 text-xs text-gray-400">Email cannot be changed</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
-              <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01603 123456" className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
+              <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01603 123456" className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Organisation Type</label>
-              <select value={orgType} onChange={(e) => setOrgType(e.target.value)} className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)">
+              <select value={orgType} onChange={(e) => setOrgType(e.target.value)} className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)">
                 <option value="referral">Referral Partner</option>
                 <option value="healthcare">Healthcare</option>
                 <option value="community">Community Organisation</option>
@@ -247,40 +247,40 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
             <button type="submit" className="w-full rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto">
               {editMode ? "Update Partner" : "Create Partner"}
             </button>
-            <button type="button" onClick={() => { resetForm(); setShowForm(false); }} className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 sm:w-auto">Cancel</button>
+            <button type="button" onClick={() => { resetForm(); setShowForm(false); }} className="w-full rounded-lg border border-(--color-border) px-4 py-2 text-gray-700 hover:bg-(--color-bg-sage) sm:w-auto">Cancel</button>
           </div>
         </form>
       )}
 
       {/* Partners List */}
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-(--color-border)">
+          <thead className="bg-(--color-bg-sage)">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Organisation</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Admin</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Organisation</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Contact</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Email</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Phone</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Type</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Admin</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-(--color-border)">
             {visiblePartners.map((partner) => (
-              <tr key={partner.id} className="hover:bg-gray-50">
+              <tr key={partner.id} className="hover:bg-(--color-bg-sage)">
                 <td className="px-6 py-4 text-sm font-medium text-gray-900">{partner.organisation_name}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">{partner.contact_name}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">{partner.email}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">{partner.phone || "—"}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">
+                <td className="px-6 py-4 text-sm text-(--color-text-muted)">{partner.contact_name}</td>
+                <td className="px-6 py-4 text-sm text-(--color-text-muted)">{partner.email}</td>
+                <td className="px-6 py-4 text-sm text-(--color-text-muted)">{partner.phone || "—"}</td>
+                <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                   <span className="inline-flex rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
                     {partner.organisation_type}
                   </span>
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${partner.is_admin ? "bg-purple-50 text-purple-700" : "bg-gray-50 text-gray-500"}`}>
+                  <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${partner.is_admin ? "bg-purple-50 text-purple-700" : "bg-(--color-bg-sage) text-(--color-text-muted)"}`}>
                     {partner.is_admin ? "Admin" : "Standard"}
                   </span>
                 </td>

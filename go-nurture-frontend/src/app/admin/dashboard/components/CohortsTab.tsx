@@ -196,8 +196,8 @@ export default function CohortsTab({ cohorts, venues, facilitators, onAssignFaci
   };
 
   return (
-    <div className="rounded-xl bg-white shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="rounded-2xl bg-white shadow-sm ring-1 ring-(--color-border) overflow-hidden">
+      <div className="px-6 py-4 border-b border-(--color-border) flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="font-heading text-xl font-bold text-gray-900">Cohorts ({cohorts.length})</h3>
         <button onClick={() => { if (showForm) resetForm(); else setShowForm(true); }} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto">
           <Plus size={18} /> New Cohort
@@ -205,32 +205,32 @@ export default function CohortsTab({ cohorts, venues, facilitators, onAssignFaci
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="p-6 border-b border-gray-200 bg-gray-50">
+        <form onSubmit={handleSubmit} className="p-6 border-b border-(--color-border) bg-(--color-bg-sage)">
           <h4 className="font-heading text-lg font-bold text-gray-900 mb-4">{editingCohort ? "Edit Cohort" : "Create New Cohort"}</h4>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Cohort Name *</label>
-              <input type="text" value={cohortName} onChange={(e) => setCohortName(e.target.value)} placeholder="e.g., Cohort 1 - Spring 2027" className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
+              <input type="text" value={cohortName} onChange={(e) => setCohortName(e.target.value)} placeholder="e.g., Cohort 1 - Spring 2027" className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Year *</label>
-              <input type="number" value={cohortYear} onChange={(e) => setCohortYear(parseInt(e.target.value))} className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
+              <input type="number" value={cohortYear} onChange={(e) => setCohortYear(parseInt(e.target.value))} className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
             </div>
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Program Type *</label>
-              <select value={cohortType} onChange={(e) => setCohortType(e.target.value)} className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)">
+              <select value={cohortType} onChange={(e) => setCohortType(e.target.value)} className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)">
                 {COHORT_TYPES.map((t) => (<option key={t.value} value={t.value}>{t.label}</option>))}
               </select>
               {cohortType === "birth_confidence" && (
-                <p className="mt-1 text-xs text-gray-500">6 weekly classes — Class 1 starts on the start date, then weekly on the same day.</p>
+                <p className="mt-1 text-xs text-(--color-text-muted)">6 weekly classes — Class 1 starts on the start date, then weekly on the same day.</p>
               )}
               {cohortType === "breastfeeding_clinic" && (
-                <p className="mt-1 text-xs text-gray-500">Single appointment session — no end date needed.</p>
+                <p className="mt-1 text-xs text-(--color-text-muted)">Single appointment session — no end date needed.</p>
               )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -241,7 +241,7 @@ export default function CohortsTab({ cohorts, venues, facilitators, onAssignFaci
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 disabled={cohortType === "breastfeeding_clinic"}
-                className={`w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent) ${cohortType === "breastfeeding_clinic" ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                className={`w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent) ${cohortType === "breastfeeding_clinic" ? "bg-gray-100 cursor-not-allowed" : ""}`}
                 required={cohortType !== "breastfeeding_clinic"}
               />
               {cohortType === "breastfeeding_clinic" && (
@@ -250,11 +250,11 @@ export default function CohortsTab({ cohorts, venues, facilitators, onAssignFaci
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Max Participants</label>
-              <input type="number" value={maxParticipants} onChange={(e) => setMaxParticipants(parseInt(e.target.value))} className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
+              <input type="number" value={maxParticipants} onChange={(e) => setMaxParticipants(parseInt(e.target.value))} className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Venue *</label>
-              <select value={selectedVenueId} onChange={(e) => setSelectedVenueId(e.target.value)} className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required>
+              <select value={selectedVenueId} onChange={(e) => setSelectedVenueId(e.target.value)} className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" required>
                 <option value="">Select a venue...</option>
                 {venues.map((venue) => (<option key={venue.id} value={venue.id}>{venue.name}</option>))}
               </select>
@@ -262,63 +262,63 @@ export default function CohortsTab({ cohorts, venues, facilitators, onAssignFaci
           </div>
           <div className="mt-4 flex flex-col gap-3 sm:flex-row">
             <button type="submit" className="w-full rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto">{editingCohort ? "Save Changes" : "Create Cohort"}</button>
-            <button type="button" onClick={resetForm} className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 sm:w-auto">Cancel</button>
+            <button type="button" onClick={resetForm} className="w-full rounded-lg border border-(--color-border) px-4 py-2 text-gray-700 hover:bg-(--color-bg-sage) sm:w-auto">Cancel</button>
           </div>
         </form>
       )}
 
       {viewingCohort && (
-        <div className="p-6 border-b border-gray-200 bg-gray-50">
+        <div className="p-6 border-b border-(--color-border) bg-(--color-bg-sage)">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h4 className="font-heading text-lg font-bold text-gray-900">{viewingCohort.name}</h4>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-(--color-text-muted)">
                 {viewingCohort.year} | {new Date(viewingCohort.start_date).toLocaleDateString()}
                 {viewingCohort.end_date ? ` - ${new Date(viewingCohort.end_date).toLocaleDateString()}` : ""}
                 {" · "}
                 <span className="font-medium text-(--color-primary)">{cohortTypeLabel(viewingCohort.cohort_type)}</span>
               </p>
             </div>
-            <button onClick={() => setViewingCohort(null)} className="rounded-lg border border-gray-200 px-3 py-1 text-sm text-gray-700 hover:bg-gray-50">Close</button>
+            <button onClick={() => setViewingCohort(null)} className="rounded-lg border border-(--color-border) px-3 py-1 text-sm text-gray-700 hover:bg-(--color-bg-sage)">Close</button>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
-            <div className="rounded-lg bg-white p-4 border border-gray-200">
-              <p className="text-xs font-medium text-gray-500 uppercase mb-1">Max Participants</p>
+            <div className="rounded-lg bg-white p-4 border border-(--color-border)">
+              <p className="text-xs font-medium text-(--color-text-muted) uppercase mb-1">Max Participants</p>
               <p className="text-lg font-semibold text-gray-900">{viewingCohort.max_participants}</p>
             </div>
-            <div className="rounded-lg bg-white p-4 border border-gray-200">
-              <p className="text-xs font-medium text-gray-500 uppercase mb-1">Members</p>
+            <div className="rounded-lg bg-white p-4 border border-(--color-border)">
+              <p className="text-xs font-medium text-(--color-text-muted) uppercase mb-1">Members</p>
               <p className="text-lg font-semibold text-gray-900">{viewingCohort.members.length}</p>
             </div>
-            <div className="rounded-lg bg-white p-4 border border-gray-200">
-              <p className="text-xs font-medium text-gray-500 uppercase mb-1">Venue</p>
+            <div className="rounded-lg bg-white p-4 border border-(--color-border)">
+              <p className="text-xs font-medium text-(--color-text-muted) uppercase mb-1">Venue</p>
               <p className="text-sm font-semibold text-gray-900">{viewingCohort.venue_name || "-"}</p>
-              {venueLocation(viewingCohort) && (<p className="text-xs text-gray-600 mt-1 flex items-center gap-1"><MapPin size={12} /> {venueLocation(viewingCohort)}</p>)}
+              {venueLocation(viewingCohort) && (<p className="text-xs text-(--color-text-muted) mt-1 flex items-center gap-1"><MapPin size={12} /> {venueLocation(viewingCohort)}</p>)}
             </div>
           </div>
           <h5 className="font-heading text-md font-bold text-gray-900 mb-3 flex items-center gap-2"><Users size={16} className="text-(--color-accent)" /> People in this cohort ({viewingCohort.members.length})</h5>
           {viewingCohort.members.length === 0 ? (
-            <p className="text-gray-500 text-sm py-6 text-center bg-white rounded-lg border border-gray-200">No members assigned to this cohort yet.</p>
+            <p className="text-(--color-text-muted) text-sm py-6 text-center bg-white rounded-lg border border-(--color-border)">No members assigned to this cohort yet.</p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
-              <table className="min-w-full divide-y divide-gray-200 bg-white">
-                <thead className="bg-gray-50">
+            <div className="overflow-x-auto rounded-lg border border-(--color-border)">
+              <table className="min-w-full divide-y divide-(--color-border) bg-white">
+                <thead className="bg-(--color-bg-sage)">
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Interpreter</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-(--color-text-muted) uppercase">Name</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-(--color-text-muted) uppercase">Phone</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-(--color-text-muted) uppercase">Due Date</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-(--color-text-muted) uppercase">Status</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-(--color-text-muted) uppercase">Interpreter</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-(--color-border)">
                   {viewingCohort.members.map((member) => (
-                    <tr key={member.id} className="hover:bg-gray-50">
+                    <tr key={member.id} className="hover:bg-(--color-bg-sage)">
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">{member.mother_name}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{member.mother_phone}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{member.estimated_due_date ? new Date(member.estimated_due_date).toLocaleDateString() : "-"}</td>
+                      <td className="px-4 py-3 text-sm text-(--color-text-muted)">{member.mother_phone}</td>
+                      <td className="px-4 py-3 text-sm text-(--color-text-muted)">{member.estimated_due_date ? new Date(member.estimated_due_date).toLocaleDateString() : "-"}</td>
                       <td className="px-4 py-3 text-sm"><span className="inline-flex rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">{member.status}</span></td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{member.requires_interpreter ? "Yes" : "No"}</td>
+                      <td className="px-4 py-3 text-sm text-(--color-text-muted)">{member.requires_interpreter ? "Yes" : "No"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -329,39 +329,39 @@ export default function CohortsTab({ cohorts, venues, facilitators, onAssignFaci
       )}
 
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-(--color-border)">
+          <thead className="bg-(--color-bg-sage)">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Program Type</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Year</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Max Participants</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Venue</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Facilitator</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Program Type</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Year</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Start Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">End Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Max Participants</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Venue</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Facilitator</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-(--color-border)">
             {visibleCohorts.length === 0 ? (
               <tr><td colSpan={9} className="px-6"><EmptyState message="No cohorts yet." /></td></tr>
             ) : (
               visibleCohorts.map((cohort) => (
-                <tr key={cohort.id} className="hover:bg-gray-50">
+                <tr key={cohort.id} className="hover:bg-(--color-bg-sage)">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{cohort.name}</td>
                   <td className="px-6 py-4 text-sm">
                     <span className="inline-flex rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
                       {cohortTypeLabel(cohort.cohort_type)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{cohort.year}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{new Date(cohort.start_date).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{cohort.end_date ? new Date(cohort.end_date).toLocaleDateString() : "—"}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{cohort.max_participants}</td>
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">{cohort.year}</td>
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">{new Date(cohort.start_date).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">{cohort.end_date ? new Date(cohort.end_date).toLocaleDateString() : "—"}</td>
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">{cohort.max_participants}</td>
                   <td className="px-6 py-4 text-sm">
                     <div className="font-medium text-gray-900">{cohort.venue_name || "-"}</div>
-                    {venueLocation(cohort) && (<div className="text-xs text-gray-500 flex items-center gap-1"><MapPin size={12} /> {venueLocation(cohort)}</div>)}
+                    {venueLocation(cohort) && (<div className="text-xs text-(--color-text-muted) flex items-center gap-1"><MapPin size={12} /> {venueLocation(cohort)}</div>)}
                   </td>
                   <td className="px-6 py-4 text-sm">
                     {cohort.facilitator_name ? (
@@ -394,20 +394,20 @@ export default function CohortsTab({ cohorts, venues, facilitators, onAssignFaci
 
       {/* Assign Facilitator Modal */}
       {assigningCohort && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-scale-in">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-heading text-xl font-bold text-gray-900">Assign Facilitator</h3>
-              <button onClick={() => setAssigningCohort(null)} className="text-gray-400 hover:text-gray-600"><X size={22} /></button>
+              <button onClick={() => setAssigningCohort(null)} className="text-gray-400 hover:text-(--color-text-muted)"><X size={22} /></button>
             </div>
-            <p className="text-sm text-gray-600 mb-1">Cohort:</p>
+            <p className="text-sm text-(--color-text-muted) mb-1">Cohort:</p>
             <p className="font-medium text-gray-900 mb-4">{assigningCohort.name}</p>
 
             <label className="block text-sm font-medium text-gray-700 mb-1">Select Facilitator *</label>
             <select
               value={selectedFacilitatorId}
               onChange={(e) => setSelectedFacilitatorId(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
+              className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
             >
               <option value="">Choose a facilitator...</option>
               {facilitators.filter((f) => f.is_active).map((f) => (
@@ -417,17 +417,17 @@ export default function CohortsTab({ cohorts, venues, facilitators, onAssignFaci
             {facilitators.filter((f) => f.is_active).length === 0 && (
               <p className="mt-2 text-xs text-amber-600">No active facilitators yet — create one in the Facilitators tab first.</p>
             )}
-            <p className="mt-2 text-xs text-gray-500">The facilitator will be emailed the cohort details and class schedule.</p>
+            <p className="mt-2 text-xs text-(--color-text-muted)">The facilitator will be emailed the cohort details and class schedule.</p>
 
             <div className="mt-6 flex flex-col gap-2 sm:flex-row">
               <button
                 onClick={handleAssignSubmit}
                 disabled={!selectedFacilitatorId || assigning}
-                className="w-full rounded-lg bg-(--color-primary) px-4 py-2 text-white hover:bg-(--color-primary)/90 disabled:opacity-50 sm:flex-1"
+                className="w-full rounded-lg bg-(--color-accent) bg-gradient-to-br from-(--color-primary) to-(--color-accent) px-4 py-2 text-white hover:opacity-95 disabled:opacity-50 sm:flex-1"
               >
                 {assigning ? "Assigning..." : "Assign & Email"}
               </button>
-              <button onClick={() => setAssigningCohort(null)} className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 sm:flex-1">
+              <button onClick={() => setAssigningCohort(null)} className="w-full rounded-lg border border-(--color-border) px-4 py-2 text-gray-700 hover:bg-(--color-bg-sage) sm:flex-1">
                 Cancel
               </button>
             </div>

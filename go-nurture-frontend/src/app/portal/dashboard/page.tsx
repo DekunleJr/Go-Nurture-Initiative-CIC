@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, FileText, Pencil, X } from "lucide-react";
+import Link from "next/link";
+import { Plus, FileText, Pencil, X, LogOut, ClipboardList, ShieldCheck, Clock, Users, Shield } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "@/lib/api-client";
 import { authClient } from "@/lib/auth-client";
@@ -14,6 +15,7 @@ import Pagination from "../../admin/dashboard/components/Pagination";
 interface PartnerData {
   contact_name: string;
   organisation_name: string;
+  is_admin?: boolean;
 }
 
 export default function DashboardPage() {
@@ -36,6 +38,24 @@ export default function DashboardPage() {
   const partner = useLocalStorage<PartnerData>("partner");
 
   const canEdit = (referral: Referral) => referral.status !== "completed" && referral.status !== "declined";
+
+  // Derived referral stats
+  const statusCounts = referrals.reduce<Record<string, number>>((acc, r) => {
+    acc[r.status] = (acc[r.status] || 0) + 1;
+    return acc;
+  }, {});
+  const total = referrals.length;
+  const pending = statusCounts["pending"] || 0;
+  const approved = statusCounts["approved"] || 0;
+  const rejected = statusCounts["rejected"] || 0;
+  const completed = statusCounts["completed"] || 0;
+
+  const firstName = partner?.contact_name?.trim().split(/\s+/)[0] || "Partner";
+
+  const handleLogout = () => {
+    authClient.clear();
+    router.push("/portal/login");
+  };
 
   const handleEditClick = (referral: Referral) => {
     setEditingReferral(referral);
@@ -106,23 +126,148 @@ export default function DashboardPage() {
   const visibleReferrals = referrals.slice(start, start + PAGE_SIZE);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <PortalNavbar />
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="font-heading text-4xl font-bold text-(--color-primary)">
-            Partner Dashboard
-          </h1>
-          {partner && (
-            <p className="mt-2 text-(--color-text-muted)">
-              Welcome, {partner.contact_name} from {partner.organisation_name}
-            </p>
-          )}
+    <div className="min-h-screen bg-(--color-bg-cream)">
+      <PortalNavbar
+        title="Partner Dashboard"
+        subtitle="Go Nurture Initiative · Referral Management"
+        actions={
+          <>
+            {partner?.is_admin && (
+              <Link
+                href="/admin/dashboard" aria-label="Admin"
+                className="inline-flex items-center gap-2 rounded-lg bg-(--color-accent) px-3 py-2 text-sm font-medium text-white transition hover:bg-(--color-accent-dark) sm:px-4"
+              >
+                <Shield size={16} /><span className="hidden sm:inline">Admin</span>
+              </Link>
+            )}
+            <button
+              onClick={handleLogout} aria-label="Sign out"
+              className="inline-flex items-center gap-2 rounded-lg border border-(--color-border) bg-white px-3 py-2 text-sm font-medium text-(--color-primary) sm:px-4 transition hover:bg-(--color-bg-sage)"
+            >
+              <LogOut size={16} /><span className="hidden sm:inline">Sign out</span>
+            </button>
+          </>
+        }
+      />
+
+      {/* ===== Hero Header ===== */}
+      <header className="relative overflow-hidden bg-(--color-primary) bg-gradient-to-br from-(--color-primary) via-(--color-primary-dark) to-(--color-accent) text-white">
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <div className="absolute -top-24 -right-16 h-72 w-72 rounded-full bg-white/10 blur-2xl animate-float" />
+          <div className="absolute bottom-0 left-1/4 h-56 w-56 rounded-full bg-(--color-accent-light)/30 blur-2xl animate-float-slow" />
         </div>
 
-        <div className="mb-6">
+        <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+          <div className="flex flex-col gap-5 animate-fade-in-up sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-medium uppercase tracking-widest text-white/70">Welcome back</p>
+              <h2 className="mt-2 font-heading text-4xl font-bold sm:text-5xl">
+                <span className="font-accent italic">{firstName}</span>
+              </h2>
+              <p className="mt-3 max-w-xl text-sm text-white/80 sm:text-base">
+                Submit and manage referrals for mothers who would benefit from our perinatal support services.
+              </p>
+            </div>
+
+            {/* Quick stats */}
+            <div className="flex flex-wrap gap-3 animate-fade-in-up animation-delay-200">
+              {[
+                { label: "Referrals", value: total, icon: <ClipboardList size={16} /> },
+                { label: "Approved", value: approved, icon: <ShieldCheck size={16} /> },
+                { label: "Pending", value: pending, icon: <Clock size={16} /> },
+              ].map((s) => (
+                <div key={s.label} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-3 backdrop-blur-sm">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15">
+                    {s.icon}
+                  </span>
+                  <div>
+                    <p className="text-xl font-bold leading-none">{s.value}</p>
+                    <p className="mt-1 text-xs text-white/70">{s.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+
+        {/* Stat strip */}
+        {loading ? (
+          <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <div className="h-3 w-24 animate-pulse rounded bg-gray-200" />
+                    <div className="h-7 w-12 animate-pulse rounded bg-gray-200" />
+                  </div>
+                  <div className="h-12 w-12 animate-pulse rounded-xl bg-gray-200" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-(--color-text-muted)">Total referrals</p>
+                  <p className="mt-1 text-3xl font-bold text-(--color-primary)">{total}</p>
+                </div>
+                <div className="rounded-xl bg-(--color-bg-sage) p-3 text-(--color-accent)">
+                  <ClipboardList size={22} />
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-(--color-text-muted)">Pending</p>
+                  <p className="mt-1 text-3xl font-bold text-(--color-primary)">{pending}</p>
+                </div>
+                <div className="rounded-xl bg-yellow-50 p-3 text-yellow-700">
+                  <Clock size={22} />
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-(--color-text-muted)">Approved</p>
+                  <p className="mt-1 text-3xl font-bold text-(--color-primary)">{approved}</p>
+                </div>
+                <div className="rounded-xl bg-green-50 p-3 text-green-700">
+                  <ShieldCheck size={22} />
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-(--color-text-muted)">Declined</p>
+                  <p className="mt-1 text-3xl font-bold text-(--color-primary)">{rejected}</p>
+                </div>
+                <div className="rounded-xl bg-red-50 p-3 text-red-700">
+                  <Users size={22} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="font-heading text-2xl font-bold text-(--color-primary)">Referrals</h3>
+            {partner && (
+              <p className="mt-1 text-sm text-(--color-text-muted)">
+                {partner.contact_name} · {partner.organisation_name}
+              </p>
+            )}
+          </div>
           <a href="/portal/referral">
-            <button className="inline-flex items-center gap-2 rounded-lg bg-(--color-primary) px-6 py-3 text-white hover:bg-(--color-primary)/90 transition-colors">
+            <button className="inline-flex items-center gap-2 rounded-lg bg-(--color-accent) bg-gradient-to-br from-(--color-primary) to-(--color-accent) px-6 py-3 text-sm font-medium text-white shadow-sm transition hover:opacity-95">
               <Plus size={18} />
               New Referral
             </button>
@@ -130,11 +275,24 @@ export default function DashboardPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <FileText size={32} className="animate-spin text-(--color-primary)" />
+          <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-(--color-border)">
+            <div className="border-b border-(--color-border) bg-(--color-bg-sage) px-6 py-4">
+              <div className="h-4 w-40 animate-pulse rounded bg-gray-200" />
+            </div>
+            <div className="divide-y divide-gray-200">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="flex items-center gap-6 px-6 py-4">
+                  <div className="h-3.5 w-32 animate-pulse rounded bg-gray-200" />
+                  <div className="h-3.5 w-24 animate-pulse rounded bg-gray-200" />
+                  <div className="h-3.5 w-28 animate-pulse rounded bg-gray-200" />
+                  <div className="h-3.5 w-24 animate-pulse rounded bg-gray-200" />
+                  <div className="ml-auto h-6 w-16 animate-pulse rounded-full bg-gray-200" />
+                </div>
+              ))}
+            </div>
           </div>
         ) : referrals.length === 0 ? (
-          <div className="rounded-xl border border-(--color-border) bg-white p-12 text-center">
+          <div className="rounded-2xl border border-(--color-border) bg-white p-12 text-center shadow-sm">
             <FileText size={48} className="mx-auto text-(--color-text-muted) mb-4" />
             <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
               No referrals yet
@@ -144,49 +302,49 @@ export default function DashboardPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-(--color-border) bg-white">
+          <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-(--color-border)">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-(--color-border)">
-                <thead className="bg-gray-50">
+                <thead className="bg-(--color-bg-sage)">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">
                       Mother
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">
                       Phone
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">
                       Email
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">
                       Due Date
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">
                       Language
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">
                       Interpreter
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">
                       Cohort
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">
                       Venue
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">
                       Submitted
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-(--color-border)">
                   {visibleReferrals.map((referral) => (
-                    <tr key={referral.id} className="hover:bg-gray-50">
+                    <tr key={referral.id} className="hover:bg-(--color-bg-sage)">
                       <td className="px-6 py-4 text-sm font-medium text-foreground">
                         {referral.mother_name}
                       </td>
@@ -255,16 +413,24 @@ export default function DashboardPage() {
 
       {/* Edit Referral Modal */}
       {editingReferral && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
-          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl my-8">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-heading text-xl font-bold text-gray-900">Edit Referral</h3>
-              <button onClick={() => setEditingReferral(null)} className="text-gray-400 hover:text-gray-600">
-                <X size={22} />
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl my-8 overflow-hidden animate-scale-in">
+            <div className="relative overflow-hidden bg-gradient-to-br from-(--color-primary) via-(--color-primary-dark) to-(--color-accent) px-6 py-5 text-white">
+              <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+                <div className="absolute -top-10 -right-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+              </div>
+              <div className="relative flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="font-heading text-xl font-bold">Edit Referral</h3>
+                  <p className="mt-0.5 text-xs text-white/70">{editingReferral.mother_name}</p>
+                </div>
+                <button onClick={() => setEditingReferral(null)} className="rounded-lg p-1.5 text-white/80 transition hover:bg-white/15 hover:text-white">
+                  <X size={22} />
+                </button>
+              </div>
             </div>
 
-            <form onSubmit={handleEditSubmit} className="space-y-4">
+            <form onSubmit={handleEditSubmit} className="space-y-4 p-6">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Mother&apos;s Full Name *</label>
@@ -358,14 +524,14 @@ export default function DashboardPage() {
                 <button
                   type="submit"
                   disabled={savingEdit}
-                  className="w-full rounded-lg bg-(--color-primary) px-4 py-2 text-white hover:bg-(--color-primary)/90 disabled:opacity-50 sm:flex-1"
+                  className="w-full rounded-lg bg-(--color-accent) bg-gradient-to-br from-(--color-primary) to-(--color-accent) px-4 py-2 text-white hover:opacity-95 disabled:opacity-50 shadow-sm sm:flex-1"
                 >
                   {savingEdit ? "Saving..." : "Save Changes"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditingReferral(null)}
-                  className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 sm:flex-1"
+                  className="w-full rounded-lg border border-(--color-border) px-4 py-2 text-gray-700 hover:bg-(--color-bg-sage) sm:flex-1"
                 >
                   Cancel
                 </button>

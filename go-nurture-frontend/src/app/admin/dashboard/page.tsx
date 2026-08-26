@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { RefreshCw, LogOut, Users, ClipboardList, Clock, Heart } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "@/lib/api-client";
+import { authClient } from "@/lib/auth-client";
 import type {
   Cohort,
   CommunityPartner,
@@ -288,12 +290,116 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleLogout = () => {
+    authClient.clear();
+    router.push("/portal/login");
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <PortalNavbar />
-        <div className="flex items-center justify-center py-32">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-(--color-primary) border-t-transparent" />
+      <div className="min-h-screen bg-(--color-bg-cream)">
+        <PortalNavbar
+          title="Admin Dashboard"
+          subtitle="Go Nurture Initiative · Management Console"
+          actions={
+            <>
+              <button
+                onClick={fetchData} aria-label="Refresh"
+                disabled={refreshing}
+                className="inline-flex items-center gap-2 rounded-lg border border-(--color-border) bg-white px-3 py-2 text-sm font-medium text-(--color-primary) sm:px-4 transition hover:bg-(--color-bg-sage) disabled:opacity-60"
+              >
+                <RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />
+                <span className="hidden sm:inline">{refreshing ? "Refreshing..." : "Refresh"}</span>
+              </button>
+              <Link
+                href="/portal/dashboard" aria-label="Portal"
+                className="inline-flex items-center gap-2 rounded-lg bg-(--color-accent) px-3 py-2 text-sm font-medium text-white transition hover:bg-(--color-accent-dark) sm:px-4"
+              >
+                <Users size={16} /><span className="hidden sm:inline">Portal</span>
+              </Link>
+              <button
+                onClick={handleLogout} aria-label="Sign out"
+                className="inline-flex items-center gap-2 rounded-lg border border-(--color-border) bg-white px-3 py-2 text-sm font-medium text-(--color-primary) sm:px-4 transition hover:bg-(--color-bg-sage)"
+              >
+                <LogOut size={16} /><span className="hidden sm:inline">Sign out</span>
+              </button>
+            </>
+          }
+        />
+
+        {/* Hero Header (structure shown while loading) */}
+        <header className="relative overflow-hidden bg-gradient-to-br from-(--color-primary) via-(--color-primary-dark) to-(--color-accent) text-white">
+          <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+            <div className="absolute -top-24 -right-16 h-72 w-72 rounded-full bg-white/10 blur-2xl animate-float" />
+            <div className="absolute bottom-0 left-1/4 h-56 w-56 rounded-full bg-(--color-accent-light)/30 blur-2xl animate-float-slow" />
+          </div>
+
+          <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+            <div className="flex flex-col gap-5 animate-fade-in-up sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-sm font-medium uppercase tracking-widest text-white/70">Welcome back</p>
+                <h2 className="mt-2 font-heading text-4xl font-bold sm:text-5xl">
+                  <span className="font-accent italic">Admin</span>
+                </h2>
+                <p className="mt-3 max-w-xl text-sm text-white/80 sm:text-base">
+                  Manage referrals, partners, cohorts and analytics across the initiative.
+                </p>
+              </div>
+
+              {/* Skeleton pills */}
+              <div className="flex shrink-0 flex-wrap gap-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-3 backdrop-blur-sm">
+                    <div className="h-9 w-9 animate-pulse rounded-lg bg-white/20" />
+                    <div className="space-y-1.5">
+                      <div className="h-5 w-10 animate-pulse rounded bg-white/25" />
+                      <div className="h-2.5 w-12 animate-pulse rounded bg-white/15" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+          {/* Skeleton stat cards */}
+          <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <div className="h-3 w-24 animate-pulse rounded bg-gray-200" />
+                    <div className="h-7 w-12 animate-pulse rounded bg-gray-200" />
+                  </div>
+                  <div className="h-12 w-12 animate-pulse rounded-xl bg-gray-200" />
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Skeleton tab bar */}
+          <div className="mb-6 flex gap-4 overflow-x-auto whitespace-nowrap border-b border-(--color-border) sm:gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="pb-4">
+                <div className="h-4 w-20 animate-pulse rounded bg-gray-200" />
+              </div>
+            ))}
+          </div>
+          {/* Skeleton content card */}
+          <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-(--color-border)">
+            <div className="border-b border-(--color-border) bg-(--color-bg-sage) px-6 py-4">
+              <div className="h-4 w-40 animate-pulse rounded bg-gray-200" />
+            </div>
+            <div className="divide-y divide-gray-200">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="flex items-center gap-6 px-6 py-4">
+                  <div className="h-3.5 w-32 animate-pulse rounded bg-gray-200" />
+                  <div className="h-3.5 w-24 animate-pulse rounded bg-gray-200" />
+                  <div className="ml-auto h-6 w-16 animate-pulse rounded-full bg-gray-200" />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -304,30 +410,135 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <PortalNavbar />
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="font-heading text-4xl font-bold text-(--color-primary)">
-              Admin Dashboard
-            </h1>
-            <p className="mt-2 text-(--color-text-muted)">
-              Manage referrals, partners, and view analytics
-            </p>
-          </div>
-          <button
-            onClick={fetchData}
-            disabled={refreshing}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-(--color-primary) px-4 py-2 text-white hover:bg-(--color-primary)/90 disabled:opacity-50 sm:w-auto"
-          >
-            <RefreshCw size={18} className={refreshing ? "animate-spin" : ""} />
-            {refreshing ? "Refreshing..." : "Refresh"}
-          </button>
+    <div className="min-h-screen bg-(--color-bg-cream)">
+      <PortalNavbar
+        title="Admin Dashboard"
+        subtitle="Go Nurture Initiative · Management Console"
+        actions={
+          <>
+                        <button
+              onClick={fetchData} aria-label="Refresh"
+              disabled={refreshing}
+              className="inline-flex items-center gap-2 rounded-lg border border-(--color-border) bg-white px-3 py-2 text-sm font-medium text-(--color-primary) sm:px-4 transition hover:bg-(--color-bg-sage) disabled:opacity-60"
+            >
+              <RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />
+              <span className="hidden sm:inline">{refreshing ? "Refreshing..." : "Refresh"}</span>
+            </button>
+            <Link
+              href="/portal/dashboard" aria-label="Portal"
+              className="inline-flex items-center gap-2 rounded-lg bg-(--color-accent) px-3 py-2 text-sm font-medium text-white transition hover:bg-(--color-accent-dark) sm:px-4"
+            >
+              <Users size={16} /><span className="hidden sm:inline">Portal</span>
+            </Link>
+            <button
+              onClick={handleLogout} aria-label="Sign out"
+              className="inline-flex items-center gap-2 rounded-lg border border-(--color-border) bg-white px-3 py-2 text-sm font-medium text-(--color-primary) sm:px-4 transition hover:bg-(--color-bg-sage)"
+            >
+              <LogOut size={16} /><span className="hidden sm:inline">Sign out</span>
+            </button>
+          </>
+        }
+      />
+
+      {/* ===== Hero Header ===== */}
+      <header className="relative overflow-hidden bg-gradient-to-br from-(--color-primary) via-(--color-primary-dark) to-(--color-accent) text-white">
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <div className="absolute -top-24 -right-16 h-72 w-72 rounded-full bg-white/10 blur-2xl animate-float" />
+          <div className="absolute bottom-0 left-1/4 h-56 w-56 rounded-full bg-(--color-accent-light)/30 blur-2xl animate-float-slow" />
         </div>
 
+        <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+          <div className="flex flex-col gap-5 animate-fade-in-up sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-medium uppercase tracking-widest text-white/70">Welcome back</p>
+                <h2 className="mt-2 font-heading text-4xl font-bold sm:text-5xl">
+                  <span className="font-accent italic">Admin</span>
+                </h2>
+                <p className="mt-3 max-w-xl text-sm text-white/80 sm:text-base">
+                  Manage referrals, partners, cohorts and analytics across the initiative.
+                </p>
+              </div>
+
+              {/* Quick stats */}
+              {stats && (
+                <div className="flex flex-wrap gap-3 animate-fade-in-up animation-delay-200">
+                  {[
+                    { label: "Partners", value: stats.total_partners, icon: <Users size={16} /> },
+                    { label: "Referrals", value: stats.total_referrals, icon: <ClipboardList size={16} /> },
+                    { label: "Pending", value: stats.pending_referrals, icon: <Clock size={16} /> },
+                  ].map((s) => (
+                    <div key={s.label} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-3 backdrop-blur-sm">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15">
+                        {s.icon}
+                      </span>
+                      <div>
+                        <p className="text-xl font-bold leading-none">{s.value}</p>
+                        <p className="mt-1 text-xs text-white/70">{s.label}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+      </header>
+
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+
+        {/* Stat strip */}
+        {stats && (
+          <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-(--color-text-muted)">Total partners</p>
+                  <p className="mt-1 text-3xl font-bold text-(--color-primary)">{stats.total_partners}</p>
+                </div>
+                <div className="rounded-xl bg-(--color-bg-sage) p-3 text-(--color-accent)">
+                  <Users size={22} />
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-(--color-text-muted)">Pending referrals</p>
+                  <p className="mt-1 text-3xl font-bold text-(--color-primary)">{stats.pending_referrals}</p>
+                </div>
+                <div className="rounded-xl bg-yellow-50 p-3 text-yellow-700">
+                  <Clock size={22} />
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-(--color-text-muted)">Cohorts</p>
+                  <p className="mt-1 text-3xl font-bold text-(--color-primary)">{stats.total_cohorts}</p>
+                </div>
+                <div className="rounded-xl bg-green-50 p-3 text-green-700">
+                  <ClipboardList size={22} />
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-(--color-text-muted)">Donations</p>
+                  <p className="mt-1 text-3xl font-bold text-(--color-primary)">
+                    £{stats.total_donation_amount.toFixed(2)}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-red-50 p-3 text-red-700">
+                  <Heart size={22} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Tabs */}
-        <div className="mb-6 border-b border-gray-200">
+        <div className="mb-6 border-b border-(--color-border)">
           <nav className="-mb-px flex gap-4 overflow-x-auto whitespace-nowrap sm:gap-6">
             {[
               { id: "overview", label: "Overview" },
@@ -348,7 +559,7 @@ export default function AdminDashboard() {
                 className={`border-b-2 px-1 py-4 text-sm font-medium ${
                   activeTab === tab.id
                     ? "border-(--color-accent) text-(--color-accent)"
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                    : "border-transparent text-(--color-text-muted) hover:border-(--color-accent-light) hover:text-(--color-primary)"
                 }`}
               >
                 {tab.label}

@@ -63,8 +63,8 @@ export default function SessionReviewsTab({ reviews }: Props) {
     new Date(iso).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   return (
-    <div className="rounded-xl bg-white shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="rounded-2xl bg-white shadow-sm ring-1 ring-(--color-border) overflow-hidden">
+      <div className="px-6 py-4 border-b border-(--color-border) flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="font-heading text-xl font-bold text-gray-900">Session Reviews ({reviews.length})</h3>
         <div className="relative w-full sm:w-64">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -73,37 +73,37 @@ export default function SessionReviewsTab({ reviews }: Props) {
             placeholder="Search by cohort or facilitator..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="w-full rounded-lg border border-gray-200 pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
+            className="w-full rounded-lg border border-(--color-border) pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
           />
         </div>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-(--color-border)">
+          <thead className="bg-(--color-bg-sage)">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cohort</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Facilitator</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Session Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mode</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Cohort</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Facilitator</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Session Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Mode</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-(--color-border)">
             {visible.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-8 text-center text-(--color-text-muted)">
                   No session reviews found.
                 </td>
               </tr>
             ) : (
               visible.map((r) => (
-                <tr key={r.id} className="hover:bg-gray-50">
+                <tr key={r.id} className="hover:bg-(--color-bg-sage)">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{r.cohort_name || "-"}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{r.facilitator_name || "-"}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{formatDate(r.session_date)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{MODE_LABELS[r.mode || ""] || r.mode || "-"}</td>
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">{r.facilitator_name || "-"}</td>
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">{formatDate(r.session_date)}</td>
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">{MODE_LABELS[r.mode || ""] || r.mode || "-"}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                       r.status === "submitted"
@@ -135,16 +135,16 @@ export default function SessionReviewsTab({ reviews }: Props) {
 
       {/* Read-only detail viewer */}
       {viewing && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto">
-          <div className="w-full max-3xl rounded-xl bg-white p-6 shadow-xl my-8">
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl my-8 overflow-hidden animate-scale-in">
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="font-heading text-2xl font-bold text-gray-900">Session Review</h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-(--color-text-muted) mt-1">
                   {viewing.cohort_name} · {viewing.facilitator_name}
                 </p>
               </div>
-              <button onClick={() => setViewing(null)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setViewing(null)} className="text-gray-400 hover:text-(--color-text-muted)">
                 <FileText size={24} />
               </button>
             </div>
@@ -162,7 +162,7 @@ export default function SessionReviewsTab({ reviews }: Props) {
             </div>
 
             <h4 className="font-heading text-lg font-bold text-(--color-primary) mt-6 mb-2">Reasonable Adjustments</h4>
-            <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3">{viewing.reasonable_adjustments || "None recorded."}</p>
+            <p className="text-sm text-gray-700 bg-(--color-bg-sage) rounded-lg p-3">{viewing.reasonable_adjustments || "None recorded."}</p>
 
             <h4 className="font-heading text-lg font-bold text-(--color-primary) mt-6 mb-2">Fidelity Checklist</h4>
             <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
@@ -177,15 +177,15 @@ export default function SessionReviewsTab({ reviews }: Props) {
               {Object.entries(viewing.quality_ratings || {}).map(([measure, val]) => (
                 <div key={measure} className="flex items-start gap-3">
                   <span className="w-56 font-medium text-gray-700">{measure}</span>
-                  <span className="text-gray-600">Score: {val.score}/5</span>
-                  {val.comment && <span className="text-gray-600">— {val.comment}</span>}
+                  <span className="text-(--color-text-muted)">Score: {val.score}/5</span>
+                  {val.comment && <span className="text-(--color-text-muted)">— {val.comment}</span>}
                 </div>
               ))}
               {Object.keys(viewing.quality_ratings || {}).length === 0 && <p className="text-gray-400">No ratings recorded.</p>}
             </div>
 
             <h4 className="font-heading text-lg font-bold text-(--color-primary) mt-6 mb-2">Deviations</h4>
-            <p className="text-sm text-gray-700 bg-gray-50 rounded-lg p-3">{viewing.deviations || "None recorded."}</p>
+            <p className="text-sm text-gray-700 bg-(--color-bg-sage) rounded-lg p-3">{viewing.deviations || "None recorded."}</p>
 
             <h4 className="font-heading text-lg font-bold text-(--color-primary) mt-6 mb-2">Incidents</h4>
             {(viewing.incidents || []).length === 0 ? (
@@ -193,7 +193,7 @@ export default function SessionReviewsTab({ reviews }: Props) {
             ) : (
               <div className="space-y-2">
                 {(viewing.incidents || []).map((inc, i) => (
-                  <div key={i} className="rounded-lg border border-gray-200 p-3 text-sm">
+                  <div key={i} className="rounded-lg border border-(--color-border) p-3 text-sm">
                     <div><span className="font-medium">Ref/ID:</span> {inc.ref || "-"}</div>
                     <div><span className="font-medium">Type:</span> {inc.type || "-"}</div>
                     <div><span className="font-medium">Action:</span> {inc.action || "-"}</div>
@@ -209,7 +209,7 @@ export default function SessionReviewsTab({ reviews }: Props) {
               {Object.entries(viewing.reflection || {}).map(([q, a]) => (
                 <div key={q}>
                   <span className="font-medium text-gray-700">{q}</span>
-                  <p className="mt-1 text-gray-600 bg-gray-50 rounded-lg p-3">{a || "—"}</p>
+                  <p className="mt-1 text-(--color-text-muted) bg-(--color-bg-sage) rounded-lg p-3">{a || "—"}</p>
                 </div>
               ))}
               {Object.keys(viewing.reflection || {}).length === 0 && <p className="text-gray-400">No reflection recorded.</p>}
@@ -218,7 +218,7 @@ export default function SessionReviewsTab({ reviews }: Props) {
             <div className="mt-6 flex justify-end">
               <button
                 onClick={() => setViewing(null)}
-                className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                className="rounded-lg border border-(--color-border) px-4 py-2 text-sm text-gray-700 hover:bg-(--color-bg-sage)"
               >
                 Close
               </button>

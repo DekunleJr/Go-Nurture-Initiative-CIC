@@ -40,8 +40,8 @@ export default function DonationsTab({ donations, totalAmount }: DonationsTabPro
   const visibleDonations = donations.slice(start, start + PAGE_SIZE);
 
   return (
-    <div className="rounded-xl bg-white shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="rounded-2xl bg-white shadow-sm ring-1 ring-(--color-border) overflow-hidden">
+      <div className="px-6 py-4 border-b border-(--color-border) flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="font-heading text-xl font-bold text-gray-900">
           Donations ({donations.length})
         </h3>
@@ -54,18 +54,18 @@ export default function DonationsTab({ donations, totalAmount }: DonationsTabPro
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-(--color-border)">
+          <thead className="bg-(--color-bg-sage)">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Donor</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Message</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Donor</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Email</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Amount</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Message</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Date</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-(--color-border)">
             {visibleDonations.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6">
@@ -74,14 +74,14 @@ export default function DonationsTab({ donations, totalAmount }: DonationsTabPro
               </tr>
             ) : (
               visibleDonations.map((donation) => (
-                <tr key={donation.id} className="hover:bg-gray-50">
+                <tr key={donation.id} className="hover:bg-(--color-bg-sage)">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     {donation.is_anonymous ? "Anonymous" : donation.donor_name || "Anonymous"}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                     {donation.is_anonymous ? "-" : donation.donor_email || "-"}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                     {donation.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {donation.currency.toUpperCase()}
                   </td>
                   <td className="px-6 py-4 text-sm">
@@ -97,10 +97,10 @@ export default function DonationsTab({ donations, totalAmount }: DonationsTabPro
                       {donation.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted) max-w-xs truncate">
                     {donation.message || "-"}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                     {new Date(donation.created_at).toLocaleDateString()}
                   </td>
                 </tr>
