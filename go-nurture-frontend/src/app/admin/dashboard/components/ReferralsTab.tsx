@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Filter, X, FileText, Pencil } from "lucide-react";
+import { Search, Filter, X, FileText, Pencil, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import Pagination from "./Pagination";
 
@@ -55,6 +55,7 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
   const [editingReferral, setEditingReferral] = useState<Referral | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const [page, setPage] = useState(1);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const handleEditClick = (referral: Referral) => {
     setEditingReferral(referral);
@@ -101,9 +102,14 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
   const visibleReferrals = filteredReferrals.slice(start, start + PAGE_SIZE);
 
   const handleUpdateStatus = async (referralId: string, status: string, cohortId?: string) => {
-    await onUpdateStatus(referralId, status, cohortId);
-    setSelectedReferral(null);
-    onRefresh();
+    setUpdatingStatus(true);
+    try {
+      await onUpdateStatus(referralId, status, cohortId);
+      setSelectedReferral(null);
+      onRefresh();
+    } finally {
+      setUpdatingStatus(false);
+    }
   };
 
   return (
@@ -302,15 +308,17 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
             <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:gap-3">
               <button
                 onClick={() => handleUpdateStatus(selectedReferral.id, "approved", selectedCohortId || undefined)}
-                className="w-full rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:flex-1"
+                disabled={updatingStatus}
+                className="w-full rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:flex-1 inline-flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                Approve & Assign
+                {updatingStatus ? <><Loader2 size={16} className="animate-spin" /> Approving...</> : "Approve & Assign"}
               </button>
               <button
                 onClick={() => handleUpdateStatus(selectedReferral.id, "rejected")}
-                className="w-full rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 sm:flex-1"
+                disabled={updatingStatus}
+                className="w-full rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700 sm:flex-1 inline-flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                Reject
+                {updatingStatus ? <><Loader2 size={16} className="animate-spin" /> Rejecting...</> : "Reject"}
               </button>
               <button
                 onClick={() => setSelectedReferral(null)}
@@ -376,8 +384,8 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
               </label>
 
               <div className="flex flex-col gap-2 pt-2 sm:flex-row">
-                <button type="submit" disabled={savingEdit} className="w-full rounded-lg bg-(--color-accent) bg-gradient-to-br from-(--color-primary) to-(--color-accent) px-4 py-2 text-white hover:opacity-95 disabled:opacity-50 sm:flex-1">
-                  {savingEdit ? "Saving..." : "Save Changes"}
+                <button type="submit" disabled={savingEdit} className="w-full rounded-lg bg-(--color-accent) bg-gradient-to-br from-(--color-primary) to-(--color-accent) px-4 py-2 text-white hover:opacity-95 disabled:opacity-50 sm:flex-1 inline-flex items-center justify-center gap-2">
+                  {savingEdit ? <><Loader2 size={16} className="animate-spin" /> Saving...</> : "Save Changes"}
                 </button>
                 <button type="button" onClick={() => setEditingReferral(null)} className="w-full rounded-lg border border-(--color-border) px-4 py-2 text-gray-700 hover:bg-(--color-bg-sage) sm:flex-1">
                   Cancel

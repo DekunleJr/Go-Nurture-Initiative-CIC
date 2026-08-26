@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Eye, Users, MapPin, UserCheck, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, Users, MapPin, UserCheck, X, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import ConfirmDialog from "./ConfirmDialog";
 import Pagination from "./Pagination";
@@ -99,7 +99,9 @@ export default function CohortsTab({ cohorts, venues, facilitators, onAssignFaci
   const [viewingCohort, setViewingCohort] = useState<Cohort | null>(null);
   const [assigningCohort, setAssigningCohort] = useState<Cohort | null>(null);
   const [selectedFacilitatorId, setSelectedFacilitatorId] = useState("");
-  const [assigning, setAssigning] = useState(false);
+    const [assigning, setAssigning] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [cohortName, setCohortName] = useState("");
   const [cohortYear, setCohortYear] = useState(new Date().getFullYear());
   const [cohortType, setCohortType] = useState("birth_confidence");
@@ -146,6 +148,7 @@ export default function CohortsTab({ cohorts, venues, facilitators, onAssignFaci
     const isClinic = cohortType === "breastfeeding_clinic";
     if (!cohortName || !startDate || !selectedVenueId) { toast.error("Please fill in all required fields"); return; }
     if (!isClinic && !endDate) { toast.error("End date is required for the Birth Confidence Program"); return; }
+    setSubmitting(true);
     try {
       const cohortData = {
         name: cohortName,
@@ -160,6 +163,7 @@ export default function CohortsTab({ cohorts, venues, facilitators, onAssignFaci
       else { await onCreateCohort(cohortData); toast.success("Cohort created successfully"); }
       resetForm(); onRefresh();
     } catch { toast.error((editingCohort ? "Failed to update cohort" : "Failed to create cohort")); }
+    finally { setSubmitting(false); }
   };
 
   const handleAssignClick = (cohort: Cohort) => {
@@ -184,9 +188,10 @@ export default function CohortsTab({ cohorts, venues, facilitators, onAssignFaci
   const handleDeleteClick = (cohortId: string) => { setCohortToDelete(cohortId); setShowDeleteConfirm(true); };
   const handleDeleteConfirm = async () => {
     if (!cohortToDelete) return;
+    setDeleting(true);
     try { await onDeleteCohort(cohortToDelete); toast.success("Cohort deleted successfully"); onRefresh(); }
     catch { toast.error("Failed to delete cohort"); }
-    finally { setShowDeleteConfirm(false); setCohortToDelete(null); }
+    finally { setShowDeleteConfirm(false); setCohortToDelete(null); setDeleting(false); }
   };
   const handleDeleteCancel = () => { setShowDeleteConfirm(false); setCohortToDelete(null); };
 
@@ -261,7 +266,7 @@ export default function CohortsTab({ cohorts, venues, facilitators, onAssignFaci
             </div>
           </div>
           <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <button type="submit" className="w-full rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto">{editingCohort ? "Save Changes" : "Create Cohort"}</button>
+            <button type="submit" disabled={submitting} className="w-full rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto inline-flex items-center justify-center gap-2 disabled:opacity-50">{submitting ? <><Loader2 size={16} className="animate-spin" /> {editingCohort ? "Saving..." : "Creating..."}</> : (editingCohort ? "Save Changes" : "Create Cohort")}</button>
             <button type="button" onClick={resetForm} className="w-full rounded-lg border border-(--color-border) px-4 py-2 text-gray-700 hover:bg-(--color-bg-sage) sm:w-auto">Cancel</button>
           </div>
         </form>
@@ -435,7 +440,10 @@ export default function CohortsTab({ cohorts, venues, facilitators, onAssignFaci
         </div>
       )}
 
-      <ConfirmDialog isOpen={showDeleteConfirm} title="Delete Cohort" message="Are you sure you want to delete this cohort? This action cannot be undone." onConfirm={handleDeleteConfirm} onCancel={handleDeleteCancel} />
+      <ConfirmDialog isOpen={showDeleteConfirm} title="Delete Cohort" message="Are you sure you want to delete this cohort? This action cannot be undone." onConfirm={handleDeleteConfirm} onCancel={handleDeleteCancel} loading={deleting} />
     </div>
   );
 }
+
+
+
