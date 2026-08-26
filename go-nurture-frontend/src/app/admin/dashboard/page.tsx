@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { RefreshCw, LogOut, Users, ClipboardList, Clock, Heart, GraduationCap } from "lucide-react";
@@ -36,6 +36,52 @@ import SessionReviewsTab from "./components/SessionReviewsTab";
 
 type Tab = "overview" | "referrals" | "partners" | "venues" | "cohorts" | "facilitators" | "donations" | "contacts" | "emails" | "community_partners" | "session_reviews";
 
+type Resource =
+  | "stats"
+  | "referrals"
+  | "cohorts"
+  | "partners"
+  | "venues"
+  | "facilitators"
+  | "donations"
+  | "contacts"
+  | "emailTemplates"
+  | "communityPartners"
+  | "sessionReviews";
+
+const TAB_RESOURCES: Record<Tab, Resource[]> = {
+  overview: ["stats"],
+  referrals: ["referrals", "cohorts", "stats"],
+  partners: ["partners", "stats"],
+  venues: ["venues", "stats"],
+  cohorts: ["cohorts", "venues", "facilitators", "stats"],
+  facilitators: ["facilitators", "stats"],
+  donations: ["donations", "stats"],
+  contacts: ["contacts", "stats"],
+  emails: ["emailTemplates"],
+  community_partners: ["communityPartners", "stats"],
+  session_reviews: ["sessionReviews", "stats"],
+};
+
+function AdminTabSkeleton() {
+  return (
+    <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-(--color-border)">
+      <div className="border-b border-(--color-border) bg-(--color-bg-sage) px-6 py-4">
+        <div className="h-4 w-40 animate-pulse rounded bg-gray-200" />
+      </div>
+      <div className="divide-y divide-gray-200">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="flex items-center gap-6 px-6 py-4">
+            <div className="h-3.5 w-32 animate-pulse rounded bg-gray-200" />
+            <div className="h-3.5 w-24 animate-pulse rounded bg-gray-200" />
+            <div className="ml-auto h-6 w-16 animate-pulse rounded-full bg-gray-200" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -54,71 +100,128 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [isAdmin, setIsAdmin] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const loadedResourcesRef = useRef<Set<Resource>>(new Set());
+  const [tabLoading, setTabLoading] = useState<Tab | null>(null);
 
-  const fetchData = useCallback(async () => {
+  const ensureAdmin = useCallback(() => {
     const token = localStorage.getItem("access_token");
     const partnerStr = localStorage.getItem("partner");
-    
+
     if (!token || !partnerStr) {
       router.push("/portal/login");
-      return;
+      return false;
     }
 
     const partner = JSON.parse(partnerStr);
     if (!partner.is_admin) {
       router.push("/portal/dashboard");
-      return;
+      return false;
     }
 
     setIsAdmin(true);
-    setRefreshing(true);
-
-    try {
-      const [statsData, referralsData, partnersData, venuesData, cohortsData, donationsData, contactsData, communityPartnersData, facilitatorsData, sessionReviewsData, emailTemplatesData] = await Promise.all([
-        api.get<Stats>("/api/admin/stats"),
-        api.get<{ referrals?: Referral[] }>("/api/admin/referrals?limit=20"),
-        api.get<Partner[]>("/api/admin/partners"),
-        api.get<Venue[]>("/api/admin/venues"),
-        api.get<Cohort[]>("/api/admin/cohorts"),
-        api.get<{ donations?: Donation[]; total_amount?: number }>("/api/admin/donations"),
-        api.get<{ contacts?: Contact[] }>("/api/admin/contacts"),
-        api.get<CommunityPartner[]>("/api/admin/community-partners"),
-        api.get<Facilitator[]>("/api/admin/facilitators"),
-        api.get<SessionReview[]>("/api/admin/session-reviews"),
-        api.get<EmailTemplate[]>("/api/admin/email-templates"),
-      ]);
-
-      setStats(statsData);
-      setReferrals(referralsData.referrals || []);
-      setPartners(partnersData);
-      setVenues(venuesData);
-      setCohorts(cohortsData);
-      setDonations(donationsData.donations || []);
-      setDonationTotal(donationsData.total_amount || 0);
-      setContacts(contactsData.contacts || []);
-      setCommunityPartners(communityPartnersData);
-      setFacilitators(facilitatorsData);
-      setSessionReviews(sessionReviewsData);
-      setEmailTemplates(emailTemplatesData);
-    } catch (error) {
-      console.error("Error fetching admin data:", error);
-      toast.error("Failed to load dashboard data");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+    return true;
   }, [router]);
 
+  const fetchResource = useCallback(async (resource: Resource) => {
+    switch (resource) {
+      case "stats":
+        setStats(await api.get<Stats>("/api/admin/stats"));
+        break;
+      case "referrals": {
+        const data = await api.get<{ referrals?: Referral[] }>("/api/admin/referrals?limit=20");
+        setReferrals(data.referrals || []);
+        break;
+      }
+      case "cohorts":
+        setCohorts(await api.get<Cohort[]>("/api/admin/cohorts"));
+        break;
+      case "partners":
+        setPartners(await api.get<Partner[]>("/api/admin/partners"));
+        break;
+      case "venues":
+        setVenues(await api.get<Venue[]>("/api/admin/venues"));
+        break;
+      case "facilitators":
+        setFacilitators(await api.get<Facilitator[]>("/api/admin/facilitators"));
+        break;
+      case "donations": {
+        const data = await api.get<{ donations?: Donation[]; total_amount?: number }>("/api/admin/donations");
+        setDonations(data.donations || []);
+        setDonationTotal(data.total_amount || 0);
+        break;
+      }
+      case "contacts": {
+        const data = await api.get<{ contacts?: Contact[] }>("/api/admin/contacts");
+        setContacts(data.contacts || []);
+        break;
+      }
+      case "emailTemplates":
+        setEmailTemplates(await api.get<EmailTemplate[]>("/api/admin/email-templates"));
+        break;
+      case "communityPartners":
+        setCommunityPartners(await api.get<CommunityPartner[]>("/api/admin/community-partners"));
+        break;
+      case "sessionReviews":
+        setSessionReviews(await api.get<SessionReview[]>("/api/admin/session-reviews"));
+        break;
+    }
+  }, []);
+
+  const loadResources = useCallback(
+    async (resources: Resource[], opts?: { force?: boolean }) => {
+      if (!ensureAdmin()) return;
+
+      const pending = opts?.force
+        ? resources
+        : resources.filter((r) => !loadedResourcesRef.current.has(r));
+      if (pending.length === 0) return;
+
+      try {
+        await Promise.all(pending.map((r) => fetchResource(r)));
+        pending.forEach((r) => loadedResourcesRef.current.add(r));
+      } catch (error) {
+        console.error("Error fetching admin data:", error);
+        toast.error("Failed to load dashboard data");
+      }
+    },
+    [ensureAdmin, fetchResource]
+  );
+
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchData();
-  }, [fetchData]);
+    let mounted = true;
+
+    (async () => {
+      await loadResources(["stats"]);
+      if (mounted) setLoading(false);
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [loadResources]);
+
+  const handleTabChange = async (tab: Tab) => {
+    setActiveTab(tab);
+
+    const pending = TAB_RESOURCES[tab].filter((r) => !loadedResourcesRef.current.has(r));
+    if (pending.length === 0) return;
+
+    setTabLoading(tab);
+    await loadResources(TAB_RESOURCES[tab]);
+    setTabLoading(null);
+  };
+
+  const refreshCurrentTab = async () => {
+    setRefreshing(true);
+    await loadResources(TAB_RESOURCES[activeTab], { force: true });
+    setRefreshing(false);
+  };
 
   const updateReferralStatus = async (referralId: string, status: string, cohortId?: string) => {
     try {
       await api.patch(`/api/admin/referrals/${referralId}`, { status, cohort_id: cohortId || null });
       toast.success("Referral updated successfully");
-      fetchData();
+      refreshCurrentTab();
     } catch (error) {
       toast.error("Error updating referral" + (error instanceof Error ? `: ${error.message}` : ""));
     }
@@ -147,7 +250,7 @@ export default function AdminDashboard() {
       await api.post(`/api/admin/cohorts/${cohortId}/assign-facilitator`, { facilitator_id: facilitatorId });
 
       toast.success("Facilitator assigned — they have been emailed the cohort details");
-      fetchData();
+      refreshCurrentTab();
     } catch (error) {
       toast.error("Error assigning facilitator" + (error instanceof Error ? `: ${error.message}` : ""));
       throw error;
@@ -304,7 +407,7 @@ export default function AdminDashboard() {
           actions={
             <>
               <button
-                onClick={fetchData} aria-label="Refresh"
+                onClick={refreshCurrentTab} aria-label="Refresh"
                 disabled={refreshing}
                 className="inline-flex items-center gap-2 rounded-lg border border-(--color-border) bg-white px-3 py-2 text-sm font-medium text-(--color-primary) sm:px-4 transition hover:bg-(--color-bg-sage) disabled:opacity-60"
               >
@@ -417,7 +520,7 @@ export default function AdminDashboard() {
         actions={
           <>
                         <button
-              onClick={fetchData} aria-label="Refresh"
+              onClick={refreshCurrentTab} aria-label="Refresh"
               disabled={refreshing}
               className="inline-flex items-center gap-2 rounded-lg border border-(--color-border) bg-white px-3 py-2 text-sm font-medium text-(--color-primary) sm:px-4 transition hover:bg-(--color-bg-sage) disabled:opacity-60"
             >
@@ -566,7 +669,7 @@ export default function AdminDashboard() {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as Tab)}
+                onClick={() => handleTabChange(tab.id as Tab)}
                 className={`border-b-2 px-1 py-4 text-sm font-medium ${
                   activeTab === tab.id
                     ? "border-(--color-accent) text-(--color-accent)"
@@ -580,9 +683,13 @@ export default function AdminDashboard() {
         </div>
 
         {/* Tab Content */}
-        {activeTab === "overview" && (
-          <OverviewTab stats={stats} />
-        )}
+        {tabLoading === activeTab ? (
+          <AdminTabSkeleton />
+        ) : (
+          <>
+            {activeTab === "overview" && (
+              <OverviewTab stats={stats} />
+            )}
 
         {activeTab === "referrals" && (
           <ReferralsTab
@@ -590,7 +697,7 @@ export default function AdminDashboard() {
             cohorts={cohorts}
             onUpdateStatus={updateReferralStatus}
             onEditReferral={editReferral}
-            onRefresh={fetchData}
+            onRefresh={refreshCurrentTab}
           />
         )}
 
@@ -602,7 +709,7 @@ export default function AdminDashboard() {
             onCreatePartner={createPartner}
             onUpdatePartner={updatePartner}
             onResendInvite={resendInvite}
-            onRefresh={fetchData}
+            onRefresh={refreshCurrentTab}
           />
         )}
 
@@ -612,7 +719,7 @@ export default function AdminDashboard() {
             onCreateVenue={createVenue}
             onUpdateVenue={updateVenue}
             onDeleteVenue={deleteVenue}
-            onRefresh={fetchData}
+            onRefresh={refreshCurrentTab}
           />
         )}
 
@@ -625,7 +732,7 @@ export default function AdminDashboard() {
             onCreateCohort={createCohort}
             onUpdateCohort={updateCohort}
             onDeleteCohort={deleteCohort}
-            onRefresh={fetchData}
+            onRefresh={refreshCurrentTab}
           />
         )}
 
@@ -633,7 +740,7 @@ export default function AdminDashboard() {
           <FacilitatorsTab
             facilitators={facilitators}
             onCreateFacilitator={createFacilitator}
-            onRefresh={fetchData}
+            onRefresh={refreshCurrentTab}
           />
         )}
 
@@ -659,12 +766,14 @@ export default function AdminDashboard() {
             onUpdatePartner={updateCommunityPartner}
             onDeletePartner={deleteCommunityPartner}
             onToggleStatus={toggleCommunityPartnerStatus}
-            onRefresh={fetchData}
+            onRefresh={refreshCurrentTab}
           />
         )}
 
         {activeTab === "session_reviews" && (
           <SessionReviewsTab reviews={sessionReviews} />
+        )}
+          </>
         )}
       </div>
     </div>
