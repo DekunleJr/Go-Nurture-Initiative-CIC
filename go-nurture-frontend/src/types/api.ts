@@ -14,6 +14,7 @@ export interface Stats {
   total_contacts: number;
   total_venues: number;
   total_cohorts: number;
+  total_facilitators: number;
   referrals_by_status: Record<string, number>;
 }
 

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { RefreshCw, LogOut, Users, ClipboardList, Clock, Heart } from "lucide-react";
+import { RefreshCw, LogOut, Users, ClipboardList, Clock, Heart, GraduationCap } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "@/lib/api-client";
 import { authClient } from "@/lib/auth-client";
@@ -364,8 +364,8 @@ export default function AdminDashboard() {
 
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
           {/* Skeleton stat cards */}
-          <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[...Array(4)].map((_, i) => (
+          <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {[...Array(5)].map((_, i) => (
               <div key={i} className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div className="space-y-2">
@@ -487,7 +487,7 @@ export default function AdminDashboard() {
 
         {/* Stat strip */}
         {stats && (
-          <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
@@ -496,6 +496,17 @@ export default function AdminDashboard() {
                 </div>
                 <div className="rounded-xl bg-(--color-bg-sage) p-3 text-(--color-accent)">
                   <Users size={22} />
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-(--color-text-muted)">Facilitators</p>
+                  <p className="mt-1 text-3xl font-bold text-(--color-primary)">{stats.total_facilitators}</p>
+                </div>
+                <div className="rounded-xl bg-indigo-50 p-3 text-indigo-700">
+                  <GraduationCap size={22} />
                 </div>
               </div>
             </div>

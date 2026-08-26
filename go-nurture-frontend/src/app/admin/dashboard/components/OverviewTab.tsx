@@ -1,4 +1,4 @@
-import { Users, FileText, Heart, Mail, MapPin, Calendar } from "lucide-react";
+import { Users, FileText, Heart, Mail, MapPin, Calendar, GraduationCap } from "lucide-react";
 
 interface Stats {
   total_partners: number;
@@ -11,6 +11,7 @@ interface Stats {
   total_contacts: number;
   total_venues: number;
   total_cohorts: number;
+  total_facilitators: number;
   referrals_by_status: Record<string, number>;
 }
 
@@ -88,7 +89,7 @@ export default function OverviewTab({ stats }: { stats: Stats | null }) {
         />
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-(--color-border)">
           <div className="flex items-center gap-3">
             <Mail className="text-purple-600" size={24} />
@@ -113,6 +114,15 @@ export default function OverviewTab({ stats }: { stats: Stats | null }) {
             <div>
               <p className="text-sm text-(--color-text-muted)">Cohorts</p>
               <p className="text-2xl font-bold text-gray-900">{stats.total_cohorts}</p>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-(--color-border)">
+          <div className="flex items-center gap-3">
+            <GraduationCap className="text-teal-700" size={24} />
+            <div>
+              <p className="text-sm text-(--color-text-muted)">Facilitators</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.total_facilitators}</p>
             </div>
           </div>
         </div>

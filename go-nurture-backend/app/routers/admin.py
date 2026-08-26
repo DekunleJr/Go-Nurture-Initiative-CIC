@@ -494,6 +494,7 @@ def admin_get_stats(
     total_contacts = db.query(ContactSubmission).count()
     total_venues = db.query(Venue).count()
     total_cohorts = db.query(Cohort).count()
+    total_facilitators = db.query(Facilitator).count()
 
     referrals_by_status = db.query(Referral.status, func.count(Referral.id)).group_by(Referral.status).all()
     status_counts = {status: count for status, count in referrals_by_status}
@@ -512,6 +513,7 @@ def admin_get_stats(
         "total_contacts": total_contacts,
         "total_venues": total_venues,
         "total_cohorts": total_cohorts,
+        "total_facilitators": total_facilitators,
         "referrals_by_status": status_counts,
     }
 
