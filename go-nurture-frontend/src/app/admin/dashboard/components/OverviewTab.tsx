@@ -1,4 +1,4 @@
-import { Users, FileText, Heart, Mail, MapPin, Calendar } from "lucide-react";
+import { Users, FileText, Heart, Mail, MapPin, Calendar, GraduationCap } from "lucide-react";
 
 interface Stats {
   total_partners: number;
@@ -11,6 +11,7 @@ interface Stats {
   total_contacts: number;
   total_venues: number;
   total_cohorts: number;
+  total_facilitators: number;
   referrals_by_status: Record<string, number>;
 }
 
@@ -31,12 +32,12 @@ function StatCard({ title, value, subtitle, icon, color }: StatCardProps) {
   };
 
   return (
-    <div className="rounded-xl bg-white p-6 shadow-sm">
+    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-(--color-border)">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-gray-600">{title}</p>
+          <p className="text-sm text-(--color-text-muted)">{title}</p>
           <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
-          <p className="mt-1 text-xs text-gray-500">{subtitle}</p>
+          <p className="mt-1 text-xs text-(--color-text-muted)">{subtitle}</p>
         </div>
         <div className={`rounded-lg p-3 ${colorClasses[color]}`}>
           {icon}
@@ -49,8 +50,8 @@ function StatCard({ title, value, subtitle, icon, color }: StatCardProps) {
 export default function OverviewTab({ stats }: { stats: Stats | null }) {
   if (!stats) {
     return (
-      <div className="rounded-xl bg-white p-12 shadow-sm text-center">
-        <p className="text-gray-500">Loading stats...</p>
+      <div className="rounded-2xl bg-white p-12 shadow-sm ring-1 ring-(--color-border) text-center">
+        <p className="text-(--color-text-muted)">Loading stats...</p>
       </div>
     );
   }
@@ -88,38 +89,47 @@ export default function OverviewTab({ stats }: { stats: Stats | null }) {
         />
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-3">
-        <div className="rounded-xl bg-white p-6 shadow-sm">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-(--color-border)">
           <div className="flex items-center gap-3">
             <Mail className="text-purple-600" size={24} />
             <div>
-              <p className="text-sm text-gray-600">Contact Submissions</p>
+              <p className="text-sm text-(--color-text-muted)">Contact Submissions</p>
               <p className="text-2xl font-bold text-gray-900">{stats.total_contacts}</p>
             </div>
           </div>
         </div>
-        <div className="rounded-xl bg-white p-6 shadow-sm">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-(--color-border)">
           <div className="flex items-center gap-3">
             <MapPin className="text-orange-600" size={24} />
             <div>
-              <p className="text-sm text-gray-600">Venues</p>
+              <p className="text-sm text-(--color-text-muted)">Venues</p>
               <p className="text-2xl font-bold text-gray-900">{stats.total_venues}</p>
             </div>
           </div>
         </div>
-        <div className="rounded-xl bg-white p-6 shadow-sm">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-(--color-border)">
           <div className="flex items-center gap-3">
             <Calendar className="text-indigo-600" size={24} />
             <div>
-              <p className="text-sm text-gray-600">Cohorts</p>
+              <p className="text-sm text-(--color-text-muted)">Cohorts</p>
               <p className="text-2xl font-bold text-gray-900">{stats.total_cohorts}</p>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-(--color-border)">
+          <div className="flex items-center gap-3">
+            <GraduationCap className="text-teal-700" size={24} />
+            <div>
+              <p className="text-sm text-(--color-text-muted)">Facilitators</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.total_facilitators}</p>
             </div>
           </div>
         </div>
       </div>
 
       {stats.referrals_by_status && (
-        <div className="rounded-xl bg-white p-6 shadow-sm">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-(--color-border)">
           <h3 className="font-heading text-xl font-bold text-gray-900 mb-4">
             Referrals by Status
           </h3>

@@ -15,26 +15,26 @@ export default function Pagination({ page, pageSize, total, onPageChange }: Pagi
   const end = Math.min(page * pageSize, total);
 
   return (
-    <div className="px-4 py-4 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <p className="text-sm text-gray-600">
+    <div className="px-4 py-4 border-t border-(--color-border) flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <p className="text-sm text-(--color-text-muted)">
         Showing {start}–{end} of {total}
       </p>
       <div className="flex items-center gap-2">
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1 rounded-lg border border-(--color-border) px-3 py-1.5 text-sm text-gray-700 hover:bg-(--color-bg-sage) disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <ChevronLeft size={16} />
           Prev
         </button>
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-(--color-text-muted)">
           Page {page} of {totalPages}
         </span>
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
-          className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1 rounded-lg border border-(--color-border) px-3 py-1.5 text-sm text-gray-700 hover:bg-(--color-bg-sage) disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Next
           <ChevronRight size={16} />

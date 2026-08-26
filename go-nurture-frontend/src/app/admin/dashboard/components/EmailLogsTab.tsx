@@ -66,8 +66,8 @@ export default function EmailLogsTab() {
   };
 
   return (
-    <div className="rounded-xl bg-white shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="rounded-2xl bg-white shadow-sm ring-1 ring-(--color-border) overflow-hidden">
+      <div className="px-6 py-4 border-b border-(--color-border) flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="font-heading text-xl font-bold text-gray-900">
           Email Logs ({logs.length})
         </h3>
@@ -75,7 +75,7 @@ export default function EmailLogsTab() {
           <select
             value={filterType}
             onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
-            className="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
+            className="px-4 py-2 border border-(--color-border) rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
           >
             <option value="">All Types</option>
             <option value="referral">Referral</option>
@@ -91,35 +91,35 @@ export default function EmailLogsTab() {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-(--color-border)">
+          <thead className="bg-(--color-bg-sage)">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recipient</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Recipient</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Subject</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Type</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-(--color-border)">
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-8 text-center text-(--color-text-muted)">
                   Loading...
                 </td>
               </tr>
             ) : visibleLogs.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-8 text-center text-(--color-text-muted)">
                   No email logs found.
                 </td>
               </tr>
             ) : (
               visibleLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-gray-50">
+                <tr key={log.id} className="hover:bg-(--color-bg-sage)">
                   <td className="px-6 py-4 text-sm text-gray-900">{log.recipient_email}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">{log.subject}</td>
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted) max-w-xs truncate">{log.subject}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getTypeBadge(log.email_type)}`}>
                       {log.email_type}
@@ -130,7 +130,7 @@ export default function EmailLogsTab() {
                       {log.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                     {new Date(log.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4">
@@ -155,32 +155,32 @@ export default function EmailLogsTab() {
 
       {/* View Log Modal */}
       {selectedLog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl animate-scale-in">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-heading text-2xl font-bold text-gray-900">Email Log Details</h3>
-              <button onClick={() => setSelectedLog(null)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setSelectedLog(null)} className="text-gray-400 hover:text-(--color-text-muted)">
                 <X size={24} />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-600">Recipient</p>
+                <p className="text-sm text-(--color-text-muted)">Recipient</p>
                 <p className="font-medium text-gray-900">{selectedLog.recipient_email}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Subject</p>
+                <p className="text-sm text-(--color-text-muted)">Subject</p>
                 <p className="font-medium text-gray-900">{selectedLog.subject}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Type</p>
+                <p className="text-sm text-(--color-text-muted)">Type</p>
                 <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getTypeBadge(selectedLog.email_type)}`}>
                   {selectedLog.email_type}
                 </span>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Status</p>
+                <p className="text-sm text-(--color-text-muted)">Status</p>
                 <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getStatusBadge(selectedLog.status)}`}>
                   {selectedLog.status}
                 </span>
@@ -194,7 +194,7 @@ export default function EmailLogsTab() {
                 </div>
               )}
               <div>
-                <p className="text-sm text-gray-600">Sent At</p>
+                <p className="text-sm text-(--color-text-muted)">Sent At</p>
                 <p className="font-medium text-gray-900">{new Date(selectedLog.created_at).toLocaleString()}</p>
               </div>
             </div>
@@ -202,7 +202,7 @@ export default function EmailLogsTab() {
             <div className="mt-6 flex justify-end">
               <button
                 onClick={() => setSelectedLog(null)}
-                className="rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50"
+                className="rounded-lg border border-(--color-border) px-4 py-2 text-gray-700 hover:bg-(--color-bg-sage)"
               >
                 Close
               </button>

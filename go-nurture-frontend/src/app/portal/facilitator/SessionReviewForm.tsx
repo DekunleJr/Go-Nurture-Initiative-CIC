@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Loader2, Save, Send } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "@/lib/api-client";
+import type { SessionReview } from "@/types/api";
 
 const FIDELITY_ITEMS = [
   "Current slides, manual, participant resources and evidence log used.",
@@ -52,21 +53,34 @@ interface Props {
   cohortId: string;
   cohortName: string;
   schedulePreview: string;
+  venueName?: string | null;
+  facilitatorName?: string | null;
+  memberCount?: number;
+  existingReview?: SessionReview | null;
   onClose: () => void;
 }
 
-export default function SessionReviewForm({ cohortId, cohortName, schedulePreview, onClose }: Props) {
+export default function SessionReviewForm({
+  cohortId,
+  cohortName,
+  schedulePreview,
+  venueName,
+  facilitatorName,
+  memberCount,
+  existingReview,
+  onClose,
+}: Props) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     session_date: "",
     week_number: 4,
     mode: "face_to_face",
-    venue_or_platform: "",
-    lead_facilitator: "",
+    venue_or_platform: venueName || "",
+    lead_facilitator: facilitatorName || "",
     co_facilitator: "",
     start_time: "",
     finish_time: "",
-    registered_count: 0,
+    registered_count: memberCount || 0,
     attended_count: 0,
     supporter_count: 0,
     reasonable_adjustments: "",
@@ -74,10 +88,55 @@ export default function SessionReviewForm({ cohortId, cohortName, schedulePrevie
   });
   const [fidelity, setFidelity] = useState<string[]>([]);
   const [ratings, setRatings] = useState<Record<string, { score: number; comment: string }>>({});
-  const [incidents, setIncidents] = useState<{ ref: string; type: string; action: string; escalated_to: string; closed_at: string }[]>([]);
+  const [incidents, setIncidents] = useState<Record<string, string>[]>([]);
   const [reflection, setReflection] = useState<Record<string, string>>({});
 
   const setField = (key: string, value: unknown) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  // Load saved form data when editing an existing draft review; reset to prefilled defaults otherwise.
+  useEffect(() => {
+    if (existingReview) {
+      setForm({
+        session_date: existingReview.session_date.slice(0, 10),
+        week_number: existingReview.week_number ?? 4,
+        mode: "face_to_face",
+        venue_or_platform: existingReview.venue_or_platform ?? "",
+        lead_facilitator: existingReview.lead_facilitator ?? "",
+        co_facilitator: existingReview.co_facilitator ?? "",
+        start_time: existingReview.start_time ?? "",
+        finish_time: existingReview.finish_time ?? "",
+        registered_count: existingReview.registered_count ?? (memberCount || 0),
+        attended_count: existingReview.attended_count ?? 0,
+        supporter_count: existingReview.supporter_count ?? 0,
+        reasonable_adjustments: existingReview.reasonable_adjustments ?? "",
+        deviations: existingReview.deviations ?? "",
+      });
+      setFidelity(existingReview.fidelity_checked ?? []);
+      setRatings(existingReview.quality_ratings ?? {});
+      setIncidents(existingReview.incidents ?? []);
+      setReflection(existingReview.reflection ?? {});
+    } else {
+      setForm({
+        session_date: "",
+        week_number: 4,
+        mode: "face_to_face",
+        venue_or_platform: venueName || "",
+        lead_facilitator: facilitatorName || "",
+        co_facilitator: "",
+        start_time: "",
+        finish_time: "",
+        registered_count: memberCount || 0,
+        attended_count: 0,
+        supporter_count: 0,
+        reasonable_adjustments: "",
+        deviations: "",
+      });
+      setFidelity([]);
+      setRatings({});
+      setIncidents([]);
+      setReflection({});
+    }
+  }, [existingReview, cohortId, venueName, facilitatorName, memberCount]);
 
   const submit = async (status: "draft" | "submitted") => {
     if (!form.session_date) {
@@ -117,13 +176,28 @@ export default function SessionReviewForm({ cohortId, cohortName, schedulePrevie
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto">
-      <div className="w-full max-w-3xl rounded-xl bg-white p-6 shadow-xl my-8">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-heading text-2xl font-bold text-gray-900">Session Review — {cohortName}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={22} /></button>
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto backdrop-blur-sm">
+      <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl my-8 overflow-hidden animate-scale-in">
+        {/* Modal header */}
+        <div className="relative overflow-hidden bg-(--color-primary) bg-gradient-to-br from-(--color-primary) via-(--color-primary-dark) to-(--color-accent) px-6 py-5 text-white">
+          <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+            <div className="absolute -top-10 -right-8 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+            <div className="absolute -bottom-12 left-1/3 h-32 w-32 rounded-full bg-(--color-accent-light)/30 blur-2xl" />
+          </div>
+          <div className="relative flex items-start justify-between gap-3">
+            <div>
+              <h3 className="font-heading text-2xl font-bold">Session Review</h3>
+              <p className="mt-1 text-sm text-white/80">{cohortName}</p>
+              <p className="mt-0.5 text-xs text-white/60">{schedulePreview}</p>
+            </div>
+            <button onClick={onClose} className="rounded-lg p-1.5 text-white/80 transition hover:bg-white/15 hover:text-white">
+              <X size={22} />
+            </button>
+          </div>
         </div>
-        <p className="text-sm text-gray-500 mb-4">{schedulePreview}</p>
+
+        {/* Body */}
+        <div className="p-6">
 
         {/* Delivery record */}
         <h4 className="font-heading text-lg font-bold text-(--color-primary) mt-6 mb-3">1. Delivery Record</h4>
@@ -134,11 +208,7 @@ export default function SessionReviewForm({ cohortId, cohortName, schedulePrevie
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Mode</label>
-            <select value={form.mode} onChange={(e) => setField("mode", e.target.value)} className="w-full rounded-lg border border-gray-200 px-3 py-2">
-              <option value="face_to_face">Face-to-face</option>
-              <option value="online">Online</option>
-              <option value="hybrid">Hybrid</option>
-            </select>
+            <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-gray-600">Face-to-face</div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Venue / Platform</label>
@@ -258,14 +328,15 @@ export default function SessionReviewForm({ cohortId, cohortName, schedulePrevie
           ))}
         </div>
 
-        <div className="mt-8 flex flex-col gap-2 sm:flex-row">
-          <button type="button" disabled={saving} onClick={() => submit("draft")} className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 inline-flex items-center justify-center gap-2 sm:flex-1">
+        <div className="mt-8 flex flex-col gap-2 border-t border-(--color-border) pt-5 sm:flex-row">
+          <button type="button" disabled={saving} onClick={() => submit("draft")} className="w-full rounded-lg border border-(--color-border) px-4 py-2.5 text-(--color-primary) hover:bg-(--color-bg-sage) inline-flex items-center justify-center gap-2 transition sm:flex-1">
             <Save size={16} /> Save Draft
           </button>
-          <button type="button" disabled={saving} onClick={() => submit("submitted")} className="w-full rounded-lg bg-(--color-primary) px-4 py-2 text-white hover:bg-(--color-primary)/90 inline-flex items-center justify-center gap-2 disabled:opacity-50 sm:flex-1">
+          <button type="button" disabled={saving} onClick={() => submit("submitted")} className="w-full rounded-lg bg-(--color-accent) bg-gradient-to-br from-(--color-primary) to-(--color-accent) px-4 py-2.5 text-white hover:opacity-95 inline-flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm transition sm:flex-1">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />} Submit Review
           </button>
-          <button type="button" onClick={onClose} className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 sm:flex-1">Cancel</button>
+          <button type="button" onClick={onClose} className="w-full rounded-lg border border-(--color-border) px-4 py-2.5 text-gray-700 hover:bg-gray-50 sm:flex-1">Cancel</button>
+        </div>
         </div>
       </div>
     </div>

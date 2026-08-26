@@ -107,8 +107,8 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
   };
 
   return (
-    <div className="rounded-xl bg-white shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200">
+    <div className="rounded-2xl bg-white shadow-sm ring-1 ring-(--color-border) overflow-hidden">
+      <div className="px-6 py-4 border-b border-(--color-border)">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h3 className="font-heading text-xl font-bold text-gray-900">
             All Referrals ({referrals.length})
@@ -121,7 +121,7 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
                 placeholder="Search referrals..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
+                className="w-full pl-10 pr-4 py-2 border border-(--color-border) rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
               />
             </div>
             <div className="relative w-full sm:w-auto">
@@ -129,7 +129,7 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full pl-10 pr-8 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
+                className="w-full pl-10 pr-8 py-2 border border-(--color-border) rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
               >
                 <option value="all">All Statuses</option>
                 <option value="pending">Pending</option>
@@ -142,22 +142,22 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
         </div>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-(--color-border)">
+          <thead className="bg-(--color-bg-sage)">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mother</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created By</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cohort</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Venue</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Mother</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Phone</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Email</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Created By</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Cohort</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Venue</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Due Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Submitted</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-(--color-border)">
             {visibleReferrals.length === 0 ? (
               <tr>
                 <td colSpan={10} className="px-6">
@@ -166,26 +166,26 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
               </tr>
             ) : (
               visibleReferrals.map((referral) => (
-                <tr key={referral.id} className="hover:bg-gray-50">
+                <tr key={referral.id} className="hover:bg-(--color-bg-sage)">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     {referral.mother_name}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                     {referral.mother_phone}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                     {referral.mother_email || "-"}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                     {referral.partner_name || "-"}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                     {[referral.cohort_name, referral.clinic_cohort_name].filter(Boolean).join(" · ") || "-"}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                     {referral.venue_name || "-"}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                     {new Date(referral.estimated_due_date).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4">
@@ -201,7 +201,7 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
                       {referral.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                     {new Date(referral.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4">
@@ -235,36 +235,36 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
 
       {/* Assign/Review Modal */}
       {selectedReferral && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl animate-scale-in">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-heading text-2xl font-bold text-gray-900">Referral Details</h3>
-              <button onClick={() => setSelectedReferral(null)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setSelectedReferral(null)} className="text-gray-400 hover:text-(--color-text-muted)">
                 <X size={24} />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-gray-600">Mother Name</p>
+                <p className="text-sm text-(--color-text-muted)">Mother Name</p>
                 <p className="font-medium text-gray-900">{selectedReferral.mother_name}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Phone</p>
+                <p className="text-sm text-(--color-text-muted)">Phone</p>
                 <p className="font-medium text-gray-900">{selectedReferral.mother_phone}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Email</p>
+                <p className="text-sm text-(--color-text-muted)">Email</p>
                 <p className="font-medium text-gray-900">{selectedReferral.mother_email || "-"}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Estimated Due Date</p>
+                <p className="text-sm text-(--color-text-muted)">Estimated Due Date</p>
                 <p className="font-medium text-gray-900">
                   {new Date(selectedReferral.estimated_due_date).toLocaleDateString()}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Current Status</p>
+                <p className="text-sm text-(--color-text-muted)">Current Status</p>
                 <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                   selectedReferral.status === "rejected"
                     ? "bg-red-50 text-red-700"
@@ -278,12 +278,12 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
                 </span>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Assign to Cohort</p>
+                <p className="text-sm text-(--color-text-muted)">Assign to Cohort</p>
                 <select
                   id="cohort-select"
                   value={selectedCohortId}
                   onChange={(e) => setSelectedCohortId(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
+                  className="mt-1 w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)"
                 >
                   <option value="">Select a cohort...</option>
                   {cohorts.map((cohort) => (
@@ -293,7 +293,7 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
                     </option>
                   ))}
                 </select>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-(--color-text-muted)">
                   Assigning to a cohort of the same program type replaces her previous assignment of that type.
                 </p>
               </div>
@@ -314,7 +314,7 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
               </button>
               <button
                 onClick={() => setSelectedReferral(null)}
-                className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 sm:flex-1"
+                className="w-full rounded-lg border border-(--color-border) px-4 py-2 text-gray-700 hover:bg-(--color-bg-sage) sm:flex-1"
               >
                 Cancel
               </button>
@@ -325,11 +325,11 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
 
       {/* Edit Referral Modal */}
       {editingReferral && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
-          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl my-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl animate-scale-in my-8">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-heading text-xl font-bold text-gray-900">Edit Referral</h3>
-              <button onClick={() => setEditingReferral(null)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setEditingReferral(null)} className="text-gray-400 hover:text-(--color-text-muted)">
                 <X size={22} />
               </button>
             </div>
@@ -338,36 +338,36 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Mother&apos;s Full Name *</label>
-                  <input name="mother_name" type="text" required defaultValue={editingReferral.mother_name} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2" />
+                  <input name="mother_name" type="text" required defaultValue={editingReferral.mother_name} className="mt-1 w-full rounded-lg border border-(--color-border) px-3 py-2" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Phone *</label>
-                  <input name="mother_phone" type="tel" required defaultValue={editingReferral.mother_phone} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2" />
+                  <input name="mother_phone" type="tel" required defaultValue={editingReferral.mother_phone} className="mt-1 w-full rounded-lg border border-(--color-border) px-3 py-2" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Email *</label>
-                  <input name="mother_email" type="email" required defaultValue={editingReferral.mother_email || ""} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2" />
+                  <input name="mother_email" type="email" required defaultValue={editingReferral.mother_email || ""} className="mt-1 w-full rounded-lg border border-(--color-border) px-3 py-2" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Program Type *</label>
-                  <select name="referral_type" defaultValue={(editingReferral as unknown as { referral_type?: string }).referral_type || "birth_confidence"} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2">
+                  <select name="referral_type" defaultValue={(editingReferral as unknown as { referral_type?: string }).referral_type || "birth_confidence"} className="mt-1 w-full rounded-lg border border-(--color-border) px-3 py-2">
                     <option value="birth_confidence">Favour Oloye Birth Confidence Program</option>
                     <option value="breastfeeding_clinic">Breastfeeding Support Clinic</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Due Date</label>
-                  <input name="estimated_due_date" type="date" defaultValue={editingReferral.estimated_due_date?.slice(0, 10)} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2" />
+                  <input name="estimated_due_date" type="date" defaultValue={editingReferral.estimated_due_date?.slice(0, 10)} className="mt-1 w-full rounded-lg border border-(--color-border) px-3 py-2" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Language Requirement</label>
-                  <input name="language_requirement" type="text" defaultValue={editingReferral.language_requirement || ""} className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2" />
+                  <input name="language_requirement" type="text" defaultValue={editingReferral.language_requirement || ""} className="mt-1 w-full rounded-lg border border-(--color-border) px-3 py-2" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">Additional Notes</label>
-                <textarea name="additional_notes" rows={3} defaultValue="" className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2" />
+                <textarea name="additional_notes" rows={3} defaultValue="" className="mt-1 w-full rounded-lg border border-(--color-border) px-3 py-2" />
               </div>
 
               <label className="flex items-center gap-3">
@@ -376,10 +376,10 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
               </label>
 
               <div className="flex flex-col gap-2 pt-2 sm:flex-row">
-                <button type="submit" disabled={savingEdit} className="w-full rounded-lg bg-(--color-primary) px-4 py-2 text-white hover:bg-(--color-primary)/90 disabled:opacity-50 sm:flex-1">
+                <button type="submit" disabled={savingEdit} className="w-full rounded-lg bg-(--color-accent) bg-gradient-to-br from-(--color-primary) to-(--color-accent) px-4 py-2 text-white hover:opacity-95 disabled:opacity-50 sm:flex-1">
                   {savingEdit ? "Saving..." : "Save Changes"}
                 </button>
-                <button type="button" onClick={() => setEditingReferral(null)} className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-50 sm:flex-1">
+                <button type="button" onClick={() => setEditingReferral(null)} className="w-full rounded-lg border border-(--color-border) px-4 py-2 text-gray-700 hover:bg-(--color-bg-sage) sm:flex-1">
                   Cancel
                 </button>
               </div>

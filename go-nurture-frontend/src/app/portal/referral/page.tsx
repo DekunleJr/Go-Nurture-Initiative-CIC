@@ -2,15 +2,24 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Loader2, LogOut, Shield } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "@/lib/api-client";
 import { authClient } from "@/lib/auth-client";
 import { PortalNavbar } from "@/components/portal/PortalNavbar";
+import { useLocalStorage } from "@/lib/useLocalStorage";
+
+interface PartnerData {
+  contact_name: string;
+  organisation_name: string;
+  is_admin?: boolean;
+}
 
 export default function ReferralPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const partner = useLocalStorage<PartnerData>("partner");
   const [formData, setFormData] = useState({
     mother_name: "",
     mother_phone: "",
@@ -46,18 +55,58 @@ export default function ReferralPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <PortalNavbar />
-      <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-        <h1 className="font-heading text-4xl font-bold text-(--color-primary)">
-          New Referral
-        </h1>
-        <p className="mt-2 text-(--color-text-muted)">
-          Submit a referral for a mother who would benefit from our perinatal support services.
-        </p>
+  const handleLogout = () => {
+    authClient.clear();
+    router.push("/portal/login");
+  };
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+  return (
+    <div className="min-h-screen bg-(--color-bg-cream)">
+      <PortalNavbar
+        title="New Referral"
+        subtitle="Go Nurture Initiative · Referral Management"
+        actions={
+          <>
+            {partner?.is_admin && (
+              <Link
+                href="/admin/dashboard" aria-label="Admin"
+                className="inline-flex items-center gap-2 rounded-lg bg-(--color-accent) px-3 py-2 text-sm font-medium text-white transition hover:bg-(--color-accent-dark) sm:px-4"
+              >
+                <Shield size={16} /><span className="hidden sm:inline">Admin</span>
+              </Link>
+            )}
+            <button
+              onClick={handleLogout} aria-label="Sign out"
+              className="inline-flex items-center gap-2 rounded-lg border border-(--color-border) bg-white px-3 py-2 text-sm font-medium text-(--color-primary) sm:px-4 transition hover:bg-(--color-bg-sage)"
+            >
+              <LogOut size={16} /><span className="hidden sm:inline">Sign out</span>
+            </button>
+          </>
+        }
+      />
+
+      {/* ===== Hero Header ===== */}
+      <header className="relative overflow-hidden bg-(--color-primary) bg-gradient-to-br from-(--color-primary) via-(--color-primary-dark) to-(--color-accent) text-white">
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <div className="absolute -top-24 -right-16 h-72 w-72 rounded-full bg-white/10 blur-2xl animate-float" />
+          <div className="absolute bottom-0 left-1/4 h-56 w-56 rounded-full bg-(--color-accent-light)/30 blur-2xl animate-float-slow" />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+          <div className="animate-fade-in-up">
+            <p className="text-sm font-medium uppercase tracking-widest text-white/70">Refer a mother</p>
+            <h2 className="mt-2 font-heading text-3xl font-bold sm:text-4xl">
+              Submit a <span className="font-accent italic">referral</span>
+            </h2>
+            <p className="mt-3 max-w-xl text-sm text-white/80 sm:text-base">
+              Submit a referral for a mother who would benefit from our perinatal support services.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <form onSubmit={handleSubmit} className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-(--color-border) space-y-6 sm:p-8">
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-foreground">
@@ -190,7 +239,7 @@ export default function ReferralPage() {
             <button
               type="submit"
               disabled={loading}
-              className="rounded-lg bg-(--color-primary) px-6 py-3 text-white hover:bg-(--color-primary)/90 disabled:opacity-50 flex items-center gap-2"
+              className="rounded-lg bg-(--color-accent) bg-gradient-to-br from-(--color-primary) to-(--color-accent) px-6 py-3 text-white hover:opacity-95 disabled:opacity-50 shadow-sm flex items-center gap-2 transition"
             >
               {loading && <Loader2 size={18} className="animate-spin" />}
               Submit Referral
@@ -198,7 +247,7 @@ export default function ReferralPage() {
             <a href="/portal/dashboard">
               <button
                 type="button"
-                className="rounded-lg border border-(--color-border) px-6 py-3 text-center hover:bg-gray-50"
+                className="rounded-lg border border-(--color-border) px-6 py-3 text-center hover:bg-(--color-bg-sage)"
               >
                 Cancel
               </button>

@@ -41,14 +41,14 @@ export default function ConfirmDialog({
             <h3 className="font-heading text-lg font-bold text-gray-900">
               {title}
             </h3>
-            <p className="mt-1 text-sm text-gray-600">{message}</p>
+            <p className="mt-1 text-sm text-(--color-text-muted)">{message}</p>
           </div>
         </div>
 
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button
             onClick={onCancel}
-            className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 sm:w-auto"
+            className="w-full rounded-lg border border-(--color-border) px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-(--color-bg-sage) sm:w-auto"
           >
             {cancelLabel}
           </button>
