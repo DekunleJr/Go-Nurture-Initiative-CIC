@@ -330,7 +330,7 @@ export default function SessionReviewForm({
 
         <div className="mt-8 flex flex-col gap-2 border-t border-(--color-border) pt-5 sm:flex-row">
           <button type="button" disabled={saving} onClick={() => submit("draft")} className="w-full rounded-lg border border-(--color-border) px-4 py-2.5 text-(--color-primary) hover:bg-(--color-bg-sage) inline-flex items-center justify-center gap-2 transition sm:flex-1">
-            <Save size={16} /> Save Draft
+            {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Save Draft
           </button>
           <button type="button" disabled={saving} onClick={() => submit("submitted")} className="w-full rounded-lg bg-(--color-accent) bg-gradient-to-br from-(--color-primary) to-(--color-accent) px-4 py-2.5 text-white hover:opacity-95 inline-flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm transition sm:flex-1">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />} Submit Review

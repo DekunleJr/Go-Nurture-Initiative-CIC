@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, Search, MapPin, Pencil } from "lucide-react";
+import { Plus, Trash2, Search, MapPin, Pencil, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import ConfirmDialog from "./ConfirmDialog";
 import Pagination from "./Pagination";
@@ -78,6 +78,8 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [searching, setSearching] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [venueToDelete, setVenueToDelete] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -161,20 +163,23 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !address || !city) { toast.error("Please fill in all required fields"); return; }
+    setSubmitting(true);
     try {
       const venueData = { name, address, city, postcode, capacity, description, transport_links: transportLinks, nearby_landmarks: nearbyLandmarks, latitude, longitude };
       if (editingVenue) { await onUpdateVenue(editingVenue.id, venueData); toast.success("Venue updated successfully"); }
       else { await onCreateVenue(venueData); toast.success("Venue created successfully"); }
       resetForm(); onRefresh();
     } catch { toast.error((editingVenue ? "Failed to update venue" : "Failed to create venue")); }
+    finally { setSubmitting(false); }
   };
 
   const handleDeleteClick = (venueId: string) => { setVenueToDelete(venueId); setShowDeleteConfirm(true); };
   const handleDeleteConfirm = async () => {
     if (!venueToDelete) return;
+    setDeleting(true);
     try { await onDeleteVenue(venueToDelete); toast.success("Venue deleted successfully"); onRefresh(); }
     catch { toast.error("Failed to delete venue"); }
-    finally { setShowDeleteConfirm(false); setVenueToDelete(null); }
+    finally { setShowDeleteConfirm(false); setVenueToDelete(null); setDeleting(false); }
   };
   const handleDeleteCancel = () => { setShowDeleteConfirm(false); setVenueToDelete(null); };
 
@@ -241,7 +246,7 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
           </div>
 
           <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <button type="submit" className="w-full rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto">{editingVenue ? "Save Changes" : "Create Venue"}</button>
+            <button type="submit" disabled={submitting} className="w-full rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto inline-flex items-center justify-center gap-2 disabled:opacity-50">{submitting ? <><Loader2 size={16} className="animate-spin" /> {editingVenue ? "Saving..." : "Creating..."}</> : (editingVenue ? "Save Changes" : "Create Venue")}</button>
             <button type="button" onClick={resetForm} className="w-full rounded-lg border border-(--color-border) px-4 py-2 text-gray-700 hover:bg-(--color-bg-sage) sm:w-auto">Cancel</button>
           </div>
         </form>
@@ -289,7 +294,7 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
 
       {visibleVenues.length > 0 && (<Pagination page={currentPage} pageSize={PAGE_SIZE} total={venues.length} onPageChange={setPage} />)}
 
-      <ConfirmDialog isOpen={showDeleteConfirm} title="Delete Venue" message="Are you sure you want to delete this venue? This action cannot be undone." onConfirm={handleDeleteConfirm} onCancel={handleDeleteCancel} />
+      <ConfirmDialog isOpen={showDeleteConfirm} title="Delete Venue" message="Are you sure you want to delete this venue? This action cannot be undone." onConfirm={handleDeleteConfirm} onCancel={handleDeleteCancel} loading={deleting} />
     </div>
   );
 }

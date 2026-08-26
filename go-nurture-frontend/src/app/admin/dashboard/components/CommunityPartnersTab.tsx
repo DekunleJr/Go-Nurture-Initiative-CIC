@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import Pagination from "./Pagination";
 
@@ -36,6 +36,8 @@ export default function CommunityPartnersTab({
   const [editingPartnerId, setEditingPartnerId] = useState<string | null>(null);
   const [partnerName, setPartnerName] = useState("");
   const [page, setPage] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(partners.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -56,6 +58,7 @@ export default function CommunityPartnersTab({
       return;
     }
 
+    setSubmitting(true);
     try {
       if (editMode && editingPartnerId) {
         await onUpdatePartner(editingPartnerId, partnerName.trim());
@@ -73,7 +76,7 @@ export default function CommunityPartnersTab({
           ? "Failed to update partner"
           : "Failed to create partner" + (error instanceof Error ? `: ${error.message}` : "")
       );
-    }
+    } finally { setSubmitting(false); }
   };
 
   const handleEdit = (partner: CommunityPartner) => {
@@ -81,6 +84,15 @@ export default function CommunityPartnersTab({
     setEditingPartnerId(partner.id);
     setPartnerName(partner.name);
     setShowForm(true);
+  };
+
+  const handleToggle = async (partner: CommunityPartner) => {
+    setTogglingId(partner.id);
+    try {
+      await onToggleStatus(partner.id, !partner.is_active);
+    } finally {
+      setTogglingId(null);
+    }
   };
 
   const handleDelete = async (partnerId: string) => {
@@ -129,9 +141,10 @@ export default function CommunityPartnersTab({
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="submit"
-              className="w-full rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto"
+              disabled={submitting}
+              className="w-full rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto inline-flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {editMode ? "Update Partner" : "Create Partner"}
+              {submitting ? <><Loader2 size={16} className="animate-spin" /> {editMode ? "Saving..." : "Creating..."}</> : (editMode ? "Update Partner" : "Create Partner")}
             </button>
             <button
               type="button"
@@ -176,8 +189,9 @@ export default function CommunityPartnersTab({
                         {partner.is_active ? "Active" : "Inactive"}
                       </span>
                       <button
-                        onClick={() => onToggleStatus(partner.id, !partner.is_active)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-(--color-accent) focus:ring-offset-2 ${
+                        onClick={() => handleToggle(partner)}
+                        disabled={togglingId === partner.id}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-(--color-accent) focus:ring-offset-2 disabled:opacity-60 ${
                           partner.is_active ? "bg-(--color-accent)" : "bg-gray-300"
                         }`}
                         title={partner.is_active ? "Deactivate partner" : "Activate partner"}

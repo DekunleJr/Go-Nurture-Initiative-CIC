@@ -1,21 +1,25 @@
 import React from "react";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "accent" | "outline" | "ghost";
   size?: "sm" | "md" | "lg";
+  loading?: boolean;
   children: React.ReactNode;
 }
 
 export function Button({
   variant = "primary",
   size = "md",
+  loading = false,
   className,
   children,
   ...props
 }: ButtonProps) {
   return (
     <button
+      disabled={loading || props.disabled}
       className={cn(
         "inline-flex items-center justify-center rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed",
         {
@@ -35,8 +39,9 @@ export function Button({
         },
         className
       )}
-      {...props}
+            {...props}
     >
+      {loading && <Loader2 size={16} className="animate-spin mr-2" />}
       {children}
     </button>
   );

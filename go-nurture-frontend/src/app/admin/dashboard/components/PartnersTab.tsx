@@ -54,6 +54,8 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [resentAt, setResentAt] = useState<Record<string, number>>({});
   const [now, setNow] = useState(() => Date.now());
+  const [submitting, setSubmitting] = useState(false);
+  const [statusLoadingId, setStatusLoadingId] = useState<string | null>(null);
 
   const COOLDOWN_MS = 5 * 60 * 1000;
 
@@ -90,6 +92,7 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
       return;
     }
 
+    setSubmitting(true);
     try {
       if (editMode && editingPartnerId) {
         await onUpdatePartner(editingPartnerId, {
@@ -115,7 +118,7 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
       onRefresh();
     } catch (error) {
       toast.error(editMode ? "Failed to update partner" : "Failed to create partner" + (error instanceof Error ? `: ${error.message}` : ""));
-    }
+    } finally { setSubmitting(false); }
   };
 
   const handleEdit = (partner: Partner) => {
@@ -131,20 +134,26 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
   };
 
   const handleActivate = async (partnerId: string) => {
+    setStatusLoadingId(partnerId);
     try {
       await onActivate(partnerId);
       toast.success("Partner activated successfully");
     } catch (error) {
       toast.error("Failed to activate partner" + (error instanceof Error ? `: ${error.message}` : ""));
+    } finally {
+      setStatusLoadingId(null);
     }
   };
 
   const handleDeactivate = async (partnerId: string) => {
+    setStatusLoadingId(partnerId);
     try {
       await onDeactivate(partnerId);
       toast.success("Partner deactivated successfully");
     } catch (error) {
       toast.error("Failed to deactivate partner" + (error instanceof Error ? `: ${error.message}` : ""));
+    } finally {
+      setStatusLoadingId(null);
     }
   };
 
@@ -244,8 +253,8 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
             )}
           </div>
           <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <button type="submit" className="w-full rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto">
-              {editMode ? "Update Partner" : "Create Partner"}
+            <button type="submit" disabled={submitting} className="w-full rounded-lg bg-(--color-accent) px-4 py-2 text-white hover:bg-(--color-accent)/90 sm:w-auto inline-flex items-center justify-center gap-2 disabled:opacity-50">
+              {submitting ? <><Loader2 size={16} className="animate-spin" /> {editMode ? "Saving..." : "Creating..."}</> : (editMode ? "Update Partner" : "Create Partner")}
             </button>
             <button type="button" onClick={() => { resetForm(); setShowForm(false); }} className="w-full rounded-lg border border-(--color-border) px-4 py-2 text-gray-700 hover:bg-(--color-bg-sage) sm:w-auto">Cancel</button>
           </div>
@@ -336,9 +345,9 @@ export default function PartnersTab({ partners, onActivate, onDeactivate, onCrea
                         );
                       })()}
                       {partner.is_active ? (
-                        <button onClick={() => handleDeactivate(partner.id)} className="text-xs text-red-600 hover:text-red-700">Deactivate</button>
+                        <button onClick={() => handleDeactivate(partner.id)} disabled={statusLoadingId === partner.id} className="inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-700 disabled:opacity-50">{statusLoadingId === partner.id && <Loader2 size={12} className="animate-spin" />} Deactivate</button>
                       ) : (
-                        <button onClick={() => handleActivate(partner.id)} className="text-xs text-green-600 hover:text-green-700">Activate</button>
+                        <button onClick={() => handleActivate(partner.id)} disabled={statusLoadingId === partner.id} className="inline-flex items-center gap-1 text-xs text-green-600 hover:text-green-700 disabled:opacity-50">{statusLoadingId === partner.id && <Loader2 size={12} className="animate-spin" />} Activate</button>
                       )}
                     </div>
                   </td>
