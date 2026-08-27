@@ -3,10 +3,17 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ExternalLink, Mail, MapPin } from "lucide-react";
-import { SITE_CONFIG, COMMERCIAL_SITE_URL } from "@/lib/constants";
+import { Mail, MapPin } from "lucide-react";
+import { SITE_CONFIG } from "@/lib/constants";
 import { useLanguage } from "@/lib/LanguageContext";
 
+const FOOTER_LINKS = [
+  { labelKey: "footer.linkPrivacy", href: "/privacy" },
+  { labelKey: "footer.linkAccessibility", href: "/accessibility" },
+  { labelKey: "footer.linkSafeguarding", href: "/safeguarding" },
+  { labelKey: "footer.linkComplaints", href: "/complaints" },
+  { labelKey: "nav.contact", href: "/contact" },
+];
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -17,7 +24,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8 m-0">
           {/* Brand Column */}
-          <div className="flex flex-col items-center gap-0">
+          <div className="flex flex-col items-center gap-4 sm:items-start">
             <Link href="/" className="inline-flex items-center mb-0">
               <div className="relative h-18 w-48">
                 <Image
@@ -30,7 +37,10 @@ export function Footer() {
               </div>
             </Link>
             <p className="max-w-sm text-sm leading-relaxed text-(--color-text-muted)">
-              {SITE_CONFIG.tagline}
+              {t("footer.identityLine")}
+            </p>
+            <p className="text-sm font-medium text-(--color-primary)">
+              {t("hero.headline1")} {t("hero.headline2")}
             </p>
           </div>
 
@@ -51,41 +61,39 @@ export function Footer() {
               </li>
               <li className="inline-flex items-start justify-center sm:justify-start gap-2 text-sm text-(--color-text-muted)">
                 <MapPin size={14} className="mt-0.5 shrink-0" />
-                <span>Norfolk, United Kingdom</span>
+                <span>Norwich, Norfolk, United Kingdom</span>
               </li>
             </ul>
           </div>
 
-          {/* Commercial Link */}
+          {/* Information Links */}
           <div className="text-center sm:text-left">
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-(--color-primary)">
-              {t("footer.commercialTitle")}
+              {t("footer.quickLinks")}
             </h3>
-            <p className="mb-4 text-sm leading-relaxed text-(--color-text-muted)">
-              {t("footer.commercialDesc")}
-            </p>
-            <a
-              href={COMMERCIAL_SITE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-(--color-accent) hover:text-(--color-accent-light) transition-colors"
-            >
-              {t("footer.commercialLink")}
-              <ExternalLink size={14} />
-            </a>
+            <ul className="space-y-3">
+              {FOOTER_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-(--color-text-muted) hover:text-(--color-accent) transition-colors"
+                  >
+                    {t(link.labelKey)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
-        {/* Bottom Bar */}
+        {/* Legal Line */}
         <div className="mt-10 border-t border-(--color-border) pt-6">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <p className="text-xs text-(--color-text-muted)">
-              &copy; {currentYear} {SITE_CONFIG.name}. {t("footer.copyright")}
-            </p>
-            <p className="flex items-center gap-1 text-xs text-(--color-text-muted)">
-              {t("footer.madeWith")}
-            </p>
-          </div>
+          <p className="mb-4 max-w-3xl text-xs leading-relaxed text-(--color-text-muted)">
+            {t("footer.legalLine")}
+          </p>
+          <p className="text-xs text-(--color-text-muted)">
+            &copy; {currentYear} Go Nurture Initiative CIC. {t("footer.copyright")}
+          </p>
         </div>
       </div>
     </footer>

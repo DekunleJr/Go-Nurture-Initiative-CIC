@@ -9,6 +9,8 @@ env/
 ENV/
 env.bak/
 venv.bak/
+.continue
+
 
 # Python compiled files
 __pycache__/

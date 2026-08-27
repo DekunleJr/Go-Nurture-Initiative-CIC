@@ -304,6 +304,7 @@ export default function AdminDashboard() {
     description: string;
     transport_links: string;
     nearby_landmarks: string;
+    accessibility_info: string;
     latitude?: number | null;
     longitude?: number | null;
   }) => {
@@ -321,6 +322,7 @@ export default function AdminDashboard() {
       description: string;
       transport_links: string;
       nearby_landmarks: string;
+      accessibility_info: string;
       latitude?: number | null;
       longitude?: number | null;
     }
@@ -330,6 +332,10 @@ export default function AdminDashboard() {
 
   const deleteVenue = async (venueId: string) => {
     await api.delete(`/api/admin/venues/${venueId}`);
+  };
+
+  const toggleVenueActive = async (venueId: string, isActive: boolean) => {
+    await api.patch(`/api/admin/venues/${venueId}`, { is_active: isActive });
   };
 
   const createCohort = async (cohortData: {
@@ -719,6 +725,7 @@ export default function AdminDashboard() {
             onCreateVenue={createVenue}
             onUpdateVenue={updateVenue}
             onDeleteVenue={deleteVenue}
+            onToggleVenueActive={toggleVenueActive}
             onRefresh={refreshCurrentTab}
           />
         )}

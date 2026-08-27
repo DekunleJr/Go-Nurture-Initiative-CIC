@@ -18,8 +18,10 @@ interface Venue {
   description: string;
   transport_links: string;
   nearby_landmarks: string;
+  accessibility_info: string;
   latitude: number | null;
   longitude: number | null;
+  is_active: boolean;
 }
 
 interface VenuesTabProps {
@@ -33,6 +35,7 @@ interface VenuesTabProps {
     description: string;
     transport_links: string;
     nearby_landmarks: string;
+    accessibility_info: string;
     latitude?: number | null;
     longitude?: number | null;
   }) => Promise<void>;
@@ -47,11 +50,13 @@ interface VenuesTabProps {
       description: string;
       transport_links: string;
       nearby_landmarks: string;
+      accessibility_info: string;
       latitude?: number | null;
       longitude?: number | null;
     }
   ) => Promise<void>;
   onDeleteVenue: (venueId: string) => Promise<void>;
+  onToggleVenueActive: (venueId: string, isActive: boolean) => Promise<void>;
   onRefresh: () => void;
 }
 
@@ -64,7 +69,7 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
-export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDeleteVenue, onRefresh }: VenuesTabProps) {
+export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDeleteVenue, onToggleVenueActive, onRefresh }: VenuesTabProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingVenue, setEditingVenue] = useState<Venue | null>(null);
   const [name, setName] = useState("");
@@ -75,11 +80,13 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
   const [description, setDescription] = useState("");
   const [transportLinks, setTransportLinks] = useState("");
   const [nearbyLandmarks, setNearbyLandmarks] = useState("");
+  const [accessibilityInfo, setAccessibilityInfo] = useState("");
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [searching, setSearching] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [venueToDelete, setVenueToDelete] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -149,7 +156,7 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
 
   const resetForm = () => {
     setName(""); setAddress(""); setCity(""); setPostcode(""); setCapacity(30); setDescription("");
-    setTransportLinks(""); setNearbyLandmarks("");
+    setTransportLinks(""); setNearbyLandmarks(""); setAccessibilityInfo("");
     setLatitude(null); setLongitude(null); setEditingVenue(null); setShowForm(false);
   };
 
@@ -157,6 +164,7 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
     setEditingVenue(venue); setName(venue.name); setAddress(venue.address); setCity(venue.city);
     setPostcode(venue.postcode ?? ""); setCapacity(venue.capacity); setDescription(venue.description);
     setTransportLinks(venue.transport_links ?? ""); setNearbyLandmarks(venue.nearby_landmarks ?? "");
+    setAccessibilityInfo(venue.accessibility_info ?? "");
     setLatitude(venue.latitude); setLongitude(venue.longitude); setShowForm(true);
   };
 
@@ -165,7 +173,7 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
     if (!name || !address || !city) { toast.error("Please fill in all required fields"); return; }
     setSubmitting(true);
     try {
-      const venueData = { name, address, city, postcode, capacity, description, transport_links: transportLinks, nearby_landmarks: nearbyLandmarks, latitude, longitude };
+      const venueData = { name, address, city, postcode, capacity, description, transport_links: transportLinks, nearby_landmarks: nearbyLandmarks, accessibility_info: accessibilityInfo, latitude, longitude };
       if (editingVenue) { await onUpdateVenue(editingVenue.id, venueData); toast.success("Venue updated successfully"); }
       else { await onCreateVenue(venueData); toast.success("Venue created successfully"); }
       resetForm(); onRefresh();
@@ -182,6 +190,20 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
     finally { setShowDeleteConfirm(false); setVenueToDelete(null); setDeleting(false); }
   };
   const handleDeleteCancel = () => { setShowDeleteConfirm(false); setVenueToDelete(null); };
+
+  const handleToggleActive = async (venue: Venue) => {
+    const newActive = !venue.is_active;
+    setTogglingId(venue.id);
+    try {
+      await onToggleVenueActive(venue.id, newActive);
+      toast.success(newActive ? "Venue activated (shown on public page)" : "Venue deactivated (hidden on public page)");
+      onRefresh();
+    } catch {
+      toast.error("Failed to update venue status");
+    } finally {
+      setTogglingId(null);
+    }
+  };
 
   return (
     <div className="rounded-2xl bg-white shadow-sm ring-1 ring-(--color-border) overflow-hidden">
@@ -228,6 +250,10 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
               <label className="block text-sm font-medium text-gray-700 mb-1">Nearby Landmarks</label>
               <textarea value={nearbyLandmarks} onChange={(e) => setNearbyLandmarks(e.target.value)} placeholder="e.g., Next to the library, opposite the parish church" rows={2} className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
             </div>
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Accessibility Info</label>
+              <textarea value={accessibilityInfo} onChange={(e) => setAccessibilityInfo(e.target.value)} placeholder="e.g., Step-free access, accessible toilet, hearing loop, quiet space" rows={2} className="w-full rounded-lg border border-(--color-border) px-4 py-2 focus:outline-none focus:ring-2 focus:ring-(--color-accent)" />
+            </div>
           </div>
 
           <div className="mt-4 flex items-end gap-3">
@@ -262,12 +288,13 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
               <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Postcode</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Capacity</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Map</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Status</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-(--color-border)">
             {visibleVenues.length === 0 ? (
-              <tr><td colSpan={7} className="px-6"><EmptyState message="No venues yet." /></td></tr>
+              <tr><td colSpan={8} className="px-6"><EmptyState message="No venues yet." /></td></tr>
             ) : (
               visibleVenues.map((venue) => (
                 <tr key={venue.id} className="hover:bg-(--color-bg-sage)">
@@ -278,6 +305,21 @@ export default function VenuesTab({ venues, onCreateVenue, onUpdateVenue, onDele
                   <td className="px-6 py-4 text-sm text-(--color-text-muted)">{venue.capacity}</td>
                   <td className="px-6 py-4 text-sm">
                     {venue.latitude != null && venue.longitude != null ? (<span className="inline-flex items-center gap-1 text-xs font-medium text-green-600"><MapPin size={14} /> Plotted</span>) : (<span className="text-xs text-gray-400">No coords</span>)}
+                  </td>
+                  <td className="px-6 py-4 text-sm">
+                    <button
+                      onClick={() => handleToggleActive(venue)}
+                      disabled={togglingId === venue.id}
+                      className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold disabled:opacity-50 ${
+                        venue.is_active
+                          ? "bg-green-100 text-green-700 hover:bg-green-200"
+                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      }`}
+                      title={venue.is_active ? "Deactivate (hide on public page)" : "Activate (show on public page)"}
+                    >
+                      {togglingId === venue.id && <Loader2 size={12} className="animate-spin" />}
+                      {venue.is_active ? "Active" : "Inactive"}
+                    </button>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">

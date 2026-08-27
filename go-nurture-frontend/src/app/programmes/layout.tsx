@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Our Programmes",
+  title: "GNI Programmes | FOBCP and Infant-Feeding Support in Norwich",
   description:
-    "Free, culturally adapted perinatal education and support programmes for vulnerable, Minority Ethnic, migrant, refugee, and displaced women in Norfolk. Three annual cohorts with multilingual delivery.",
+    "Explore GNI’s six-week birth-confidence programme, infant-feeding clinics, postnatal reunion and referral-led accessibility support in Norwich.",
   alternates: {
     canonical: "/programmes",
-  },
-  openGraph: {
-    title: "Our Programmes | Go Nurture Initiative CIC",
-    description:
-      "Culturally adapted perinatal education, birth preparation, and postnatal support — free, referral-led, and multilingual.",
-    url: "/programmes",
   },
 };
 

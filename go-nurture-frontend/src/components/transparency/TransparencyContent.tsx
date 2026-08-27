@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Check } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import {
   PaymentElement,
@@ -286,57 +287,49 @@ export default function TransparencyContent() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-12 lg:grid-cols-2">
             <div>
-              <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl mb-8">
-                {t("transparency.totalLabel")}
+              <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl mb-6">
+                {t("transparency.legalStatusTitle")}
               </h2>
-              <div className="rounded-2xl bg-(--color-bg-sage) p-8 text-center">
-                {loading ? (
-                  <p className="text-(--color-text-muted)">{t("transparency.loading")}</p>
-                ) : (
-                  <p className="font-heading text-5xl font-extrabold text-(--color-primary)">
-                    £{total?.toLocaleString() ?? "0"}
-                  </p>
-                )}
-              </div>
+              <p className="text-(--color-text-muted) leading-relaxed mb-10">
+                {t("transparency.legalStatusDesc")}
+              </p>
 
-              <div className="mt-12">
-                <h3 className="font-heading text-2xl font-bold text-(--color-primary) mb-6">
-                  {t("transparency.bridgeTitle")}
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="font-semibold text-sm text-(--color-primary)">{t("transparency.bridgeStep1Label")}</span>
-                      <span className="text-sm text-(--color-text-muted)">{t("transparency.bridgeCommercial")}</span>
-                    </div>
-                    <div className="h-8 rounded-lg bg-(--color-accent) w-full" />
-                  </div>
-                  <div className="flex justify-center">
-                    <span className="text-(--color-text-muted)">{t("transparency.bridgeCsrTransfer")}</span>
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="font-semibold text-sm text-(--color-primary)">
-                        {t("transparency.bridgeStep2Title")}
-                      </span>
-                      <span className="text-sm text-(--color-text-muted)">{t("transparency.bridgeGoNurture")}</span>
-                    </div>
-                    <div className="h-8 rounded-lg bg-(--color-accent-light) w-3/4 mx-auto" />
-                  </div>
-                  <div className="flex justify-center">
-                    <span className="text-(--color-text-muted)">{t("transparency.bridgeFunding")}</span>
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="font-semibold text-sm text-(--color-primary)">
-                        {t("transparency.bridgeStep3Title")}
-                      </span>
-                      <span className="text-sm text-(--color-text-muted)">{t("transparency.bridgeFreeCare")}</span>
-                    </div>
-                    <div className="h-8 rounded-lg bg-green-500 w-1/2 mx-auto" />
-                  </div>
-                </div>
-              </div>
+              <h3 className="font-heading text-2xl font-bold text-(--color-primary) mb-4">
+                {t("transparency.fundingTitle")}
+              </h3>
+              <p className="text-(--color-text-muted) leading-relaxed mb-6">
+                {t("transparency.fundingDesc")}
+              </p>
+              <ul className="mb-10 space-y-3">
+                {[
+                  "transparency.fundingItem1",
+                  "transparency.fundingItem2",
+                  "transparency.fundingItem3",
+                  "transparency.fundingItem4",
+                ].map((key) => (
+                  <li key={key} className="flex items-start gap-3 rounded-xl bg-(--color-bg-sage) p-4">
+                    <Check size={16} className="mt-1 shrink-0 text-(--color-accent)" />
+                    <span className="text-sm leading-relaxed text-foreground">{t(key)}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <h3 className="font-heading text-2xl font-bold text-(--color-primary) mb-4">
+                {t("transparency.useFundsTitle")}
+              </h3>
+              <ul className="space-y-3">
+                {[
+                  "transparency.useFundsItem1",
+                  "transparency.useFundsItem2",
+                  "transparency.useFundsItem3",
+                  "transparency.useFundsItem4",
+                ].map((key) => (
+                  <li key={key} className="flex items-start gap-3 rounded-xl bg-(--color-bg-sage) p-4">
+                    <Check size={16} className="mt-1 shrink-0 text-(--color-accent)" />
+                    <span className="text-sm leading-relaxed text-foreground">{t(key)}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
 
             <div>
@@ -372,6 +365,26 @@ export default function TransparencyContent() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Donation Statement & Reporting */}
+      <section className="py-16 bg-white">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-2xl bg-(--color-bg-sage) p-8">
+            <h2 className="font-heading text-2xl font-bold text-(--color-primary) mb-4">
+              {t("transparency.donationStatementTitle")}
+            </h2>
+            <p className="text-sm leading-relaxed text-(--color-text-muted) mb-8">
+              {t("transparency.donationStatementDesc")}
+            </p>
+            <h2 className="font-heading text-2xl font-bold text-(--color-primary) mb-4">
+              {t("transparency.reportingTitle")}
+            </h2>
+            <p className="text-sm leading-relaxed text-(--color-text-muted)">
+              {t("transparency.reportingDesc")}
+            </p>
           </div>
         </div>
       </section>

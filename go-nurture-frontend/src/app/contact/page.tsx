@@ -17,6 +17,7 @@ export default function ContactPage() {
     message: "",
   });
   const [loading, setLoading] = useState(false);
+  const [consent, setConsent] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -163,13 +164,13 @@ export default function ContactPage() {
                   <input
                     type="text"
                     name="subject"
+                    required
                     value={formData.subject}
                     onChange={handleChange}
                     className="w-full rounded-lg border border-(--color-border) px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-accent) focus:border-transparent"
                     placeholder={t("contact.formSubjectPlaceholder")}
                   />
-                </div>
-                <div>
+                </div>                <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">
                     {t("contact.formMessage")}
                   </label>
@@ -183,6 +184,16 @@ export default function ContactPage() {
                     placeholder={t("contact.formMessagePlaceholder")}
                   />
                 </div>
+                <label className="flex items-start gap-3 text-sm leading-relaxed text-(--color-text-muted)">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-(--color-border) accent-(--color-accent)"
+                  />
+                  {t("contact.consentLabel")}
+                </label>
                 <Button
                   type="submit"
                   variant="accent"
@@ -200,6 +211,16 @@ export default function ContactPage() {
                   )}
                 </Button>
               </form>
+
+              {/* Safety Notice */}
+              <div className="mt-8 rounded-xl border-l-4 border-(--color-accent) bg-(--color-bg-sage) p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-(--color-accent) mb-2">
+                  {t("contact.safetyTitle")}
+                </p>
+                <p className="text-sm leading-relaxed text-(--color-text-muted)">
+                  {t("contact.safetyMessage")}
+                </p>
+              </div>
             </div>
           </div>
         </div>

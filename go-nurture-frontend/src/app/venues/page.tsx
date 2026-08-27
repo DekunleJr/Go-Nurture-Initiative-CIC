@@ -2,7 +2,19 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { MapPin, Navigation, Landmark } from "lucide-react";
+import Link from "next/link";
+import {
+  MapPin,
+  Navigation,
+  Accessibility,
+  Landmark,
+  CalendarDays,
+  Info,
+  ArrowRight,
+  Check,
+} from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { useLanguage } from "@/lib/LanguageContext";
 import { api } from "@/lib/api-client";
 
 const VenueMap = dynamic(() => import("./VenueMap"), {
@@ -22,48 +34,68 @@ interface Venue {
   postcode: string | null;
   latitude: number | null;
   longitude: number | null;
-  description: string;
-  transport_links: string;
-  nearby_landmarks: string;
-  facilities: string;
+  description: string | null;
+  transport_links: string | null;
+  nearby_landmarks: string | null;
+  accessibility_info: string | null;
+  is_active: boolean | null;
 }
 
+type VenuesState =
+  | { status: "loading" }
+  | { status: "empty" }
+  | { status: "ready"; venues: Venue[] };
+
 export default function VenuesPage() {
-  const [venues, setVenues] = useState<Venue[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
+  const [state, setState] = useState<VenuesState>({ status: "loading" });
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadVenues = async () => {
       try {
         const data = await api.get<Venue[]>("/api/venues/");
-        setVenues(data);
-        if (data.length > 0) setSelectedVenue((current) => current ?? data[0]);
+        if (cancelled) return;
+        // Defence-in-depth: the public endpoint already filters by is_active,
+        // but never rely on that alone for publication control.
+        const activeVenues = (data || []).filter((v) => v.is_active !== false);
+        if (activeVenues.length === 0) {
+          setState({ status: "empty" });
+        } else {
+          setState({ status: "ready", venues: activeVenues });
+          setSelectedVenue((current) => current ?? activeVenues[0]);
+        }
       } catch (error) {
         console.error("Error fetching venues:", error);
-      } finally {
-        setLoading(false);
+        if (!cancelled) setState({ status: "empty" });
       }
     };
+
     loadVenues();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Listen for marker clicks on the map
   useEffect(() => {
+    if (state.status !== "ready") return;
     const handleVenueSelect = (event: Event) => {
       const customEvent = event as CustomEvent<{ id: string }>;
-      const venue = venues.find((v) => v.id === customEvent.detail.id);
-      if (venue) {
-        setSelectedVenue(venue);
-      }
+      const venue = state.venues.find((v) => v.id === customEvent.detail.id);
+      if (venue) setSelectedVenue(venue);
     };
-
     document.addEventListener("venue:select", handleVenueSelect);
     return () => document.removeEventListener("venue:select", handleVenueSelect);
-  }, [venues]);
+  }, [state]);
+
+  const hasVenues = state.status === "ready";
+  const introDescKey = hasVenues ? "venues.introDescAfter" : "venues.introDescBefore";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
       {/* Hero */}
       <section className="relative pt-32 lg:pt-80 pb-20 bg-(--color-primary) overflow-hidden">
         <div className="absolute inset-0 opacity-[0.04]"
@@ -72,134 +104,262 @@ export default function VenuesPage() {
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
             <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent-light) mb-3">
-              Our Locations
+              {t("venues.introLabel")}
             </p>
             <h1 className="font-heading text-4xl font-extrabold text-white sm:text-5xl lg:text-6xl">
-              Where Our Cohorts Meet
+              {t("venues.introTitle")}
             </h1>
             <p className="mt-6 text-lg text-white/80 max-w-2xl">
-              Our community perinatal programmes are delivered at accessible venues across Norfolk. 
-              Each venue is carefully selected to ensure a safe, welcoming, and culturally appropriate environment.
+              {t(introDescKey)}
             </p>
           </div>
         </div>
       </section>
 
-      {/* Map and Venues List */}
-      <section className="py-20 bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-8 lg:grid-cols-3">
-            {/* Venues List */}
-            <div className="space-y-4">
-              <h2 className="font-heading text-2xl font-bold text-(--color-primary)">
-                All Venues ({venues.length})
+      {state.status === "loading" && (
+        <section className="py-20 bg-white">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 flex justify-center py-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-(--color-primary) border-t-transparent" />
+          </div>
+        </section>
+      )}
+
+      {state.status === "empty" && (
+        <>
+          {/* Venue Information Card — venue not yet confirmed */}
+          <section className="py-20 bg-white">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+              <h2 className="mb-8 text-center font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl">
+                {t("venues.cardLabel")}
               </h2>
-              {loading ? (
-                <p className="text-gray-600">Loading venues...</p>
-              ) : (
-                <div className="space-y-3 max-h-150 overflow-y-auto">
-                  {venues.map((venue) => (
+              <div className="rounded-2xl border border-(--color-border) bg-(--color-bg-sage) p-8 shadow-sm">
+                <dl className="space-y-6">
+                  {[
+                    {
+                      icon: <MapPin size={20} />,
+                      labelKey: "venues.venueName",
+                      value: "[To be confirmed before referrals open]",
+                    },
+                    {
+                      icon: <MapPin size={20} />,
+                      labelKey: "venues.address",
+                      value: "[Full address and postcode will be published once the venue is confirmed]",
+                    },
+                    {
+                      icon: <Navigation size={20} />,
+                      labelKey: "venues.gettingHere",
+                      value: "[Bus, walking, parking and drop-off information will be published here]",
+                    },
+                    {
+                      icon: <Accessibility size={20} />,
+                      labelKey: "venues.accessibility",
+                      value:
+                        "[Step-free access, toilets, hearing support, lighting, quiet space and other verified accessibility information will be published here]",
+                    },
+                  ].map((field) => (
+                    <div key={field.labelKey} className="flex items-start gap-4">
+                      <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--color-accent)/10 text-(--color-accent)">
+                        {field.icon}
+                      </span>
+                      <div>
+                        <dt className="text-xs font-semibold uppercase tracking-wider text-(--color-accent)">
+                          {t(field.labelKey)}
+                        </dt>
+                        <dd className="mt-1 text-sm leading-relaxed text-(--color-text-muted)">
+                          {field.value}
+                        </dd>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="flex items-start gap-4">
+                    <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--color-accent)/10 text-(--color-accent)">
+                      <CalendarDays size={20} />
+                    </span>
+                    <div>
+                      <dt className="text-xs font-semibold uppercase tracking-wider text-(--color-accent)">
+                        {t("venues.sessionInfo")}
+                      </dt>
+                      <dd className="mt-1 text-sm leading-relaxed text-(--color-text-muted)">
+                        {t("venues.sessionInfoValue")}
+                      </dd>
+                    </div>
+                  </div>
+                </dl>
+
+                {/* Access Needs */}
+                <div className="mt-8 flex items-start gap-4 rounded-xl border-l-4 border-(--color-accent) bg-white p-5">
+                  <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--color-accent)/10 text-(--color-accent)">
+                    <Info size={20} />
+                  </span>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-(--color-accent)">
+                      {t("venues.accessNeeds")}
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-(--color-text-muted)">
+                      {t("venues.accessNeedsDesc")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* CTA */}
+          <section className="py-20 bg-(--color-bg-sage)">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
+              <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl mb-4">
+                {t("venues.ctaTitle")}
+              </h2>
+              <p className="text-lg text-(--color-text-muted) mb-8">
+                {t("venues.ctaDesc")}
+              </p>
+              <Link href="/contact">
+                <Button variant="accent" size="lg" className="group">
+                  {t("venues.ctaButton")}
+                  <ArrowRight size={18} className="ml-2 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            </div>
+          </section>
+        </>
+      )}
+
+      {state.status === "ready" && selectedVenue && (
+        <>
+          {/* Map and Venues List */}
+          <section className="py-20 bg-white">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="grid gap-8 lg:grid-cols-3">
+                {/* Venues List */}
+                <div className="space-y-4">
+                  <h2 className="font-heading text-2xl font-bold text-(--color-primary)">
+                    {t("venues.selectVenue")}
+                  </h2>
+                  {state.venues.map((venue) => (
                     <button
                       key={venue.id}
                       onClick={() => setSelectedVenue(venue)}
+                      aria-pressed={selectedVenue.id === venue.id}
                       className={`w-full text-left rounded-xl p-4 transition-all ${
-                        selectedVenue?.id === venue.id
-                          ? "bg-(--color-accent) text-white shadow-lg"
-                          : "bg-gray-50 hover:bg-gray-100"
+                        selectedVenue.id === venue.id
+                          ? "bg-(--color-bg-sage) border-l-4 border-(--color-accent) shadow-sm"
+                          : "bg-white border border-(--color-border) hover:bg-(--color-bg-sage)"
                       }`}
                     >
-                      <div className="flex items-start gap-3">
-                        <MapPin
-                          size={20}
-                          className={selectedVenue?.id === venue.id ? "text-white" : "text-(--color-accent)"}
-                        />
-                        <div>
-                          <h3 className="font-semibold">{venue.name}</h3>
-                          <p className={`text-sm mt-1 ${selectedVenue?.id === venue.id ? "text-white/80" : "text-gray-600"}`}>
-                            {venue.address}, {venue.city}
-                          </p>
-                        </div>
-                      </div>
+                      <p className="font-semibold text-(--color-primary)">
+                        {venue.name}
+                      </p>
+                      <p className="text-sm text-(--color-text-muted) mt-1">
+                        {venue.address}, {venue.city}
+                        {venue.postcode ? `, ${venue.postcode}` : ""}
+                      </p>
                     </button>
                   ))}
                 </div>
-              )}
-            </div>
 
-            {/* Map */}
-            <div className="lg:col-span-2">
-              {selectedVenue ? (
-                <div className="space-y-6">
-                  {/* Leaflet + OpenStreetMap */}
+                {/* Map + Details */}
+                <div className="lg:col-span-2 space-y-6">
                   <div className="relative h-100 w-full rounded-xl overflow-hidden shadow-lg z-0">
-                    <VenueMap venues={venues} selectedVenue={selectedVenue} />
+                    <VenueMap venues={state.venues} selectedVenue={selectedVenue} />
                   </div>
 
                   {/* Venue Details */}
-                  <div className="rounded-xl bg-gray-50 p-6">
+                  <div className="rounded-xl bg-(--color-bg-sage) p-6">
                     <h3 className="font-heading text-2xl font-bold text-(--color-primary) mb-4">
                       {selectedVenue.name}
                     </h3>
-                    
-                    <div className="space-y-3">
+
+                    <div className="space-y-4">
                       <div className="flex items-start gap-3">
                         <MapPin className="text-(--color-accent) mt-1" size={20} />
                         <div>
-                          <p className="font-medium text-gray-900">Address</p>
-                          <p className="text-gray-600">
-                            {selectedVenue.address}<br />
-                            {selectedVenue.city}, {selectedVenue.postcode}
+                          <p className="font-medium text-foreground">{t("venues.address")}</p>
+                          <p className="text-(--color-text-muted)">
+                            {selectedVenue.address}
+                            <br />
+                            {selectedVenue.city}
+                            {selectedVenue.postcode ? `, ${selectedVenue.postcode}` : ""}
                           </p>
                         </div>
                       </div>
 
-                      {selectedVenue.transport_links && (
-                        <div className="flex items-start gap-3">
-                          <Navigation className="text-(--color-accent) mt-1" size={20} />
-                          <div>
-                            <p className="font-medium text-gray-900">Transport Links</p>
-                            <p className="text-gray-600">{selectedVenue.transport_links}</p>
-                          </div>
+                      <div className="flex items-start gap-3">
+                        <Navigation className="text-(--color-accent) mt-1" size={20} />
+                        <div>
+                          <p className="font-medium text-foreground">{t("venues.gettingHere")}</p>
+                          <p className="text-(--color-text-muted)">
+                            {selectedVenue.transport_links || t("venues.detailsPending")}
+                          </p>
                         </div>
-                      )}
+                      </div>
 
-                      {selectedVenue.nearby_landmarks && (
-                        <div className="flex items-start gap-3">
-                          <Landmark className="text-(--color-accent) mt-1" size={20} />
-                          <div>
-                            <p className="font-medium text-gray-900">Nearby Landmarks</p>
-                            <p className="text-gray-600">{selectedVenue.nearby_landmarks}</p>
-                          </div>
+                      <div className="flex items-start gap-3">
+                        <Landmark className="text-(--color-accent) mt-1" size={20} />
+                        <div>
+                          <p className="font-medium text-foreground">{t("venues.landmarks")}</p>
+                          <p className="text-(--color-text-muted)">
+                            {selectedVenue.nearby_landmarks || t("venues.detailsPending")}
+                          </p>
                         </div>
-                      )}
+                      </div>
 
-                      {selectedVenue.facilities && (
-                        <div className="flex items-start gap-3">
-                          <div className="text-(--color-accent) mt-1">🏢</div>
-                          <div>
-                            <p className="font-medium text-gray-900">Facilities</p>
-                            <p className="text-gray-600">{selectedVenue.facilities}</p>
-                          </div>
+                      <div className="flex items-start gap-3">
+                        <Accessibility className="text-(--color-accent) mt-1" size={20} />
+                        <div>
+                          <p className="font-medium text-foreground">{t("venues.accessibility")}</p>
+                          <p className="text-(--color-text-muted)">
+                            {selectedVenue.accessibility_info || t("venues.detailsPending")}
+                          </p>
                         </div>
-                      )}
+                      </div>
 
                       {selectedVenue.description && (
-                        <div className="pt-3 border-t border-gray-200">
-                          <p className="text-gray-700">{selectedVenue.description}</p>
+                        <div className="pt-3 border-t border-(--color-border) flex items-start gap-3">
+                          <Check className="text-(--color-accent) mt-1" size={20} />
+                          <p className="text-foreground">{selectedVenue.description}</p>
                         </div>
                       )}
                     </div>
+
+                    {/* Access Needs */}
+                    <div className="mt-6 flex items-start gap-4 rounded-xl border-l-4 border-(--color-accent) bg-white p-5">
+                      <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--color-accent)/10 text-(--color-accent)">
+                        <Info size={20} />
+                      </span>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-(--color-accent)">
+                          {t("venues.accessNeeds")}
+                        </p>
+                        <p className="mt-1 text-sm leading-relaxed text-(--color-text-muted)">
+                          {t("venues.accessNeedsDesc")}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              ) : (
-                <div className="flex items-center justify-center h-100 bg-gray-100 rounded-xl">
-                  <p className="text-gray-600">Select a venue to view details</p>
-                </div>
-              )}
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
-    </div>
+          </section>
+
+          {/* CTA */}
+          <section className="py-20 bg-(--color-bg-sage)">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
+              <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl mb-4">
+                {t("venues.ctaTitle")}
+              </h2>
+              <p className="text-lg text-(--color-text-muted) mb-8">
+                {t("venues.ctaDesc")}
+              </p>
+              <Link href="/contact">
+                <Button variant="accent" size="lg" className="group">
+                  {t("venues.ctaButton")}
+                  <ArrowRight size={18} className="ml-2 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            </div>
+          </section>
+        </>
+      )}
+    </>
   );
 }

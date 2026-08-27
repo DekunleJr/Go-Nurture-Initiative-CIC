@@ -60,8 +60,10 @@ export interface Venue {
   description: string;
   transport_links: string;
   nearby_landmarks: string;
+  accessibility_info: string;
   latitude: number | null;
   longitude: number | null;
+  is_active: boolean;
 }
 
 export interface CohortMember {

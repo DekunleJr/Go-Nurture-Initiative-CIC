@@ -47,6 +47,9 @@ export default function ProgrammesPage() {
               <p className="text-lg text-(--color-text-muted) leading-relaxed">
                 {t("programmes.cohortsDesc")}
               </p>
+              <p className="mt-6 rounded-xl bg-(--color-bg-sage) p-4 text-sm leading-relaxed text-(--color-text-muted)">
+                {t("programmes.fobcpNote")}
+              </p>
             </div>
             <div className="relative h-100 rounded-2xl overflow-hidden shadow-lg">
               <Image
@@ -67,22 +70,22 @@ export default function ProgrammesPage() {
           <div className="grid gap-8 md:grid-cols-3">
             {[
               {
-                icon: <BookOpen size={28} />,
-                labelKey: "programmes.educationLabel",
-                titleKey: "programmes.educationTitle",
-                descKey: "programmes.educationDesc",
+                icon: <Heart size={28} />,
+                labelKey: "programmes.feedingClinicLabel",
+                titleKey: "programmes.feedingClinicTitle",
+                descKey: "programmes.feedingClinicDesc",
               },
               {
-                icon: <Heart size={28} />,
-                labelKey: "programmes.supportLabel",
-                titleKey: "programmes.supportTitle",
-                descKey: "programmes.supportDesc",
+                icon: <BookOpen size={28} />,
+                labelKey: "programmes.postnatalReunionLabel",
+                titleKey: "programmes.postnatalReunionTitle",
+                descKey: "programmes.postnatalReunionDesc",
               },
               {
                 icon: <Globe size={28} />,
-                labelKey: "programmes.multilingualLabel",
-                titleKey: "programmes.multilingualTitle",
-                descKey: "programmes.multilingualDesc",
+                labelKey: "programmes.languageAccessLabel",
+                titleKey: "programmes.languageAccessTitle",
+                descKey: "programmes.languageAccessDesc",
               },
             ].map((item) => (
               <div key={item.titleKey} className="rounded-2xl bg-white p-8 shadow-sm">
@@ -118,7 +121,7 @@ export default function ProgrammesPage() {
               {t("programmes.partnersDesc")}
             </p>
             <div className="flex flex-wrap justify-center gap-3">
-              {["NHS Norfolk", "Community Midwives", "Health Visitors", "English Plus", "Bridge Plus", "New Routes", "Churches", "Mosques"].map((partner) => (
+              {["Community midwives", "GP practices", "Maternity services", "Health visitors", "Local authority teams", "Voluntary and community organisations", "Refugee and migrant support organisations", "Faith and community groups"].map((partner) => (
                 <span key={partner} className="rounded-full bg-(--color-bg-sage) px-4 py-2 text-sm font-medium text-(--color-primary)">
                   {partner}
                 </span>

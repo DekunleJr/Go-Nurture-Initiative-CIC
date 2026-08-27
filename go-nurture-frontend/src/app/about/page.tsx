@@ -96,20 +96,17 @@ export default function AboutPage() {
               {
                 icon: <Heart size={24} />,
                 title: t("about.faithTitle"),
-                core: t("about.faithCore"),
-                cicContext: t("about.faithCicContext"),
+                body: t("about.faithBody"),
               },
               {
                 icon: <Sprout size={24} />,
                 title: t("about.growthTitle"),
-                core: t("about.growthCore"),
-                cicContext: t("about.growthCicContext"),
+                body: t("about.growthBody"),
               },
               {
                 icon: <Users size={24} />,
                 title: t("about.relationshipsTitle"),
-                core: t("about.relationshipsCore"),
-                cicContext: t("about.relationshipsCicContext"),
+                body: t("about.relationshipsBody"),
               },
             ].map((item) => (
               <div key={item.title} className="flex flex-col rounded-2xl bg-white p-8 shadow-sm">
@@ -121,24 +118,9 @@ export default function AboutPage() {
                     {item.title}
                   </h3>
                 </div>
-                <div className="space-y-6">
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent)">
-                      {t("about.coreLabel")}
-                    </p>
-                    <p className="mt-2 text-(--color-text-muted) leading-relaxed">
-                      {item.core}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent)">
-                      {t("about.cicContextLabel")}
-                    </p>
-                    <p className="mt-2 text-(--color-text-muted) leading-relaxed">
-                      {item.cicContext}
-                    </p>
-                  </div>
-                </div>
+                <p className="text-(--color-text-muted) leading-relaxed">
+                  {item.body}
+                </p>
               </div>
             ))}
           </div>
@@ -160,15 +142,15 @@ export default function AboutPage() {
                 {t("about.pilotDesc")}
               </p>
 
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
                 {[
-                  { value: t("about.stat1Value"), suffix: t("about.stat1Suffix"), label: t("about.stat1Label") },
-                  { value: t("about.stat2Value"), suffix: t("about.stat2Suffix"), label: t("about.stat2Label") },
-                  { value: t("about.stat3Value"), suffix: t("about.stat3Suffix"), label: t("about.stat3Label") },
+                  { value: t("about.stat1Value"), label: t("about.stat1Label") },
+                  { value: t("about.stat2Value"), label: t("about.stat2Label") },
+                  { value: t("about.stat3Value"), label: t("about.stat3Label") },
                 ].map((stat) => (
                   <div key={stat.label} className="text-center">
                     <p className="font-heading text-3xl font-bold text-(--color-primary)">
-                      {stat.value}<span className="text-(--color-accent)">{stat.suffix}</span>
+                      {stat.value}
                     </p>
                     <p className="text-sm text-(--color-text-muted) mt-1">{stat.label}</p>
                   </div>
@@ -201,6 +183,36 @@ export default function AboutPage() {
             <p className="text-lg text-(--color-text-muted) leading-relaxed">
               {t("about.referralDesc")}
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* FOBCP Licence & Independence */}
+      <section className="py-20 bg-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-8 lg:grid-cols-2">
+            <div className="rounded-2xl bg-(--color-bg-sage) p-8 shadow-sm">
+              <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-(--color-accent)">
+                {t("about.licenceLabel")}
+              </p>
+              <h2 className="font-heading text-2xl font-bold text-(--color-primary) mb-4">
+                {t("about.licenceTitle")}
+              </h2>
+              <p className="text-(--color-text-muted) leading-relaxed">
+                {t("about.licenceDesc")}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-(--color-bg-sage) p-8 shadow-sm">
+              <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-(--color-accent)">
+                {t("about.independenceLabel")}
+              </p>
+              <h2 className="font-heading text-2xl font-bold text-(--color-primary) mb-4">
+                {t("about.independenceTitle")}
+              </h2>
+              <p className="text-(--color-text-muted) leading-relaxed">
+                {t("about.independenceDesc")}
+              </p>
+            </div>
           </div>
         </div>
       </section>

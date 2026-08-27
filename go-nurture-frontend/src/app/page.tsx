@@ -1,7 +1,7 @@
 import { HeroSection } from "@/components/home/HeroSection";
 import { ImpactStats } from "@/components/home/ImpactStats";
 import { PhotoGallery } from "@/components/home/PhotoGallery";
-import { FundingBridgePreview } from "@/components/home/FundingBridgePreview";
+import { HomeOfferFunding } from "@/components/home/HomeOfferFunding";
 
 
 export default function Home() {
@@ -10,7 +10,7 @@ export default function Home() {
       <HeroSection />
       <ImpactStats />
       <PhotoGallery />
-      <FundingBridgePreview />
+      <HomeOfferFunding />
     </>
   );
 }

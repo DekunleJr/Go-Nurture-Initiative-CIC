@@ -35,8 +35,6 @@ export const PARTNER_PORTAL_LINK = {
   href: "/portal/login",
 };
 
-export const COMMERCIAL_SITE_URL = "https://nurturedandnourished.co.uk";
-
 export const SUPPORTED_LANGUAGES = [
   { code: "en", label: "English" },
   { code: "ar", label: "العربية (Arabic)" },

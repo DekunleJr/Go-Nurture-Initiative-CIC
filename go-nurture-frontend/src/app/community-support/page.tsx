@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowRight, Heart, Users, Building, Church, Shield } from "lucide-react";
+import { ArrowRight, Heart, Users, Building, Church, Shield, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/lib/LanguageContext";
 import { api } from "@/lib/api-client";
@@ -99,11 +99,12 @@ export default function CommunitySupportPage() {
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              { icon: <Heart size={24} />, key: "communitySupport.supportDesc1" },
-              { icon: <Users size={24} />, key: "communitySupport.supportDesc2" },
-              { icon: <Shield size={24} />, key: "communitySupport.supportDesc3" },
-              { icon: <Heart size={24} />, key: "communitySupport.supportDesc4" },
-              { icon: <Building size={24} />, key: "communitySupport.supportDesc5" },
+              { icon: <BookOpen size={24} />, key: "communitySupport.supportDesc1" },
+              { icon: <Heart size={24} />, key: "communitySupport.supportDesc2" },
+              { icon: <Building size={24} />, key: "communitySupport.supportDesc3" },
+              { icon: <Shield size={24} />, key: "communitySupport.supportDesc4" },
+              { icon: <Users size={24} />, key: "communitySupport.supportDesc5" },
+              { icon: <ArrowRight size={24} />, key: "communitySupport.supportDesc6" },
             ].map((item) => (
               <div key={item.key} className="flex items-start gap-4 rounded-2xl bg-white p-6 shadow-sm">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-(--color-accent)/10 text-(--color-accent)">
@@ -114,6 +115,14 @@ export default function CommunitySupportPage() {
                 </p>
               </div>
             ))}
+          </div>
+
+          {/* Boundary Statement */}
+          <div className="mt-10 mx-auto max-w-3xl rounded-2xl border-l-4 border-(--color-accent) bg-white p-6 shadow-sm">
+            <p className="text-sm leading-relaxed text-(--color-text-muted)">
+              <span className="font-semibold text-(--color-primary)">Our boundaries: </span>
+              {t("communitySupport.boundaryStatement")}
+            </p>
           </div>
         </div>
       </section>

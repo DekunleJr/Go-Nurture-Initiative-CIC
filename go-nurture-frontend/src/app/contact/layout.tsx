@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Contact",
+  title: "Contact Go Nurture Initiative CIC | Referrals and Partnerships",
   description:
-    "Get in touch with Go Nurture Initiative CIC. Whether you are a potential referral partner, supporter, or community member, we'd love to hear from you.",
+    "Contact GNI about Norwich referrals, community partnerships, funding, volunteering or general programme information.",
   alternates: {
     canonical: "/contact",
-  },
-  openGraph: {
-    title: "Contact | Go Nurture Initiative CIC",
-    description:
-      "Partner enquiries, community questions, and referral partner applications — contact us today.",
-    url: "/contact",
   },
 };
 

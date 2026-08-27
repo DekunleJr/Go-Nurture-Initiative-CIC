@@ -26,21 +26,22 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://go-nurture-initiati
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: SITE_CONFIG.name,
+    default:
+      "Go Nurture Initiative CIC | Culturally Responsive Perinatal Support in Norwich",
     template: `%s | ${SITE_CONFIG.name}`,
   },
   description:
-    "Free, culturally adapted perinatal education and community support for vulnerable, Minority Ethnic, migrant, refugee, and displaced women in Norfolk.",
+    "Go Nurture Initiative CIC provides free, referral-led antenatal education, infant-feeding support and community connection for priority women and families in Norwich.",
   keywords: [
-    "perinatal education",
+    "antenatal education",
+    "infant feeding support",
     "community support",
+    "Norwich",
     "Norfolk",
-    "minority ethnic women",
-    "migrant women",
-    "refugee women",
-    "culturally adapted care",
+    "culturally responsive care",
     "birth preparation",
-    "postnatal support",
+    "perinatal support",
+    "referral-led",
     "Community Interest Company",
     "CIC",
     "Go Nurture",
@@ -61,7 +62,7 @@ export const metadata: Metadata = {
     siteName: SITE_CONFIG.name,
     title: SITE_CONFIG.name,
     description:
-      "Free, culturally adapted perinatal education and community support for vulnerable, Minority Ethnic, migrant, refugee, and displaced women in Norfolk.",
+      "Free, referral-led antenatal education, infant-feeding support and community connection for priority women and families in Norwich.",
     images: [
       {
         url: "/hero_1.jfif",
@@ -75,7 +76,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: SITE_CONFIG.name,
     description:
-      "Free, culturally adapted perinatal education and community support for vulnerable women in Norfolk.",
+      "Free, referral-led antenatal education, infant-feeding support and community connection for priority women and families in Norwich.",
     images: ["/hero_1.jfif"],
   },
   robots: {

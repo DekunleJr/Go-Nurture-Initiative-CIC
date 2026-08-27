@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About Us",
+  title: "About Go Nurture Initiative CIC | Our Mission, Values and Team",
   description:
-    "Go Nurture Initiative CIC is an asset-locked Community Interest Company providing free, referral-led, culturally adapted perinatal education to vulnerable, Minority Ethnic, migrant, refugee, and displaced women across Norfolk.",
+    "Learn about GNI’s mission, values, governance, Norwich delivery plan and culturally responsive approach to perinatal education and infant-feeding support.",
   alternates: {
     canonical: "/about",
-  },
-  openGraph: {
-    title: "About Us | Go Nurture Initiative CIC",
-    description:
-      "A Community Interest Company dedicated to every mother — providing free, culturally adapted perinatal support in Norfolk.",
-    url: "/about",
   },
 };
 

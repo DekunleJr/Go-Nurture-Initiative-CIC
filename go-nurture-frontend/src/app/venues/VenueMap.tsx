@@ -12,9 +12,10 @@ interface Venue {
   postcode: string | null;
   latitude: number | null;
   longitude: number | null;
-  description: string;
-  transport_links: string;
-  facilities: string;
+  description: string | null;
+  transport_links: string | null;
+  nearby_landmarks: string | null;
+  accessibility_info: string | null;
 }
 
 interface VenueMapProps {
