@@ -15,7 +15,7 @@ export function HeroSection() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
-          src="/hero_1.jfif"
+          src="/hero_1.jpg"
           alt="Supporting mothers and families in our community"
           fill
           className="object-cover"

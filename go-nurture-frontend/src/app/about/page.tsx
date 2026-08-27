@@ -39,7 +39,7 @@ export default function AboutPage() {
           <div className="grid gap-12 lg:grid-cols-2 items-center">
             <div className="relative h-100 rounded-2xl overflow-hidden shadow-lg">
               <Image
-                src="/hero_3.jfif"
+                src="/hero_3.jpg"
                 alt={t("about.missionImageAlt")}
                 fill
                 className="object-cover"
@@ -159,7 +159,7 @@ export default function AboutPage() {
             </div>
             <div className="relative h-100 rounded-2xl overflow-hidden shadow-lg">
               <Image
-                src="/hero_2.jfif"
+                src="/hero_2.jpg"
                 alt={t("about.pilotImageAlt")}
                 fill
                 className="object-cover"

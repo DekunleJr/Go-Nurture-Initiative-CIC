@@ -53,7 +53,7 @@ export default function ProgrammesPage() {
             </div>
             <div className="relative h-100 rounded-2xl overflow-hidden shadow-lg">
               <Image
-                src="/hero_4.jfif"
+                src="/hero_4.jpg"
                 alt="Perinatal education session"
                 fill
                 className="object-cover"

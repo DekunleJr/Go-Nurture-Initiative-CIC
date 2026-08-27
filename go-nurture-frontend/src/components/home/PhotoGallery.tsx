@@ -7,17 +7,17 @@ import { useLanguage } from "@/lib/LanguageContext";
 
 const photos = [
   {
-    src: "/hero_2.jfif",
+    src: "/hero_2.jpg",
     alt: "Community support gathering",
     captionKey: "gallery.caption1",
   },
   {
-    src: "/hero_3.jfif",
+    src: "/hero_3.jpg",
     alt: "Mother and child care",
     captionKey: "gallery.caption2",
   },
   {
-    src: "/hero_4.jfif",
+    src: "/hero_4.jpg",
     alt: "Perinatal education session",
     captionKey: "gallery.caption3",
   },

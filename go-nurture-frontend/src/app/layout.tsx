@@ -65,7 +65,7 @@ export const metadata: Metadata = {
       "Free, referral-led antenatal education, infant-feeding support and community connection for priority women and families in Norwich.",
     images: [
       {
-        url: "/hero_1.jfif",
+        url: "/hero_1.jpg",
         width: 1200,
         height: 630,
         alt: `${SITE_CONFIG.name} — Empowering Communities, Bridging Birthing Gaps`,
@@ -77,7 +77,7 @@ export const metadata: Metadata = {
     title: SITE_CONFIG.name,
     description:
       "Free, referral-led antenatal education, infant-feeding support and community connection for priority women and families in Norwich.",
-    images: ["/hero_1.jfif"],
+    images: ["/hero_1.jpg"],
   },
   robots: {
     index: true,
