@@ -22,7 +22,7 @@ export function Footer() {
   return (
     <footer className="border-t border-(--color-border) bg-white">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8 m-0">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-12 m-0">
           {/* Brand Column */}
           <div className="flex flex-col items-center gap-4 sm:items-start">
             <Link href="/" className="inline-flex items-center mb-0">
@@ -36,17 +36,17 @@ export function Footer() {
                 />
               </div>
             </Link>
-            <p className="max-w-sm text-sm leading-relaxed text-(--color-text-muted)">
-              {t("footer.identityLine")}
-            </p>
             <p className="text-sm font-medium text-(--color-primary)">
               {t("hero.headline1")} {t("hero.headline2")}
+            </p>
+            <p className="max-w-sm text-sm leading-relaxed text-(--color-text-muted)">
+              {t("footer.identityLine")}
             </p>
           </div>
 
           {/* Contact */}
           <div className="text-center sm:text-left">
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-(--color-primary)">
+            <h3 className="mb-4 text-center text-sm font-semibold uppercase tracking-wider text-(--color-primary)">
               {t("footer.contact")}
             </h3>
             <ul className="space-y-3">
@@ -68,10 +68,10 @@ export function Footer() {
 
           {/* Information Links */}
           <div className="text-center sm:text-left">
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-(--color-primary)">
+            <h3 className="mb-4 text-center text-sm font-semibold uppercase tracking-wider text-(--color-primary)">
               {t("footer.quickLinks")}
             </h3>
-            <ul className="space-y-3">
+            <ul className="grid grid-cols-2 gap-x-0 gap-y-3 text-center">
               {FOOTER_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link
@@ -87,8 +87,8 @@ export function Footer() {
         </div>
 
         {/* Legal Line */}
-        <div className="mt-10 border-t border-(--color-border) pt-6">
-          <p className="mb-4 max-w-3xl text-xs leading-relaxed text-(--color-text-muted)">
+        <div className="mt-10 border-t border-(--color-border) pt-6 text-center">
+          <p className="mx-auto mb-4 max-w-3xl text-xs leading-relaxed text-(--color-text-muted)">
             {t("footer.legalLine")}
           </p>
           <p className="text-xs text-(--color-text-muted)">

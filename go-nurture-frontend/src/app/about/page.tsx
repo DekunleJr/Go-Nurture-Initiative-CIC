@@ -80,9 +80,6 @@ export default function AboutPage() {
       <section className="py-20 bg-(--color-bg-sage)">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent) mb-3">
-              {t("about.valuesLabel")}
-            </p>
             <h2 className="font-heading text-3xl font-bold text-(--color-primary) sm:text-4xl mb-6">
               {t("about.valuesTitle")}
             </h2>
