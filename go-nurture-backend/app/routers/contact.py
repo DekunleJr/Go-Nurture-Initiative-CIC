@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -6,12 +6,14 @@ from app.database.session import get_db
 from app.models.contact import ContactSubmission
 from app.schemas.contact import ContactCreate, ContactResponse
 from app.services.email import send_contact_email
+from app.middleware.rate_limit import limiter
 
 router = APIRouter(prefix="/api/contact", tags=["Contact"])
 
 
 @router.post("/", response_model=ContactResponse, status_code=status.HTTP_201_CREATED)
-def submit_contact(data: ContactCreate, db: Session = Depends(get_db)):
+@limiter.limit("10/15minutes")
+def submit_contact(request: Request, data: ContactCreate, db: Session = Depends(get_db)):
     """Submit a contact form message (public)."""
     submission = ContactSubmission(
         name=data.name,

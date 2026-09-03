@@ -34,3 +34,10 @@ class PaymentIntentResponse(BaseModel):
     donation_id: UUID
     amount: float
     currency: str
+
+
+class DonationStatusResponse(BaseModel):
+    id: UUID
+    status: DonationStatus
+
+    model_config = {"from_attributes": True}

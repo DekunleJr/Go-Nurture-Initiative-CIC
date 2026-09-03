@@ -17,6 +17,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { api } from "@/lib/api-client";
+import { authClient } from "@/lib/auth-client";
 import { PortalNavbar } from "@/components/portal/PortalNavbar";
 import SessionReviewForm from "./SessionReviewForm";
 import SessionReviewViewer from "./SessionReviewViewer";
@@ -62,9 +63,8 @@ export default function FacilitatorDashboardPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const token = localStorage.getItem("access_token");
     const userStr = localStorage.getItem("user");
-    if (!token) {
+    if (!authClient.isLoggedIn()) {
       router.push("/portal/login");
       return;
     }
@@ -154,9 +154,10 @@ export default function FacilitatorDashboardPage() {
           <button
             aria-label="Sign out"
             onClick={() => {
-              localStorage.removeItem("access_token");
-              localStorage.removeItem("user");
-              router.push("/portal/login");
+              api.post("/api/auth/logout").finally(() => {
+                authClient.clear();
+                router.push("/portal/login");
+              });
             }}
             className="inline-flex items-center gap-2 rounded-lg border border-(--color-border) bg-white px-3 py-2 text-sm font-medium text-(--color-primary) sm:px-4 transition hover:bg-(--color-bg-sage)"
           >

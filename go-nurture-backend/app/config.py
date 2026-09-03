@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     database_url: str = Field(
         ..., description="PostgreSQL connection URL"
     )  # Required
+    db_pool_size: int = Field(default=5, description="SQLAlchemy connection pool size")
+    db_max_overflow: int = Field(default=10, description="SQLAlchemy pool max overflow")
+    db_pool_recycle: int = Field(default=1800, description="SQLAlchemy pool recycle seconds")
 
     # JWT/Security
     secret_key: str = Field(
@@ -38,6 +41,23 @@ class Settings(BaseSettings):
     # Email
     resend_api_key: Optional[str] = Field(
         default=None, description="Resend API key for email sending"
+    )
+    resend_from_email: Optional[str] = Field(
+        default=None, description="From address used for outgoing emails"
+    )
+    contact_email: Optional[str] = Field(
+        default=None, description="Inbox that receives contact form / referral / donation notifications"
+    )
+
+    # Stripe
+    stripe_secret_key: Optional[str] = Field(
+        default=None, description="Stripe secret key for creating PaymentIntents"
+    )
+    stripe_publishable_key: Optional[str] = Field(
+        default=None, description="Stripe publishable key (safe to expose to the frontend)"
+    )
+    stripe_webhook_secret: Optional[str] = Field(
+        default=None, description="Stripe webhook signing secret used to verify donation confirmations"
     )
 
     # Admin account setup
@@ -63,6 +83,11 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+        # Don't hard-fail on env vars this model doesn't know about yet —
+        # keeps startup resilient to new keys added to .env before the model
+        # is updated, while the fields above still give real validation for
+        # the settings this app actually reads.
+        extra = "ignore"
 
 
 # Load settings at module level
@@ -93,6 +118,13 @@ def validate_production_settings() -> None:
         if not settings.frontend_url or settings.frontend_url == "http://localhost:3000":
             errors.append(
                 "FRONTEND_URL must be set to production domain, not localhost"
+            )
+
+        # Check Stripe webhook secret is set if Stripe is in use, so donation
+        # confirmations can only ever come from a verified Stripe webhook call
+        if settings.stripe_secret_key and not settings.stripe_webhook_secret:
+            errors.append(
+                "STRIPE_WEBHOOK_SECRET must be set in production when STRIPE_SECRET_KEY is configured"
             )
 
         if errors:

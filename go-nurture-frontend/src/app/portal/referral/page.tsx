@@ -36,8 +36,7 @@ export default function ReferralPage() {
     e.preventDefault();
     setLoading(true);
 
-    const token = authClient.getToken();
-    if (!token) {
+    if (!authClient.isLoggedIn()) {
       toast.error("You must be logged in to submit a referral.");
       setLoading(false);
       return;
@@ -56,8 +55,10 @@ export default function ReferralPage() {
   };
 
   const handleLogout = () => {
-    authClient.clear();
-    router.push("/portal/login");
+    api.post("/api/auth/logout").finally(() => {
+      authClient.clear();
+      router.push("/portal/login");
+    });
   };
 
   return (

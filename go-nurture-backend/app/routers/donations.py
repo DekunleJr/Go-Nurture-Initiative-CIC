@@ -1,14 +1,17 @@
 import os
 import logging
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
 from app.database.session import get_db
 from app.models.donation import Donation, DonationStatus
-from app.schemas.donation import DonationCreate, DonationResponse, PaymentIntentResponse
+from app.schemas.donation import DonationCreate, DonationResponse, PaymentIntentResponse, DonationStatusResponse
 from app.services.email import send_donation_notification_email
+from app.utils.auth import get_current_admin
+from app.models.partner import PartnerOrganisation
+from app.middleware.rate_limit import limiter
 
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"))
 
@@ -18,16 +21,26 @@ router = APIRouter(prefix="/api/donations", tags=["Donations"])
 
 
 @router.post("/create-payment-intent", response_model=PaymentIntentResponse)
-def create_donation_intent(data: DonationCreate, db: Session = Depends(get_db)):
+@limiter.limit("10/15minutes")
+def create_donation_intent(request: Request, data: DonationCreate, db: Session = Depends(get_db)):
     """
     Create a Stripe PaymentIntent for a donation.
     Returns a real client_secret from Stripe for the frontend to render PaymentElement.
+    The donation is created with status=PENDING; it is only ever marked
+    COMPLETED by the /webhook endpoint after Stripe confirms the charge.
     """
     import stripe
 
-    stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "sk_test_placeholder")
+    stripe_key = os.getenv("STRIPE_SECRET_KEY")
+    if not stripe_key:
+        logger.error("[Stripe] STRIPE_SECRET_KEY is not configured")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Payments are not configured. Please try again later.",
+        )
+    stripe.api_key = stripe_key
 
-    # Create donation record
+    # Create donation record (pending until the webhook confirms payment)
     donation = Donation(
         amount=data.amount,
         currency=data.currency,
@@ -36,6 +49,7 @@ def create_donation_intent(data: DonationCreate, db: Session = Depends(get_db)):
         message=data.message,
         is_anonymous=data.is_anonymous,
         payment_provider="stripe",
+        status=DonationStatus.PENDING,
     )
     db.add(donation)
     db.commit()
@@ -49,6 +63,9 @@ def create_donation_intent(data: DonationCreate, db: Session = Depends(get_db)):
             metadata={"donation_id": str(donation.id)},
             automatic_payment_methods={"enabled": True},
         )
+        donation.payment_intent_id = intent.id
+        db.commit()
+
         logger.info(f"[Stripe] PaymentIntent created successfully for donation {donation.id} (amount: {data.amount} {data.currency})")
         return PaymentIntentResponse(
             client_secret=intent.client_secret,
@@ -57,66 +74,105 @@ def create_donation_intent(data: DonationCreate, db: Session = Depends(get_db)):
             currency=data.currency,
         )
     except stripe.error.AuthenticationError as e:
-        # Invalid API key
         logger.error(f"[Stripe] AuthenticationError for donation {donation.id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Stripe authentication failed: {str(e)}"
+            detail="Stripe authentication failed",
         )
     except stripe.error.APIConnectionError as e:
-        # Network problem
         logger.error(f"[Stripe] APIConnectionError for donation {donation.id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Could not connect to Stripe: {str(e)}"
+            detail="Could not connect to Stripe",
         )
     except stripe.error.InvalidRequestError as e:
-        # Invalid parameters
         logger.error(f"[Stripe] InvalidRequestError for donation {donation.id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid Stripe request: {str(e)}"
+            detail="Invalid Stripe request",
         )
     except Exception as e:
-        # Any other Stripe error
         logger.error(f"[Stripe] Unexpected error for donation {donation.id}: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Payment processing failed: {str(e)}"
+            detail="Payment processing failed",
         )
 
 
-@router.post("/confirm/{donation_id}")
-def confirm_donation(donation_id: str, db: Session = Depends(get_db)):
-    """Mark a donation as completed after successful payment."""
+@router.post("/webhook", include_in_schema=False)
+async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
+    """
+    Stripe webhook endpoint. This is the ONLY place a donation is ever marked
+    COMPLETED. The request signature is verified against STRIPE_WEBHOOK_SECRET
+    so only Stripe itself (not a client) can trigger a status change.
+    """
+    import stripe
+
+    webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+    if not webhook_secret:
+        logger.error("[Stripe] STRIPE_WEBHOOK_SECRET is not configured; rejecting webhook")
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Webhook not configured")
+
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature", "")
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+    except (ValueError, stripe.error.SignatureVerificationError) as e:
+        logger.warning(f"[Stripe] Webhook signature verification failed: {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid signature")
+
+    if event["type"] == "payment_intent.succeeded":
+        intent = event["data"]["object"]
+        donation = db.query(Donation).filter(Donation.payment_intent_id == intent["id"]).first()
+
+        if not donation:
+            logger.warning(f"[Stripe] Webhook for unknown payment_intent {intent['id']}")
+            return {"received": True}
+
+        if donation.status != DonationStatus.COMPLETED:
+            donation.status = DonationStatus.COMPLETED
+            db.commit()
+            logger.info(f"[Donation] Confirmed via webhook: {donation.id} (amount: {donation.amount} {donation.currency})")
+
+            send_donation_notification_email(
+                donor_name=donation.donor_name,
+                donor_email=donation.donor_email,
+                amount=donation.amount,
+                currency=donation.currency,
+                is_anonymous=donation.is_anonymous,
+                message=donation.message,
+                db=db,
+            )
+
+    elif event["type"] == "payment_intent.payment_failed":
+        intent = event["data"]["object"]
+        donation = db.query(Donation).filter(Donation.payment_intent_id == intent["id"]).first()
+        if donation and donation.status == DonationStatus.PENDING:
+            donation.status = DonationStatus.FAILED
+            db.commit()
+            logger.info(f"[Donation] Marked failed via webhook: {donation.id}")
+
+    return {"received": True}
+
+
+@router.get("/status/{donation_id}", response_model=DonationStatusResponse)
+def get_donation_status(donation_id: str, db: Session = Depends(get_db)):
+    """
+    Public, read-only status check so the frontend can poll for confirmation
+    after redirecting back from Stripe. Cannot be used to change status.
+    """
     import uuid
     try:
         uid = uuid.UUID(donation_id)
     except ValueError:
-        logger.warning(f"[Donation] Confirm failed - invalid UUID: {donation_id}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid ID")
 
     donation = db.query(Donation).filter(Donation.id == uid).first()
     if not donation:
-        logger.warning(f"[Donation] Confirm failed - donation not found: {donation_id}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Donation not found")
 
-    donation.status = DonationStatus.COMPLETED
-    db.commit()
-    logger.info(f"[Donation] Confirmed donation {donation_id} (amount: {donation.amount} {donation.currency})")
-
-    # Send admin notification email
-    send_donation_notification_email(
-        donor_name=donation.donor_name,
-        donor_email=donation.donor_email,
-        amount=donation.amount,
-        currency=donation.currency,
-        is_anonymous=donation.is_anonymous,
-        message=donation.message,
-        db=db,
-    )
-
-    return {"message": "Donation confirmed successfully"}
+    return DonationStatusResponse(id=donation.id, status=donation.status)
 
 
 @router.get("/total")
@@ -145,9 +201,17 @@ def list_donations(db: Session = Depends(get_db)):
     return [DonationResponse.model_validate(d) for d in donations]
 
 
-@router.post("/", response_model=DonationResponse, status_code=status.HTTP_201_CREATED)
-def create_donation(data: DonationCreate, db: Session = Depends(get_db)):
-    """Create a donation directly (demo/test flow without Stripe)."""
+@router.post("/manual", response_model=DonationResponse, status_code=status.HTTP_201_CREATED)
+def create_manual_donation(
+    data: DonationCreate,
+    db: Session = Depends(get_db),
+    admin: PartnerOrganisation = Depends(get_current_admin),
+):
+    """
+    Admin only: record a donation received outside Stripe (e.g. cash, bank
+    transfer). This replaces the old public, unauthenticated demo endpoint —
+    only an admin can mark a donation COMPLETED without a Stripe payment.
+    """
     donation = Donation(
         amount=data.amount,
         currency=data.currency,
@@ -155,14 +219,13 @@ def create_donation(data: DonationCreate, db: Session = Depends(get_db)):
         donor_email=data.donor_email,
         message=data.message,
         is_anonymous=data.is_anonymous,
-        payment_provider="direct",
+        payment_provider="manual",
         status=DonationStatus.COMPLETED,
     )
     db.add(donation)
     db.commit()
     db.refresh(donation)
 
-    # Send admin notification email
     send_donation_notification_email(
         donor_name=donation.donor_name,
         donor_email=donation.donor_email,

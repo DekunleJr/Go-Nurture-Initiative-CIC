@@ -226,24 +226,36 @@ export default function TransparencyContent() {
     setDonationId(id);
   };
 
+  // Donations are only ever marked "completed" by the backend once Stripe's
+  // webhook confirms the charge (see /api/donations/webhook). The frontend
+  // can no longer flip a donation's status itself — it just polls the
+  // read-only status endpoint for a few seconds so the UI can catch up.
   const confirmDonation = useCallback(async (id: string) => {
+    setSuccess(true);
+    setClientSecret(null);
+    setDonationId(null);
+
+    const maxAttempts = 10;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const statusRes = await api.get<{ id: string; status: string }>(`/api/donations/status/${id}`);
+        if (statusRes.status === "completed") {
+          break;
+        }
+      } catch (err) {
+        console.error("[Transparency] Status check error:", err);
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+
     try {
-      console.log("[Transparency] Confirming donation:", id);
-      await api.post(`/api/donations/confirm/${id}`);
-
-      console.log("[Transparency] Donation confirmed successfully:", id);
-      setSuccess(true);
-      setClientSecret(null);
-      setDonationId(null);
-
       const updated = await api.get<Donation[]>("/api/donations/");
       setDonations(updated);
       const totalRes = await api.get<{ total: number }>("/api/donations/total");
       setTotal(totalRes.total);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Something went wrong";
-      console.error("[Transparency] Confirmation error:", message);
-      setError(message);
+      console.error("[Transparency] Failed to refresh donations list:", err);
     }
   }, []);
 

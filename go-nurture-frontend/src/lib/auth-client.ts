@@ -1,16 +1,17 @@
-const TOKEN_KEY = "access_token";
+const LOGGED_IN_KEY = "logged_in";
 const PARTNER_KEY = "partner";
 const USER_KEY = "user";
 
 const isBrowser = () => typeof window !== "undefined";
 
+// The JWT itself now lives only in an httpOnly cookie set by the backend —
+// it is never readable from client-side JS (mitigates token theft via XSS).
+// `logged_in` here is just a UI hint so pages can redirect to /login without
+// waiting on a network round trip; it grants no access on its own since the
+// server still enforces auth via the cookie on every request.
 export const authClient = {
-  getToken(): string | null {
-    return isBrowser() ? localStorage.getItem(TOKEN_KEY) : null;
-  },
-
-  setToken(token: string): void {
-    if (isBrowser()) localStorage.setItem(TOKEN_KEY, token);
+  setLoggedIn(): void {
+    if (isBrowser()) localStorage.setItem(LOGGED_IN_KEY, "1");
   },
 
   setUser(user: unknown): void {
@@ -29,12 +30,12 @@ export const authClient = {
 
   clear(): void {
     if (!isBrowser()) return;
-    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(LOGGED_IN_KEY);
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(PARTNER_KEY);
   },
 
-  isAuthenticated(): boolean {
-    return Boolean(this.getToken());
+  isLoggedIn(): boolean {
+    return isBrowser() && localStorage.getItem(LOGGED_IN_KEY) === "1";
   },
 };

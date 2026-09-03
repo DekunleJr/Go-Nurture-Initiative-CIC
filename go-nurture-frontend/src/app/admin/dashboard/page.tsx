@@ -104,10 +104,9 @@ export default function AdminDashboard() {
   const [tabLoading, setTabLoading] = useState<Tab | null>(null);
 
   const ensureAdmin = useCallback(() => {
-    const token = localStorage.getItem("access_token");
     const partnerStr = localStorage.getItem("partner");
 
-    if (!token || !partnerStr) {
+    if (!authClient.isLoggedIn() || !partnerStr) {
       router.push("/portal/login");
       return false;
     }
@@ -400,8 +399,10 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = () => {
-    authClient.clear();
-    router.push("/portal/login");
+    api.post("/api/auth/logout").finally(() => {
+      authClient.clear();
+      router.push("/portal/login");
+    });
   };
 
   if (loading) {

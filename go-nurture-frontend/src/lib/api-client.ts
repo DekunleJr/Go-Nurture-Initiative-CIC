@@ -20,26 +20,11 @@ const createApiClient = (): AxiosInstance => {
   const client = axios.create({
     baseURL: API_BASE_URL,
     timeout: 30000,
+    withCredentials: true, // send the httpOnly auth cookie on every request
     headers: {
       "Content-Type": "application/json",
     },
   });
-
-  /**
-   * Request interceptor - attach token and headers
-   */
-  client.interceptors.request.use(
-    (config) => {
-      const token = authClient.getToken();
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
-    }
-  );
 
   /**
    * Response interceptor - handle errors and auth failures

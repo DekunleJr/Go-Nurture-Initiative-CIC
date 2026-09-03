@@ -23,7 +23,6 @@ export default function LoginPage() {
 
     try {
       const data = await api.post<{
-        access_token: string;
         role?: string;
         partner?: {
           contact_name: string;
@@ -47,7 +46,7 @@ export default function LoginPage() {
               is_admin: data.partner?.is_admin,
             };
 
-      authClient.setToken(data.access_token);
+      authClient.setLoggedIn();
       authClient.setUser(user);
       if (data.partner) {
         authClient.setPartner(data.partner);

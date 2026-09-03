@@ -53,8 +53,10 @@ export default function DashboardPage() {
   const firstName = partner?.contact_name?.trim().split(/\s+/)[0] || "Partner";
 
   const handleLogout = () => {
-    authClient.clear();
-    router.push("/portal/login");
+    api.post("/api/auth/logout").finally(() => {
+      authClient.clear();
+      router.push("/portal/login");
+    });
   };
 
   const handleEditClick = (referral: Referral) => {
@@ -91,8 +93,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const token = authClient.getToken();
-    if (!token) {
+    if (!authClient.isLoggedIn()) {
       router.push("/portal/login");
       return;
     }

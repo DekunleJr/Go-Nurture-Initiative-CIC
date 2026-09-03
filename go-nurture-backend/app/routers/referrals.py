@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 from typing import List
 from uuid import UUID
@@ -12,12 +12,15 @@ from app.schemas.referral import ReferralCreate, ReferralResponse, ReferralStatu
 from app.utils.auth import get_current_partner
 from app.schemas.referral import ReferralUpdate
 from app.services.email import send_referral_notification_email, PROGRAM_NAMES
+from app.middleware.rate_limit import limiter
 
 router = APIRouter(prefix="/api/referrals", tags=["Referrals"])
 
 
 @router.post("/", response_model=ReferralResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("20/15minutes")
 def create_referral(
+    request: Request,
     data: ReferralCreate,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),

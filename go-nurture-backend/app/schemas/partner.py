@@ -59,7 +59,10 @@ class FacilitatorResponse(BaseModel):
 
 
 class TokenResponse(BaseModel):
-    access_token: str
+    # No longer sent — the JWT is set as an httpOnly cookie instead so
+    # client-side JS never has access to it. Field kept (always null) for
+    # backward compatibility with any client still reading this shape.
+    access_token: Optional[str] = None
     token_type: str = "bearer"
     # Role of the authenticated user: "partner", "admin" or "facilitator"
     role: str = "partner"

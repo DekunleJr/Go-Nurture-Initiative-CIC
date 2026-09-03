@@ -19,6 +19,7 @@ from app.utils.auth import hash_password
 from app.utils.exceptions import AppException, error_payload
 from app.middleware.rate_limit import limiter
 from app.middleware.request_logging import RequestLoggingMiddleware
+from app.config import validate_production_settings
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
@@ -64,7 +65,13 @@ async def validation_exception_handler(
 
 @app.on_event("startup")
 def startup_events():
-    """Check database connectivity and seed admin account if needed."""
+    """Validate production config, check database connectivity, and seed admin account if needed."""
+    try:
+        validate_production_settings()
+    except ValueError as e:
+        logger.error(f"Production configuration validation failed: {e}")
+        raise SystemExit(str(e))
+
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))

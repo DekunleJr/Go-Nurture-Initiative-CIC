@@ -4,9 +4,9 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 
-from jose import JWTError, jwt
+import jwt
 from passlib.context import CryptContext
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
@@ -23,8 +23,49 @@ if not SECRET_KEY:
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
+AUTH_COOKIE_NAME = "access_token"
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-security = HTTPBearer()
+# auto_error=False: we accept a bearer token for non-browser API clients, but
+# the primary path is the httpOnly cookie set by /login and /set-password —
+# neither is required on its own so a missing Authorization header doesn't
+# 403 before we've had a chance to check the cookie.
+bearer_scheme = HTTPBearer(auto_error=False)
+
+
+def _cookie_security() -> tuple[bool, str]:
+    """(secure, samesite) for the auth cookie, based on environment."""
+    is_production = os.getenv("ENVIRONMENT", "development") == "production"
+    return (True, "none") if is_production else (False, "lax")
+
+
+def set_auth_cookie(response: Response, token: str) -> None:
+    """Set the JWT as an httpOnly cookie so client-side JS can never read it
+    (mitigates token theft via XSS). This is the only place the token is
+    transmitted to the browser going forward."""
+    secure, samesite = _cookie_security()
+    response.set_cookie(
+        key=AUTH_COOKIE_NAME,
+        value=token,
+        httponly=True,
+        secure=secure,
+        samesite=samesite,
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/",
+    )
+
+
+def clear_auth_cookie(response: Response) -> None:
+    secure, samesite = _cookie_security()
+    response.delete_cookie(key=AUTH_COOKIE_NAME, path="/", secure=secure, samesite=samesite)
+
+
+def _extract_token(request: Request, credentials: Optional[HTTPAuthorizationCredentials]) -> Optional[str]:
+    """Prefer an Authorization: Bearer header (API clients), fall back to the
+    httpOnly cookie (browser sessions)."""
+    if credentials:
+        return credentials.credentials
+    return request.cookies.get(AUTH_COOKIE_NAME)
 
 
 def hash_password(password: str) -> str:
@@ -57,22 +98,29 @@ def create_access_token(
 
 
 def get_current_partner(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> PartnerOrganisation:
     """Dependency to extract and verify the current partner from JWT token."""
-    token = credentials.credentials
+    token = _extract_token(request, credentials)
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    if not token:
+        raise credentials_exception
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         partner_id: str = payload.get("sub")
-        if partner_id is None:
+        role: str = payload.get("role", "")
+        # Only tokens issued for a partner/admin login may authenticate here —
+        # a facilitator token has a different `sub` namespace but we check the
+        # role explicitly too, as defense-in-depth against ID collisions.
+        if partner_id is None or role not in ("partner", "admin"):
             raise credentials_exception
-    except JWTError:
+    except jwt.PyJWTError:
         raise credentials_exception
 
     partner = db.query(PartnerOrganisation).filter(PartnerOrganisation.id == partner_id).first()
@@ -94,23 +142,26 @@ def get_current_admin(
 
 
 def get_current_facilitator(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> Facilitator:
     """Dependency to extract and verify the current facilitator from JWT token."""
-    token = credentials.credentials
+    token = _extract_token(request, credentials)
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    if not token:
+        raise credentials_exception
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
         role: str = payload.get("role", "")
         if user_id is None or role != "facilitator":
             raise credentials_exception
-    except JWTError:
+    except jwt.PyJWTError:
         raise credentials_exception
 
     facilitator = db.query(Facilitator).filter(Facilitator.id == user_id).first()

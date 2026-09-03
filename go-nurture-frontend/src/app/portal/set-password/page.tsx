@@ -36,10 +36,10 @@ function SetPasswordForm() {
     }
 
     try {
-      const data = await api.post<{ access_token: string; partner: unknown }>("/api/auth/set-password", { token, password });
+      const data = await api.post<{ partner: unknown }>("/api/auth/set-password", { token, password });
 
       if (typeof window !== "undefined") {
-        authClient.setToken(data.access_token);
+        authClient.setLoggedIn();
         authClient.setPartner(data.partner);
       }
       toast.success(isReset ? "Password updated! Redirecting to dashboard..." : "Password set! Redirecting to dashboard...");

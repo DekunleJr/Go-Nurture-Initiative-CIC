@@ -1,8 +1,9 @@
 import os
 from uuid import UUID
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Request
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Request, Response
 from pydantic import BaseModel, EmailStr
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
@@ -26,6 +27,8 @@ from app.utils.auth import (
     generate_set_password_token,
     get_current_partner,
     get_current_admin,
+    set_auth_cookie,
+    clear_auth_cookie,
 )
 from app.services.email import send_invite_email, send_password_reset_email
 from app.middleware.rate_limit import limiter
@@ -55,7 +58,7 @@ def forgot_password(
     organisations and facilitators.
     """
     partner = db.query(PartnerOrganisation).filter(
-        PartnerOrganisation.email == data.email.lower() if hasattr(PartnerOrganisation.email, "lower") else PartnerOrganisation.email == data.email
+        func.lower(PartnerOrganisation.email) == data.email.lower()
     ).first()
 
     if partner:
@@ -78,7 +81,7 @@ def forgot_password(
         )
 
     # Also check facilitator accounts
-    facilitator = db.query(Facilitator).filter(Facilitator.email == data.email).first()
+    facilitator = db.query(Facilitator).filter(func.lower(Facilitator.email) == data.email.lower()).first()
     if facilitator:
         reset_token = generate_set_password_token()
         token_expires = datetime.now(timezone.utc) + timedelta(hours=48)
@@ -255,7 +258,7 @@ def admin_resend_invite(
 
 @router.post("/set-password", response_model=TokenResponse)
 @limiter.limit("5/15minutes")
-def set_password(request: Request, data: SetPassword, db: Session = Depends(get_db)):
+def set_password(request: Request, response: Response, data: SetPassword, db: Session = Depends(get_db)):
     """
     First-time password set using the token from an invite email.
     Works for both partner organisations and facilitators.
@@ -287,8 +290,8 @@ def set_password(request: Request, data: SetPassword, db: Session = Depends(get_
 
         role = "admin" if partner.is_admin else "partner"
         access_token = create_access_token(partner.id, role=role)
+        set_auth_cookie(response, access_token)
         return TokenResponse(
-            access_token=access_token,
             role=role,
             partner=PartnerResponse.model_validate(partner),
         )
@@ -318,8 +321,8 @@ def set_password(request: Request, data: SetPassword, db: Session = Depends(get_
         db.refresh(facilitator)
 
         access_token = create_access_token(facilitator.id, role="facilitator")
+        set_auth_cookie(response, access_token)
         return TokenResponse(
-            access_token=access_token,
             role="facilitator",
             facilitator=FacilitatorResponse.model_validate(facilitator),
         )
@@ -332,7 +335,7 @@ def set_password(request: Request, data: SetPassword, db: Session = Depends(get_
 
 @router.post("/login", response_model=TokenResponse)
 @limiter.limit("5/15minutes")
-def login(request: Request, data: PartnerLogin, db: Session = Depends(get_db)):
+def login(request: Request, response: Response, data: PartnerLogin, db: Session = Depends(get_db)):
     """
     Unified login for all user types (partner organisations, admins and
     facilitators). The response includes a `role` so clients can route the
@@ -360,8 +363,8 @@ def login(request: Request, data: PartnerLogin, db: Session = Depends(get_db)):
             )
         role = "admin" if partner.is_admin else "partner"
         token = create_access_token(partner.id, role=role)
+        set_auth_cookie(response, token)
         return TokenResponse(
-            access_token=token,
             role=role,
             partner=PartnerResponse.model_validate(partner),
         )
@@ -382,13 +385,21 @@ def login(request: Request, data: PartnerLogin, db: Session = Depends(get_db)):
                 detail="Account is deactivated",
             )
         token = create_access_token(facilitator.id, role="facilitator")
+        set_auth_cookie(response, token)
         return TokenResponse(
-            access_token=token,
             role="facilitator",
             facilitator=FacilitatorResponse.model_validate(facilitator),
         )
 
     raise invalid
+
+
+@router.post("/logout", response_model=dict)
+def logout(response: Response):
+    """Clear the auth cookie. The cookie is httpOnly, so this is the only way
+    a browser session can be logged out (client JS cannot delete it directly)."""
+    clear_auth_cookie(response)
+    return {"message": "Logged out"}
 
 
 @router.get("/me", response_model=PartnerResponse)
