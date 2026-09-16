@@ -1,3 +1,4 @@
+import logging
 import os
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -24,6 +25,8 @@ ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
 AUTH_COOKIE_NAME = "access_token"
+
+logger = logging.getLogger(__name__)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # auto_error=False: we accept a bearer token for non-browser API clients, but
@@ -112,6 +115,18 @@ def create_access_token(
     return encoded_jwt
 
 
+def _credentials_exception(reason: str) -> HTTPException:
+    """Build the 401 for a failed auth attempt, logging the reason (never the
+    token value itself) so production auth issues — e.g. a cookie that never
+    reached the server behind a reverse proxy — are diagnosable from logs."""
+    logger.warning("auth_failed: %s", reason)
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
 def get_current_partner(
     request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
@@ -119,13 +134,11 @@ def get_current_partner(
 ) -> PartnerOrganisation:
     """Dependency to extract and verify the current partner from JWT token."""
     token = _extract_token(request, credentials)
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
     if not token:
-        raise credentials_exception
+        raise _credentials_exception(
+            "no auth token — no Authorization header and no access_token cookie "
+            "in the request (cookie missing or not sent by the client)"
+        )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         partner_id: str = payload.get("sub")
@@ -134,13 +147,13 @@ def get_current_partner(
         # a facilitator token has a different `sub` namespace but we check the
         # role explicitly too, as defense-in-depth against ID collisions.
         if partner_id is None or role not in ("partner", "admin"):
-            raise credentials_exception
-    except jwt.PyJWTError:
-        raise credentials_exception
+            raise _credentials_exception(f"token role {role!r} is not partner/admin")
+    except jwt.PyJWTError as exc:
+        raise _credentials_exception(f"invalid or expired token ({type(exc).__name__})")
 
     partner = db.query(PartnerOrganisation).filter(PartnerOrganisation.id == partner_id).first()
     if partner is None:
-        raise credentials_exception
+        raise _credentials_exception(f"no partner account matches token sub {partner_id}")
     return partner
 
 
@@ -163,23 +176,21 @@ def get_current_facilitator(
 ) -> Facilitator:
     """Dependency to extract and verify the current facilitator from JWT token."""
     token = _extract_token(request, credentials)
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
     if not token:
-        raise credentials_exception
+        raise _credentials_exception(
+            "no auth token — no Authorization header and no access_token cookie "
+            "in the request (cookie missing or not sent by the client)"
+        )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
         role: str = payload.get("role", "")
         if user_id is None or role != "facilitator":
-            raise credentials_exception
-    except jwt.PyJWTError:
-        raise credentials_exception
+            raise _credentials_exception(f"token role {role!r} is not facilitator")
+    except jwt.PyJWTError as exc:
+        raise _credentials_exception(f"invalid or expired token ({type(exc).__name__})")
 
     facilitator = db.query(Facilitator).filter(Facilitator.id == user_id).first()
     if facilitator is None:
-        raise credentials_exception
+        raise _credentials_exception(f"no facilitator account matches token sub {user_id}")
     return facilitator

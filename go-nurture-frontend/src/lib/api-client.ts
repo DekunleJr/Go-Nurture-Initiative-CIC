@@ -14,6 +14,17 @@ const API_BASE_URL =
   "/";
 
 /**
+ * Endpoints where a 401 means "wrong credentials", not "session expired":
+ * the calling form must display the backend's error message instead of
+ * triggering the logout-and-redirect flow.
+ */
+const CREDENTIAL_AUTH_ENDPOINTS = ["/api/auth/login", "/api/auth/set-password"];
+
+// Guards against duplicate toasts/redirects when several parallel requests
+// fail with 401 at once (the dashboard fetches resources via Promise.all).
+let sessionExpiredHandled = false;
+
+/**
  * Create axios instance with default config
  */
 const createApiClient = (): AxiosInstance => {
@@ -32,13 +43,31 @@ const createApiClient = (): AxiosInstance => {
   client.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
+      const requestUrl = error.config?.url ?? "";
+      const isCredentialAuth = CREDENTIAL_AUTH_ENDPOINTS.some((endpoint) =>
+        requestUrl.includes(endpoint)
+      );
+
       // Handle 401 - Unauthorized (token expired or invalid)
       if (error.response?.status === 401) {
-        authClient.clear();
-        if (typeof window !== "undefined") {
-          window.location.href = "/portal/login";
+        if (isCredentialAuth) {
+          // Wrong credentials on a login/password form: surface the
+          // backend's message (e.g. "Invalid email or password") instead
+          // of logging the user out.
+          const detail = (error.response.data as { detail?: string } | undefined)?.detail;
+          if (detail) error.message = detail;
+        } else if (!sessionExpiredHandled) {
+          sessionExpiredHandled = true;
+          authClient.clear();
+          toast.error("Session expired. Please log in again.");
+          if (typeof window !== "undefined") {
+            // Give the toast a moment to be readable before the hard
+            // navigation reloads the page and unmounts it.
+            window.setTimeout(() => {
+              window.location.href = "/portal/login";
+            }, 1500);
+          }
         }
-        toast.error("Session expired. Please log in again.");
       }
 
       // Handle 403 - Forbidden

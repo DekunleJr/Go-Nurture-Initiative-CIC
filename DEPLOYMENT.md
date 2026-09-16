@@ -31,7 +31,7 @@ enforcement, independent of CORS.
 **Required production setup — same-origin proxy:**
 
 - Vercel (frontend): `NEXT_PUBLIC_API_URL=/` and
-  `API_PROXY_ORIGIN=https://<backend>.onrender.com`. The `next.config.js`
+  `API_PROXY_ORIGIN=https://<backend>.onrender.com`. The `next.config.ts`
   rewrite forwards `/api/*` server-side to Render, so the `Set-Cookie` is
   first-party on the Vercel origin and every browser stores it.
 - Render (backend): `ENVIRONMENT=production` (cookie becomes `Secure;
