@@ -18,6 +18,31 @@ Backend variables are documented in [go-nurture-backend/.env.example](go-nurture
 
 Frontend variables are documented in [go-nurture-frontend/.env.example](go-nurture-frontend/.env.example). Set `NEXT_PUBLIC_API_URL` to the API origin, or `/` when the API is reverse-proxied on the same origin.
 
+## Auth cookie architecture (Vercel + Render)
+
+The session is an httpOnly JWT cookie (`access_token`) set by the API. Cookies
+are scoped to a registrable domain, and `*.vercel.app` / `*.onrender.com` are
+**different sites** to the browser: a cookie set by the API origin is
+third-party from the frontend's perspective, so Safari discards it (and Chrome
+is phasing third-party cookies out) — users appear to log in and are then
+immediately 401'd. CORS headers cannot change this; cookie storage is browser
+enforcement, independent of CORS.
+
+**Required production setup — same-origin proxy:**
+
+- Vercel (frontend): `NEXT_PUBLIC_API_URL=/` and
+  `API_PROXY_ORIGIN=https://<backend>.onrender.com`. The `next.config.js`
+  rewrite forwards `/api/*` server-side to Render, so the `Set-Cookie` is
+  first-party on the Vercel origin and every browser stores it.
+- Render (backend): `ENVIRONMENT=production` (cookie becomes `Secure;
+  SameSite=None`, which is correct when proxied same-origin). Optionally
+  override flags explicitly with `COOKIE_SECURE` / `COOKIE_SAMESITE`.
+- `NEXT_PUBLIC_*` values are inlined at build time and the rewrite table is
+  built at build time — **redeploy the frontend** after changing either.
+- Alternative (only if you own a custom domain): serve frontend and API from
+  one registrable domain (e.g. `www.example.org` + `api.example.org`); the
+  cookie is then same-site and the proxy is unnecessary.
+
 Keep secrets in the hosting provider's secret manager. Do not commit `.env` or `.env.local` files.
 
 ## Backend deployment

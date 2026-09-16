@@ -34,7 +34,22 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def _cookie_security() -> tuple[bool, str]:
-    """(secure, samesite) for the auth cookie, based on environment."""
+    """(secure, samesite) for the auth cookie.
+
+    SameSite=None requires the Secure flag and an HTTPS connection. When the
+    API is same-origin-proxied through the frontend (recommended production
+    setup: NEXT_PUBLIC_API_URL=/ + API_PROXY_ORIGIN rewrite), these flags
+    yield a first-party cookie on the frontend origin, which every browser
+    accepts. Serving the API directly on a different registrable domain than
+    the frontend makes the cookie third-party, which Safari blocks outright
+    and Chrome is phasing out — no SameSite value can fix that.
+
+    COOKIE_SECURE / COOKIE_SAMESITE override the defaults when both are set;
+    otherwise the ENVIRONMENT-based behaviour is preserved."""
+    secure_override = os.getenv("COOKIE_SECURE", "").strip().lower()
+    samesite_override = os.getenv("COOKIE_SAMESITE", "").strip().lower()
+    if secure_override and samesite_override in ("lax", "strict", "none"):
+        return (secure_override == "true", samesite_override)
     is_production = os.getenv("ENVIRONMENT", "development") == "production"
     return (True, "none") if is_production else (False, "lax")
 
