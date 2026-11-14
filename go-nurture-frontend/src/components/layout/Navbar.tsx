@@ -6,18 +6,16 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { NAV_LINKS, PARTNER_PORTAL_LINK, SITE_CONFIG } from "@/lib/constants";
-import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Button } from "@/components/ui/Button";
 import { useLanguage } from "@/lib/LanguageContext";
 
 const navTranslationMap: Record<string, string> = {
   "Home": "nav.home",
-  "About": "nav.about",
+  "About Us": "nav.about",
   "Our Programmes": "nav.ourProgrammes",
-  "Community Support": "nav.communitySupport",
-  "Venues": "nav.venues",
-  "Donate": "nav.donate",
-  "Contact": "nav.contact",
+  "Referrals": "nav.referrals",
+  "ParentConnect": "nav.parentConnect",
+  "Support Us": "nav.supportUs",
 };
 
 export function Navbar() {
@@ -86,8 +84,6 @@ export function Navbar() {
 
         {/* Right side actions */}
         <div className="flex items-center gap-2">
-          <LanguageSwitcher />
-
           <Link href={PARTNER_PORTAL_LINK.href} className="hidden sm:block">
             <Button
               variant="accent"

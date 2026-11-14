@@ -2,9 +2,20 @@ export const SITE_CONFIG = {
   name: "Go Nurture Initiative",
   tagline: "Empowering Communities, Bridging Birthing Gaps.",
   shortName: "Go Nurture",
-  email: "info@gonurture.org",
-  phone: "",
-  domain: "gonurture.org",
+  email: "info@gonurtureinitiative.org.uk",
+  phone: "01603 343031",
+  phoneHref: "tel:+441603343031",
+  domain: "gonurtureinitiative.org.uk",
+  companyNumber: "17577392",
+  registeredOffice: "Carrow House, 301 King Street, Norwich, NR1 2TG",
+  emails: {
+    partnerships: "partnerships@gonurtureinitiative.org.uk",
+    funding: "funding@gonurtureinitiative.org.uk",
+    parentconnect: "parentconnect@gonurtureinitiative.org.uk",
+    privacy: "privacy@gonurtureinitiative.org.uk",
+    safeguarding: "safeguarding@gonurtureinitiative.org.uk",
+    complaints: "complaints@gonurtureinitiative.org.uk",
+  },
 };
 
 export const BRAND_COLORS = {
@@ -22,25 +33,14 @@ export const BRAND_COLORS = {
 
 export const NAV_LINKS = [
   { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
+  { label: "About Us", href: "/about" },
   { label: "Our Programmes", href: "/programmes" },
-  { label: "Community Support", href: "/community-support" },
-  { label: "Venues", href: "/venues" },
-  { label: "Donate", href: "/transparency" },
-  { label: "Contact", href: "/contact" },
+  { label: "Referrals", href: "/referrals" },
+  { label: "ParentConnect", href: "/parentconnect" },
+  { label: "Support Us", href: "/support-us" },
 ];
 
 export const PARTNER_PORTAL_LINK = {
   label: "Partner Portal",
   href: "/portal/login",
 };
-
-export const SUPPORTED_LANGUAGES = [
-  { code: "en", label: "English" },
-  { code: "ar", label: "العربية (Arabic)" },
-  { code: "so", label: "Soomaali (Somali)" },
-  { code: "uk", label: "Українська (Ukrainian)" },
-  { code: "fa", label: "فارسی (Farsi)" },
-  { code: "ti", label: "ትግርኛ (Tigrinya)" },
-  { code: "ku", label: "Kurdî (Kurdish)" },
-];

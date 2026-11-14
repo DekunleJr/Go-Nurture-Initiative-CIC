@@ -363,8 +363,8 @@ export default function FacilitatorDashboardPage() {
                       <h3 className="font-heading text-lg font-bold text-(--color-primary)">{cohort.name}</h3>
                       <p className="text-sm text-(--color-text-muted)">
                         {cohort.cohort_type === "breastfeeding_clinic"
-                          ? "Breastfeeding Support Clinic"
-                          : "Favour Oloye Birth Confidence Program"}
+                          ? "Infant-Feeding Support"
+                          : "Free Antenatal Education"}
                       </p>
                     </div>
                   </div>

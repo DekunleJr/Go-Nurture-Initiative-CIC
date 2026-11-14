@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, DateTime, Text, ForeignKey, Date
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from app.database.session import Base
 
@@ -21,10 +21,36 @@ class Referral(Base):
     )
     # Mother's details
     mother_name = Column(String(255), nullable=False)
-    mother_phone = Column(String(50), nullable=False)
+    mother_phone = Column(String(50), nullable=True)
     mother_email = Column(String(255), nullable=True)
-    estimated_due_date = Column(Date, nullable=False)
-    # Service the mother needs (birth_confidence or breastfeeding_clinic)
+    estimated_due_date = Column(Date, nullable=True)
+    # Public reference returned to the referrer on submission, e.g. GNI-2026-7K3QXM
+    reference_number = Column(String(32), unique=True, index=True, nullable=True)
+    # Referrer (individual at the partner organisation)
+    referrer_name = Column(String(255), nullable=True)
+    referrer_email = Column(String(255), nullable=True)
+    referrer_phone = Column(String(50), nullable=True)
+    # Person being referred - safe contact
+    preferred_name = Column(String(255), nullable=True)
+    safe_contact_method = Column(String(20), nullable=True)  # telephone, email, either
+    voicemail_ok = Column(String(20), nullable=True)  # yes, no, not_sure
+    communication_restrictions = Column(Text, nullable=True)
+    locality = Column(String(255), nullable=True)
+    postcode_area = Column(String(20), nullable=True)
+    # Antenatal-specific
+    gestation_info = Column(String(100), nullable=True)  # "approx. 24 weeks" / "not known"
+    can_attend_course = Column(String(20), nullable=True)  # yes, no, unsure
+    timing_notes = Column(Text, nullable=True)
+    # Infant-feeding-specific
+    baby_born = Column(String(20), nullable=True)  # yes, no, not_known
+    baby_age_or_due = Column(String(100), nullable=True)
+    preferred_appointment_timing = Column(String(255), nullable=True)
+    # Barriers and access
+    barriers = Column(JSONB, nullable=True)
+    barriers_other = Column(String(255), nullable=True)
+    interpreter_support = Column(String(20), nullable=True)  # yes, no, not_sure
+    adjustments_needed = Column(Text, nullable=True)
+    # Service the mother needs (birth_confidence, breastfeeding_clinic or both)
     referral_type = Column(String(100), nullable=False, default="birth_confidence")
     language_requirement = Column(String(255), nullable=True)
     additional_notes = Column(Text, nullable=True)

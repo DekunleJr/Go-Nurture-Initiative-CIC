@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "About Go Nurture Initiative CIC | Our Mission, Values and Team",
+  title: "About Us | Go Nurture Initiative CIC",
   description:
-    "Learn about GNI’s mission, values, governance, Norwich delivery plan and culturally responsive approach to perinatal education and infant-feeding support.",
+    "Go Nurture Initiative CIC is an independent community interest company based in Norwich, improving access to pregnancy, birth and early-parenthood education and support across Norfolk.",
   alternates: {
     canonical: "/about",
   },

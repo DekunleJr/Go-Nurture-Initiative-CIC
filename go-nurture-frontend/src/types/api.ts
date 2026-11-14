@@ -21,9 +21,10 @@ export interface Stats {
 export interface Referral {
   id: string;
   mother_name: string;
-  mother_phone: string;
+  reference_number?: string | null;
+  mother_phone: string | null;
   mother_email: string | null;
-  estimated_due_date: string;
+  estimated_due_date: string | null;
   referral_type?: string;
   language_requirement: string | null;
   requires_interpreter: boolean;

@@ -78,7 +78,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-foreground">{t("contact.email")}</p>
-                    <a href="mailto:info@gonurture.org" className="text-(--color-accent) hover:underline">
+                    <a href="mailto:info@gonurtureinitiative.org.uk" className="text-(--color-accent) hover:underline">
                       {t("contact.emailValue")}
                     </a>
                   </div>

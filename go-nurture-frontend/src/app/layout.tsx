@@ -21,17 +21,17 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://go-nurture-initiative-cic.onrender.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gonurtureinitiative.org.uk";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default:
-      "Go Nurture Initiative CIC | Culturally Responsive Perinatal Support in Norwich",
+      "Go Nurture Initiative CIC | Empowering Communities, Bridging Birthing Gaps",
     template: `%s | ${SITE_CONFIG.name}`,
   },
   description:
-    "Go Nurture Initiative CIC provides free, referral-led antenatal education, infant-feeding support and community connection for priority women and families in Norwich.",
+    "Go Nurture Initiative CIC offers free, culturally responsive antenatal education and infant-feeding support to women and families facing barriers to access across Norwich and Norfolk.",
   keywords: [
     "antenatal education",
     "infant feeding support",
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     siteName: SITE_CONFIG.name,
     title: SITE_CONFIG.name,
     description:
-      "Free, referral-led antenatal education, infant-feeding support and community connection for priority women and families in Norwich.",
+      "Free, culturally responsive antenatal education and infant-feeding support across Norwich and Norfolk, offered through approved referral partners.",
     images: [
       {
         url: "/hero_1.jpg",
@@ -76,7 +76,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: SITE_CONFIG.name,
     description:
-      "Free, referral-led antenatal education, infant-feeding support and community connection for priority women and families in Norwich.",
+      "Free, culturally responsive antenatal education and infant-feeding support across Norwich and Norfolk, offered through approved referral partners.",
     images: ["/hero_1.jpg"],
   },
   robots: {

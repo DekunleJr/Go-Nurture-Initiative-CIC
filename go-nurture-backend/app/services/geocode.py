@@ -9,7 +9,7 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
-USER_AGENT = "GoNurtureInitiativeCIC/1.0 (contact: admin@gonurture.org.uk)"
+USER_AGENT = "GoNurtureInitiativeCIC/1.0 (contact: info@gonurtureinitiative.org.uk)"
 
 
 def geocode_address(

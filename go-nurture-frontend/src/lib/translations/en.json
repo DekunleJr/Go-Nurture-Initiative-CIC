@@ -1,7 +1,10 @@
 {
   "nav": {
     "home": "Home",
-    "about": "About",
+    "about": "About Us",
+    "referrals": "Referrals",
+    "parentConnect": "ParentConnect",
+    "supportUs": "Support Us",
     "ourProgrammes": "Our Programmes",
     "communitySupport": "Community Support",
     "venues": "Venues",
@@ -59,16 +62,16 @@
     "quickLinks": "Quick Links",
     "contact": "Contact",
     "identityLine": "Go Nurture Initiative CIC is an independent Community Interest Company.",
-    "legalLine": "Go Nurture Initiative CIC is a Community Interest Company registered in England and Wales. Company number: [INSERT]. Registered office: Carrow House, 301 King Street, Norwich, NR1 2TG.",
+    "legalLine": "Registered in England and Wales. Company number: 17577392. Registered office: Carrow House, 301 King Street, Norwich, NR1 2TG.",
+    "hostingCredit": "Website hosting kindly provided by",
     "linkPrivacy": "Privacy",
+    "linkTerms": "Terms",
+    "linkCookies": "Cookies",
     "linkAccessibility": "Accessibility",
     "linkSafeguarding": "Safeguarding",
     "linkComplaints": "Complaints",
     "copyright": "All rights reserved.",
     "madeWith": ""
-  },
-  "languageSwitcher": {
-    "ariaLabel": "Select language"
   },
   "about": {
     "pageTitle": "About",
@@ -197,7 +200,7 @@
     "introTitleHighlight": "from you",
     "introDesc": "Contact us if you are interested in referrals, partnership, funding, volunteering or learning more about our Norwich programmes. Please do not use this website for urgent medical concerns or emergencies.",
     "email": "Email",
-    "emailValue": "info@gonurture.org",
+    "emailValue": "info@gonurtureinitiative.org.uk",
     "location": "Location",
     "locationValue": "Norwich, Norfolk, United Kingdom",
     "partnerLabel": "GENERAL CONTACT FORM",
@@ -264,7 +267,7 @@
     "useFundsItem3": "Safeguarding, data protection and quality assurance activity",
     "useFundsItem4": "Insurance, governance, training and required compliance checks",
     "donationStatementTitle": "About donations",
-    "donationStatementDesc": "Donations are voluntary and non-refundable except where the law requires otherwise. GNI does not currently offer Gift Aid and does not describe itself as a charity. Donations are processed securely through [INSERT PAYMENT PROVIDER]. Questions about donations can be sent to [INSERT DONATION CONTACT EMAIL].",
+    "donationStatementDesc": "Donations are voluntary and non-refundable except where the law requires otherwise. GNI does not currently offer Gift Aid and does not describe itself as a charity. Donations are processed securely through Stripe. Questions about donations can be sent to funding@gonurtureinitiative.org.uk.",
     "reportingTitle": "Reporting",
     "reportingDesc": "GNI reports its activities and finances as required by law and publishes progress updates as verified delivery evidence becomes available.",
     "formTitle": "Make a Donation",
@@ -289,5 +292,31 @@
     "recentSupport": "Recent Support",
     "noDonations": "No donations yet.",
     "anonymousDonor": "Anonymous"
+  },
+  "homeHero": {
+    "headline1": "Empowering Communities,",
+    "headline2": "Bridging Birthing Gaps.",
+    "subheadline": "Every mother deserves to feel informed, respected and supported through pregnancy, birth and early parenthood.",
+    "intro": "We are a community-led organisation offering free, culturally responsive antenatal education and infant-feeding support to women and families facing barriers to accessing these services across Norwich and Norfolk.",
+    "ctaProgrammes": "Explore Our Programmes",
+    "ctaReferral": "Make a Referral",
+    "ctaSupport": "Support Us"
+  },
+  "homeSections": {
+    "belongTitle": "A community where every mother belongs",
+    "belongBody": "We welcome families of every faith or none. Our work particularly seeks to reach Black, Asian and other minority ethnic women, refugees, women seeking asylum, displaced families and others experiencing financial, cultural, language or service-access barriers.",
+    "howTitle": "How we support families",
+    "how1": "Antenatal education",
+    "how2": "Infant-feeding support",
+    "how3": "Community referrals",
+    "how4": "Peer connection",
+    "workTitle": "Work with us",
+    "workBody": "Community organisations, faith groups and healthcare services can help eligible families access free programmes through our referral network.",
+    "ctaPartner": "Become a Referral Partner",
+    "ctaSubmit": "Submit a Referral",
+    "safety": "GNI education and support do not replace NHS maternity care. For an emergency, call 999. For urgent pregnancy or postnatal concerns, contact your local maternity team.",
+    "contactTitle": "Get in touch",
+    "email": "Email",
+    "telephone": "Telephone"
   }
 }

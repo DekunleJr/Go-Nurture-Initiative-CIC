@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Filter, X, FileText, Pencil, Loader2 } from "lucide-react";
+import { Search, Filter, X, FileText, Pencil, Loader2, Eye } from "lucide-react";
 import toast from "react-hot-toast";
 import Pagination from "./Pagination";
+import ReferralModal, { type ReferralDetails } from "./ReferralModal";
 
 function EmptyState({ message }: { message: string }) {
   return (
@@ -14,12 +15,13 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
-interface Referral {
+interface Referral extends Partial<Omit<ReferralDetails, "id" | "status" | "created_at" | "mother_name">> {
   id: string;
   mother_name: string;
-  mother_phone: string;
+  reference_number?: string | null;
+  mother_phone: string | null;
   mother_email: string | null;
-  estimated_due_date: string;
+  estimated_due_date: string | null;
   referral_type?: string;
   language_requirement: string | null;
   requires_interpreter: boolean;
@@ -52,45 +54,22 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedReferral, setSelectedReferral] = useState<Referral | null>(null);
   const [selectedCohortId, setSelectedCohortId] = useState<string>("");
-  const [editingReferral, setEditingReferral] = useState<Referral | null>(null);
-  const [savingEdit, setSavingEdit] = useState(false);
+  const [modalReferral, setModalReferral] = useState<{ referral: Referral; mode: "view" | "edit" } | null>(null);
   const [page, setPage] = useState(1);
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
-  const handleEditClick = (referral: Referral) => {
-    setEditingReferral(referral);
-  };
-
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingReferral) return;
-    setSavingEdit(true);
-    try {
-      const form = new FormData(e.target as HTMLFormElement);
-      await onEditReferral(editingReferral.id, {
-        mother_name: form.get("mother_name"),
-        mother_phone: form.get("mother_phone"),
-        mother_email: form.get("mother_email"),
-        estimated_due_date: form.get("estimated_due_date"),
-        referral_type: form.get("referral_type"),
-        language_requirement: form.get("language_requirement") || null,
-        additional_notes: form.get("additional_notes") || null,
-        requires_interpreter: form.get("requires_interpreter") === "on",
-      });
-      toast.success("Referral updated successfully");
-      setEditingReferral(null);
-      onRefresh();
-    } catch {
-      // Error toast shown by handler in page.tsx
-    } finally {
-      setSavingEdit(false);
-    }
+  const handleSaveEdit = async (id: string, data: Record<string, unknown>) => {
+    // onEditReferral shows its own error toast and rethrows, which keeps the modal open.
+    await onEditReferral(id, data);
+    toast.success("Referral updated successfully");
+    onRefresh();
   };
 
   const filteredReferrals = referrals.filter((referral) => {
     const matchesSearch =
       referral.mother_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      referral.mother_phone.includes(searchQuery);
+      (referral.mother_phone ?? "").includes(searchQuery) ||
+      (referral.reference_number ?? "").toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || referral.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -177,7 +156,7 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
                     {referral.mother_name}
                   </td>
                   <td className="px-6 py-4 text-sm text-(--color-text-muted)">
-                    {referral.mother_phone}
+                    {referral.mother_phone || "-"}
                   </td>
                   <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                     {referral.mother_email || "-"}
@@ -192,7 +171,7 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
                     {referral.venue_name || "-"}
                   </td>
                   <td className="px-6 py-4 text-sm text-(--color-text-muted)">
-                    {new Date(referral.estimated_due_date).toLocaleDateString()}
+                    {referral.estimated_due_date ? new Date(referral.estimated_due_date).toLocaleDateString() : "-"}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
@@ -213,7 +192,15 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <button
-                        onClick={() => handleEditClick(referral)}
+                        onClick={() => setModalReferral({ referral, mode: "view" })}
+                        className="inline-flex items-center text-(--color-primary) hover:text-(--color-accent)"
+                        title="View full referral"
+                        aria-label={`View referral for ${referral.mother_name}`}
+                      >
+                        <Eye size={18} />
+                      </button>
+                      <button
+                        onClick={() => setModalReferral({ referral, mode: "edit" })}
                         className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
                         title="Edit referral details"
                       >
@@ -239,6 +226,16 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
 
       <Pagination page={currentPage} pageSize={PAGE_SIZE} total={filteredReferrals.length} onPageChange={setPage} />
 
+      {modalReferral && (
+        <ReferralModal
+          key={`${modalReferral.referral.id}-${modalReferral.mode}`}
+          referral={modalReferral.referral as unknown as ReferralDetails}
+          initialMode={modalReferral.mode}
+          onClose={() => setModalReferral(null)}
+          onSave={handleSaveEdit}
+        />
+      )}
+
       {/* Assign/Review Modal */}
       {selectedReferral && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
@@ -257,7 +254,7 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
               </div>
               <div>
                 <p className="text-sm text-(--color-text-muted)">Phone</p>
-                <p className="font-medium text-gray-900">{selectedReferral.mother_phone}</p>
+                <p className="font-medium text-gray-900">{selectedReferral.mother_phone || "-"}</p>
               </div>
               <div>
                 <p className="text-sm text-(--color-text-muted)">Email</p>
@@ -266,7 +263,7 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
               <div>
                 <p className="text-sm text-(--color-text-muted)">Estimated Due Date</p>
                 <p className="font-medium text-gray-900">
-                  {new Date(selectedReferral.estimated_due_date).toLocaleDateString()}
+                  {selectedReferral.estimated_due_date ? new Date(selectedReferral.estimated_due_date).toLocaleDateString() : "-"}
                 </p>
               </div>
               <div>
@@ -295,7 +292,7 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
                   {cohorts.map((cohort) => (
                     <option key={cohort.id} value={cohort.id}>
                       {cohort.name}
-                      {cohort.cohort_type === "breastfeeding_clinic" ? " (Clinic)" : " (Birth Confidence)"}
+                      {cohort.cohort_type === "breastfeeding_clinic" ? " (Clinic)" : " (Antenatal)"}
                     </option>
                   ))}
                 </select>
@@ -327,71 +324,6 @@ export default function ReferralsTab({ referrals, cohorts, onUpdateStatus, onEdi
                 Cancel
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Referral Modal */}
-      {editingReferral && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm overflow-y-auto">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl animate-scale-in my-8">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-heading text-xl font-bold text-gray-900">Edit Referral</h3>
-              <button onClick={() => setEditingReferral(null)} className="text-gray-400 hover:text-(--color-text-muted)">
-                <X size={22} />
-              </button>
-            </div>
-
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Mother&apos;s Full Name *</label>
-                  <input name="mother_name" type="text" required defaultValue={editingReferral.mother_name} className="mt-1 w-full rounded-lg border border-(--color-border) px-3 py-2" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Phone *</label>
-                  <input name="mother_phone" type="tel" required defaultValue={editingReferral.mother_phone} className="mt-1 w-full rounded-lg border border-(--color-border) px-3 py-2" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Email *</label>
-                  <input name="mother_email" type="email" required defaultValue={editingReferral.mother_email || ""} className="mt-1 w-full rounded-lg border border-(--color-border) px-3 py-2" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Program Type *</label>
-                  <select name="referral_type" defaultValue={(editingReferral as unknown as { referral_type?: string }).referral_type || "birth_confidence"} className="mt-1 w-full rounded-lg border border-(--color-border) px-3 py-2">
-                    <option value="birth_confidence">Favour Oloye Birth Confidence Program</option>
-                    <option value="breastfeeding_clinic">Breastfeeding Support Clinic</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Due Date</label>
-                  <input name="estimated_due_date" type="date" defaultValue={editingReferral.estimated_due_date?.slice(0, 10)} className="mt-1 w-full rounded-lg border border-(--color-border) px-3 py-2" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Language Requirement</label>
-                  <input name="language_requirement" type="text" defaultValue={editingReferral.language_requirement || ""} className="mt-1 w-full rounded-lg border border-(--color-border) px-3 py-2" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Additional Notes</label>
-                <textarea name="additional_notes" rows={3} defaultValue="" className="mt-1 w-full rounded-lg border border-(--color-border) px-3 py-2" />
-              </div>
-
-              <label className="flex items-center gap-3">
-                <input name="requires_interpreter" type="checkbox" defaultChecked={editingReferral.requires_interpreter} className="h-4 w-4 rounded border-gray-300" />
-                <span className="text-sm text-gray-700">Requires interpreter</span>
-              </label>
-
-              <div className="flex flex-col gap-2 pt-2 sm:flex-row">
-                <button type="submit" disabled={savingEdit} className="w-full rounded-lg bg-(--color-accent) bg-gradient-to-br from-(--color-primary) to-(--color-accent) px-4 py-2 text-white hover:opacity-95 disabled:opacity-50 sm:flex-1 inline-flex items-center justify-center gap-2">
-                  {savingEdit ? <><Loader2 size={16} className="animate-spin" /> Saving...</> : "Save Changes"}
-                </button>
-                <button type="button" onClick={() => setEditingReferral(null)} className="w-full rounded-lg border border-(--color-border) px-4 py-2 text-gray-700 hover:bg-(--color-bg-sage) sm:flex-1">
-                  Cancel
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

@@ -38,42 +38,48 @@ export function HeroSection() {
       {/* Content */}
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-32">
         <div className="max-w-3xl">
-          {/* Badge */}
-          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-white/90 backdrop-blur-sm animate-fade-in-up">
-            <Heart size={14} className="text-(--color-accent-light)" fill="currentColor" />
-            {t("hero.badge")}
-          </div>
-
           {/* Headline */}
           <h1 className="mb-6 font-heading text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl xl:text-7xl animate-fade-in-up animation-delay-200">
-            {t("hero.headline1")}<br />
-            <span className="gradient-text">{t("hero.headline2")}</span>
+            {t("homeHero.headline1")}<br />
+            <span className="gradient-text">{t("homeHero.headline2")}</span>
           </h1>
 
           {/* Subheadline */}
+          <p className="mb-4 max-w-2xl text-xl font-medium leading-relaxed text-white animate-fade-in-up animation-delay-400">
+            {t("homeHero.subheadline")}
+          </p>
           <p className="mb-10 max-w-2xl text-lg leading-relaxed text-white/80 animate-fade-in-up animation-delay-400">
-            {t("hero.subheadline")}
+            {t("homeHero.intro")}
           </p>
 
           {/* CTAs */}
           <div className="flex flex-col items-start gap-4 sm:flex-row animate-fade-in-up animation-delay-600">
-            <Link href="/portal/login">
+            <Link href="/programmes">
               <Button
                 variant="accent"
                 size="lg"
                 className="group shadow-xl shadow-(--color-accent)/25 text-base"
               >
-                {t("hero.ctaReferral")}
+                {t("homeHero.ctaProgrammes")}
                 <ArrowRight size={18} className="ml-2 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
-            <Link href="/transparency">
+            <Link href="/referrals">
               <Button
                 variant="outline"
                 size="lg"
                 className="border-white/30 text-white hover:bg-white hover:text-(--color-primary) text-base"
               >
-                {t("hero.ctaSupport")}
+                {t("homeHero.ctaReferral")}
+              </Button>
+            </Link>
+            <Link href="/support-us">
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-white/30 text-white hover:bg-white hover:text-(--color-primary) text-base"
+              >
+                {t("homeHero.ctaSupport")}
                 <Heart size={16} className="ml-2" />
               </Button>
             </Link>

@@ -41,8 +41,8 @@ export default function AccessibilityPage() {
           </h2>
           <p>
             If something on this website or in our services does not work for you, contact{" "}
-            <a href="mailto:info@gonurture.org" className="text-(--color-accent) hover:underline">
-              info@gonurture.org
+            <a href="mailto:info@gonurtureinitiative.org.uk" className="text-(--color-accent) hover:underline">
+              info@gonurtureinitiative.org.uk
             </a>{" "}
             so we can help and improve.
           </p>

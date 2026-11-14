@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://go-nurture-initiative-cic.onrender.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gonurtureinitiative.org.uk";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
@@ -9,10 +9,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/about",
     "/programmes",
-    "/community-support",
-    "/venues",
-    "/transparency",
-    "/contact",
+    "/referrals",
+    "/parentconnect",
+    "/support-us",
+    "/privacy",
+    "/terms",
+    "/cookies",
+    "/safeguarding",
+    "/complaints",
   ];
 
   return publicRoutes.map((route) => ({

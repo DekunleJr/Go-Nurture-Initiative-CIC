@@ -3,16 +3,16 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, MapPin } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 import { SITE_CONFIG } from "@/lib/constants";
 import { useLanguage } from "@/lib/LanguageContext";
 
 const FOOTER_LINKS = [
   { labelKey: "footer.linkPrivacy", href: "/privacy" },
-  { labelKey: "footer.linkAccessibility", href: "/accessibility" },
+  { labelKey: "footer.linkTerms", href: "/terms" },
+  { labelKey: "footer.linkCookies", href: "/cookies" },
   { labelKey: "footer.linkSafeguarding", href: "/safeguarding" },
   { labelKey: "footer.linkComplaints", href: "/complaints" },
-  { labelKey: "nav.contact", href: "/contact" },
 ];
 
 export function Footer() {
@@ -59,6 +59,15 @@ export function Footer() {
                   <span className="break-all">{SITE_CONFIG.email}</span>
                 </a>
               </li>
+              <li>
+                <a
+                  href={SITE_CONFIG.phoneHref}
+                  className="inline-flex items-center gap-2 text-sm text-(--color-text-muted) hover:text-(--color-accent) transition-colors"
+                >
+                  <Phone size={14} className="shrink-0" />
+                  <span>{SITE_CONFIG.phone}</span>
+                </a>
+              </li>
               <li className="inline-flex items-start justify-center sm:justify-start gap-2 text-sm text-(--color-text-muted)">
                 <MapPin size={14} className="mt-0.5 shrink-0" />
                 <span>Norwich, Norfolk, United Kingdom</span>
@@ -93,6 +102,17 @@ export function Footer() {
           </p>
           <p className="text-xs text-(--color-text-muted)">
             &copy; {currentYear} Go Nurture Initiative CIC. {t("footer.copyright")}
+          </p>
+          <p className="mt-2 text-xs text-(--color-text-muted)">
+            {t("footer.hostingCredit")}{" "}
+            <a
+              href="https://krystal.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-(--color-accent)"
+            >
+              Krystal
+            </a>
           </p>
         </div>
       </div>

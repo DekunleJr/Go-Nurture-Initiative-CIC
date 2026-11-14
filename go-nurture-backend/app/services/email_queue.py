@@ -72,7 +72,7 @@ def _send_queue_item(db: Session, item: EmailQueueItem) -> None:
         else:
             resend.api_key = api_key
             resend.Emails.send({
-                "from": os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>"),
+                "from": os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurtureinitiative.org.uk>"),
                 "to": item.recipient_email,
                 "subject": item.subject,
                 "text": item.body,

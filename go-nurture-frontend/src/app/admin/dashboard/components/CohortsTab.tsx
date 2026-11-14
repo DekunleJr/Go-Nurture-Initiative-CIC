@@ -30,8 +30,8 @@ interface CohortMember {
 }
 
 const COHORT_TYPES = [
-  { value: "birth_confidence", label: "Favour Oloye Birth Confidence Program" },
-  { value: "breastfeeding_clinic", label: "Breastfeeding Support Clinic" },
+  { value: "birth_confidence", label: "Free Antenatal Education" },
+  { value: "breastfeeding_clinic", label: "Infant-Feeding Support" },
 ];
 
 function cohortTypeLabel(type: string): string {
@@ -147,7 +147,7 @@ export default function CohortsTab({ cohorts, venues, facilitators, onAssignFaci
     e.preventDefault();
     const isClinic = cohortType === "breastfeeding_clinic";
     if (!cohortName || !startDate || !selectedVenueId) { toast.error("Please fill in all required fields"); return; }
-    if (!isClinic && !endDate) { toast.error("End date is required for the Birth Confidence Program"); return; }
+    if (!isClinic && !endDate) { toast.error("End date is required for Antenatal Education cohorts"); return; }
     setSubmitting(true);
     try {
       const cohortData = {

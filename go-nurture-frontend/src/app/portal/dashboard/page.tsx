@@ -63,7 +63,7 @@ export default function DashboardPage() {
     setEditingReferral(referral);
     setEditFormData({
       mother_name: referral.mother_name,
-      mother_phone: referral.mother_phone,
+      mother_phone: referral.mother_phone || "",
       mother_email: referral.mother_email || "",
       estimated_due_date: referral.estimated_due_date ? referral.estimated_due_date.slice(0, 10) : "",
       referral_type: (referral as unknown as { referral_type?: string }).referral_type || "birth_confidence",
@@ -78,7 +78,15 @@ export default function DashboardPage() {
     if (!editingReferral) return;
     setSavingEdit(true);
     try {
-      await api.patch(`/api/referrals/${editingReferral.id}`, editFormData);
+      // additional_notes is not editable here, so it is left out to avoid blanking stored notes.
+      const { additional_notes: _notes, ...editable } = editFormData;
+      void _notes;
+      await api.patch(`/api/referrals/${editingReferral.id}`, {
+        ...editable,
+        mother_phone: editable.mother_phone || null,
+        mother_email: editable.mother_email || null,
+        estimated_due_date: editable.estimated_due_date || null,
+      });
       toast.success("Referral updated successfully");
       setEditingReferral(null);
       // Refresh the list
@@ -309,6 +317,9 @@ export default function DashboardPage() {
                 <thead className="bg-(--color-bg-sage)">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">
+                      Reference
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">
                       Mother
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-(--color-text-muted) uppercase">
@@ -346,17 +357,20 @@ export default function DashboardPage() {
                 <tbody className="divide-y divide-(--color-border)">
                   {visibleReferrals.map((referral) => (
                     <tr key={referral.id} className="hover:bg-(--color-bg-sage)">
+                      <td className="px-6 py-4 font-mono text-xs text-(--color-text-muted)">
+                        {referral.reference_number || "-"}
+                      </td>
                       <td className="px-6 py-4 text-sm font-medium text-foreground">
                         {referral.mother_name}
                       </td>
                       <td className="px-6 py-4 text-sm text-(--color-text-muted)">
-                        {referral.mother_phone}
+                        {referral.mother_phone || "-"}
                       </td>
                       <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                         {referral.mother_email || "-"}
                       </td>
                       <td className="px-6 py-4 text-sm text-(--color-text-muted)">
-                        {new Date(referral.estimated_due_date).toLocaleDateString()}
+                        {referral.estimated_due_date ? new Date(referral.estimated_due_date).toLocaleDateString() : "-"}
                       </td>
                       <td className="px-6 py-4 text-sm text-(--color-text-muted)">
                         {referral.language_requirement || "-"}
@@ -444,20 +458,18 @@ export default function DashboardPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Phone *</label>
+                  <label className="block text-sm font-medium text-gray-700">Phone</label>
                   <input
                     type="tel"
-                    required
                     className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2"
                     value={editFormData.mother_phone}
                     onChange={(e) => setEditFormData({ ...editFormData, mother_phone: e.target.value })}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Email *</label>
+                  <label className="block text-sm font-medium text-gray-700">Email</label>
                   <input
                     type="email"
-                    required
                     className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2"
                     value={editFormData.mother_email}
                     onChange={(e) => setEditFormData({ ...editFormData, mother_email: e.target.value })}
@@ -470,20 +482,19 @@ export default function DashboardPage() {
                     value={editFormData.referral_type}
                     onChange={(e) => setEditFormData({ ...editFormData, referral_type: e.target.value })}
                   >
-                    <option value="birth_confidence">Favour Oloye Birth Confidence Program</option>
-                    <option value="breastfeeding_clinic">Breastfeeding Support Clinic</option>
+                    <option value="birth_confidence">Free Antenatal Education</option>
+                    <option value="breastfeeding_clinic">Infant-Feeding Support</option>
+                    <option value="both">Antenatal Education and Infant-Feeding Support</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Due Date {editFormData.referral_type !== "breastfeeding_clinic" && "*"}
+                    Due Date
                   </label>
                   <input
                     type="date"
-                    required={editFormData.referral_type !== "breastfeeding_clinic"}
-                    disabled={editFormData.referral_type === "breastfeeding_clinic"}
-                    className={`mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 ${
-                      editFormData.referral_type === "breastfeeding_clinic" ? "bg-gray-100 cursor-not-allowed" : ""
+                                                            className={`mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 ${
+                      ""
                     }`}
                     value={editFormData.estimated_due_date}
                     onChange={(e) => setEditFormData({ ...editFormData, estimated_due_date: e.target.value })}

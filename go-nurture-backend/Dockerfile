@@ -29,8 +29,8 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Copy the application code
 COPY . .
 
-# Run Alembic migrations, then start Uvicorn
-# Render injects the PORT environment variable at runtime.
-# No hardcoded port — $PORT must be set by the runtime environment.
-CMD alembic upgrade head \
-    && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+# start.sh applies all pending Alembic migrations (an empty database gets the
+# full schema), then starts Uvicorn. If a migration fails the container exits,
+# so the API never runs against a half-migrated schema.
+# Render injects PORT at runtime; start.sh defaults to 8000 for local runs.
+CMD ["sh", "/app/start.sh"]

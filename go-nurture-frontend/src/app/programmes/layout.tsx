@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "GNI Programmes | FOBCP and Infant-Feeding Support in Norwich",
+  title: "Our Programmes | Go Nurture Initiative CIC",
   description:
-    "Explore GNI’s six-week birth-confidence programme, infant-feeding clinics, postnatal reunion and referral-led accessibility support in Norwich.",
+    "Free antenatal education and infant-feeding support for women and families facing barriers to access across Norwich and Norfolk, offered through approved referral partners.",
   alternates: {
     canonical: "/programmes",
   },

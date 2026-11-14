@@ -1,54 +1,37 @@
 import type { Metadata } from "next";
+import { SITE_CONFIG } from "@/lib/constants";
+import { PageShell, MailLink } from "@/components/ui/PageShell";
 
 export const metadata: Metadata = {
-  title: "Complaints | Go Nurture Initiative CIC",
+  title: "Complaints & Feedback | Go Nurture Initiative CIC",
   description:
-    "How to make a complaint to Go Nurture Initiative CIC and what happens next.",
+    "How to make a complaint or give feedback to Go Nurture Initiative CIC and what happens next.",
   alternates: { canonical: "/complaints" },
 };
 
 export default function ComplaintsPage() {
   return (
-    <div className="min-h-screen bg-white">
-      <section className="pt-32 lg:pt-80 pb-16 bg-(--color-primary)">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <p className="text-sm font-semibold uppercase tracking-widest text-(--color-accent-light) mb-3">
-            FEEDBACK
-          </p>
-          <h1 className="font-heading text-4xl font-extrabold text-white sm:text-5xl">
-            Complaints Procedure
-          </h1>
-        </div>
-      </section>
-      <section className="py-16">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 space-y-6 text-(--color-text-muted) leading-relaxed">
-          <p>
-            Feedback and complaints help us improve. We treat every complaint seriously,
-            confidentially and without prejudice to anyone raising it.
-          </p>
-          <h2 className="font-heading text-2xl font-bold text-(--color-primary)">
-            How to complain
-          </h2>
-          <p>
-            Email{" "}
-            <a href="mailto:info@gonurture.org" className="text-(--color-accent) hover:underline">
-              info@gonurture.org
-            </a>{" "}
-            with &ldquo;Complaint&rdquo; in the subject line, describing what happened and what
-            outcome you are seeking. Please do not include detailed medical information in this
-            general channel unless we ask for it.
-          </p>
-          <h2 className="font-heading text-2xl font-bold text-(--color-primary)">
-            What happens next
-          </h2>
-          <ul className="list-disc space-y-2 pl-5">
-            <li>We acknowledge complaints promptly and explain next steps</li>
-            <li>A named person reviews the complaint fairly and independently where possible</li>
-            <li>We respond within the timescales set out in our full complaints policy</li>
-            <li>You may escalate concerns to relevant external bodies where appropriate</li>
-          </ul>
-        </div>
-      </section>
-    </div>
+    <PageShell label="FEEDBACK" title="Complaints & Feedback">
+      <p>
+        We welcome feedback and want to hear when something has not gone well. You can make a
+        complaint about your experience of GNI by emailing{" "}
+        <MailLink email={SITE_CONFIG.emails.complaints} /> or calling{" "}
+        <a href={SITE_CONFIG.phoneHref} className="text-(--color-accent) hover:underline">
+          {SITE_CONFIG.phone}
+        </a>
+        . Please tell us what happened, when it happened and how you would like us to respond, if
+        you are comfortable doing so.
+      </p>
+      <p>
+        We will acknowledge your complaint, review it fairly and explain the next steps and outcome.
+        Complaints that raise safeguarding or professional concerns may need to be managed through
+        additional procedures. We aim to protect confidentiality and avoid unfair treatment of
+        anyone who raises a concern.
+      </p>
+      <p>
+        If you need an alternative way to communicate with us, email{" "}
+        <MailLink email={SITE_CONFIG.email} />.
+      </p>
+    </PageShell>
   );
 }

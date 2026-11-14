@@ -10,8 +10,9 @@ from app.services.email_queue import queue_and_process_email
 
 # Program display names
 PROGRAM_NAMES = {
-    "birth_confidence": "Favour Oloye Birth Confidence Program",
-    "breastfeeding_clinic": "Breastfeeding Support Clinic",
+    "birth_confidence": "Free Antenatal Education",
+    "breastfeeding_clinic": "Infant-Feeding Support",
+    "both": "Antenatal Education and Infant-Feeding Support",
 }
 
 
@@ -127,59 +128,46 @@ def send_password_reset_email(
 
 
 def send_referral_notification_email(
-    mother_name: str,
-    mother_phone: str,
-    due_date: str,
+    reference_number: str | None,
     partner_name: str,
-    language_requirement: str | None,
-    requires_interpreter: bool,
-    additional_notes: str | None,
-    mother_email: str | None = None,
     referral_type: str = "birth_confidence",
+    interpreter_support: str | None = None,
     db: Session = None,
 ) -> bool:
     """
     Send an admin notification email when a new referral is created.
-    Uses Resend for email delivery with console fallback for development.
+
+    Deliberately contains no personal details about the woman being referred
+    (name, contact details, barriers, notes): those stay in the admin dashboard.
     """
     api_key = os.getenv("RESEND_API_KEY", "")
-    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>")
+    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurtureinitiative.org.uk>")
     contact_email = os.getenv("CONTACT_EMAIL", "")
 
     if not contact_email:
         print("CONTACT_EMAIL not set in environment. Cannot send referral notification email.")
         return False
 
-    email_subject = "[New Referral] A new mother needs approval"
+    program_name = PROGRAM_NAMES.get(referral_type, referral_type)
+    email_subject = f"[New Referral] {reference_number or 'Reference pending'}"
     body = f"""
 A new referral has been submitted and requires your attention.
 
-Mother Details:
-- Name: {mother_name}
-- Phone: {mother_phone}
-- Email: {mother_email or "Not provided"}
-- Estimated Due Date: {due_date}
-- Program Type: {PROGRAM_NAMES.get(referral_type, referral_type)}
-- Language Requirement: {language_requirement or "None specified"}
-- Requires Interpreter: {"Yes" if requires_interpreter else "No"}
+- Reference: {reference_number or "Not available"}
+- Service requested: {program_name}
+- Referring organisation: {partner_name}
+- Interpretation or communication support: {interpreter_support or "Not stated"}
 
-Referral Source:
-- Partner Organisation: {partner_name}
-
-Additional Notes:
-{additional_notes or "None"}
-
-Please review and approve/reject this referral in the admin dashboard.
+Personal details are not included in this email. Please review and approve/reject
+this referral in the admin dashboard.
 
 ---
 This email was sent automatically from the Go Nurture referral system.
 """
 
     email_subject, body = render_managed_email(db, "referral_notification", "referral_notification.txt", {
-        "mother_name": mother_name, "mother_phone": mother_phone, "mother_email": mother_email,
-        "due_date": due_date, "program_name": PROGRAM_NAMES.get(referral_type, referral_type),
-        "language_requirement": language_requirement, "requires_interpreter": requires_interpreter,
-        "partner_name": partner_name, "additional_notes": additional_notes,
+        "reference_number": reference_number, "program_name": program_name,
+        "partner_name": partner_name, "interpreter_support": interpreter_support,
     }, email_subject)
 
     if db is not None:
@@ -245,7 +233,7 @@ def send_donation_notification_email(
     Uses Resend for email delivery with console fallback for development.
     """
     api_key = os.getenv("RESEND_API_KEY", "")
-    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>")
+    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurtureinitiative.org.uk>")
     contact_email = os.getenv("CONTACT_EMAIL", "")
 
     if not contact_email:
@@ -339,7 +327,7 @@ def send_referral_approval_email(
     when a referral is approved by an admin.
     """
     api_key = os.getenv("RESEND_API_KEY", "")
-    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>")
+    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurtureinitiative.org.uk>")
 
     subject = f"[Referral Approved] {mother_name}'s referral has been approved"
     body = f"""
@@ -432,7 +420,7 @@ def send_contact_email(
     Uses Resend for email delivery with console fallback for development.
     """
     api_key = os.getenv("RESEND_API_KEY", "")
-    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>")
+    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurtureinitiative.org.uk>")
     contact_email = os.getenv("CONTACT_EMAIL", "")
 
     if not contact_email:
@@ -523,7 +511,7 @@ def send_facilitator_assignment_email(
     including the class schedule or appointment details.
     """
     api_key = os.getenv("RESEND_API_KEY", "")
-    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>")
+    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurtureinitiative.org.uk>")
 
     program_name = PROGRAM_NAMES.get(cohort_type, cohort_type)
     venue_line = f"Venue: {venue_name}" if venue_name else "Venue: To be confirmed"
@@ -650,7 +638,7 @@ def send_cohort_assignment_email_to_mother(
       - breastfeeding_clinic: single appointment confirmation
     """
     api_key = os.getenv("RESEND_API_KEY", "")
-    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>")
+    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurtureinitiative.org.uk>")
 
     program_name = PROGRAM_NAMES.get(cohort_type, cohort_type)
     venue_block = ""
@@ -811,7 +799,7 @@ def send_cohort_assignment_email_to_partner(
     been assigned to a cohort, including program-specific details.
     """
     api_key = os.getenv("RESEND_API_KEY", "")
-    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>")
+    from_email = os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurtureinitiative.org.uk>")
 
     program_name = PROGRAM_NAMES.get(cohort_type, cohort_type)
 

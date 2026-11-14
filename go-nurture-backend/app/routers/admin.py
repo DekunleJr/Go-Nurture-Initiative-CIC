@@ -136,7 +136,7 @@ def admin_test_send_email_template(
     resend.api_key = api_key
     try:
         response = resend.Emails.send({
-            "from": os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurture.org>"),
+            "from": os.getenv("RESEND_FROM_EMAIL", "Go Nurture <noreply@gonurtureinitiative.org.uk>"),
             "to": data.recipient_email,
             "subject": subject,
             "text": body,
@@ -363,9 +363,9 @@ def admin_edit_referral(
     if not referral:
         raise HTTPException(status_code=404, detail="Referral not found")
 
-    updates = update.model_dump(exclude_unset=True)
-    for field, value in updates.items():
-        setattr(referral, field, value)
+    from app.routers.referrals import apply_referral_updates
+
+    apply_referral_updates(referral, update.model_dump(exclude_unset=True))
 
     db.commit()
     db.refresh(referral)

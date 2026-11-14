@@ -1,18 +1,8 @@
 A new referral has been submitted and requires your attention.
 
-Mother Details:
-- Name: {{ mother_name }}
-- Phone: {{ mother_phone }}
-- Email: {{ mother_email or "Not provided" }}
-- Estimated Due Date: {{ due_date }}
-- Program Type: {{ program_name }}
-- Language Requirement: {{ language_requirement or "None specified" }}
-- Requires Interpreter: {{ "Yes" if requires_interpreter else "No" }}
+- Reference: {{ reference_number or "Not available" }}
+- Service requested: {{ program_name }}
+- Referring organisation: {{ partner_name }}
+- Interpretation or communication support: {{ interpreter_support or "Not stated" }}
 
-Referral Source:
-- Partner Organisation: {{ partner_name }}
-
-Additional Notes:
-{{ additional_notes or "None" }}
-
-Please review and approve/reject this referral in the admin dashboard.
+Personal details are not included in this email. Please review and approve/reject this referral in the admin dashboard.

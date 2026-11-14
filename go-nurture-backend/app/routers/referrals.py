@@ -1,3 +1,6 @@
+import secrets
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 from typing import List
@@ -16,6 +19,31 @@ from app.middleware.rate_limit import limiter
 
 router = APIRouter(prefix="/api/referrals", tags=["Referrals"])
 
+# No 0/O/1/I so references are easy to read out over the phone.
+_REFERENCE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+
+def _generate_reference() -> str:
+    suffix = "".join(secrets.choice(_REFERENCE_ALPHABET) for _ in range(6))
+    return f"GNI-{datetime.now(timezone.utc).year}-{suffix}"
+
+
+def apply_referral_updates(referral: Referral, updates: dict) -> None:
+    """Apply edited fields, keeping `interpreter_support` and the legacy
+    `requires_interpreter` boolean consistent with each other."""
+    # mother_name / due date etc. are plain columns; a null name is never valid.
+    if "mother_name" in updates and not updates["mother_name"]:
+        raise HTTPException(status_code=400, detail="Name cannot be empty")
+    for field, value in updates.items():
+        setattr(referral, field, value)
+    if "interpreter_support" in updates:
+        referral.requires_interpreter = updates["interpreter_support"] == "yes"
+    elif "requires_interpreter" in updates:
+        if updates["requires_interpreter"]:
+            referral.interpreter_support = "yes"
+        elif referral.interpreter_support == "yes":
+            referral.interpreter_support = "no"
+
 
 @router.post("/", response_model=ReferralResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("20/15minutes")
@@ -33,34 +61,38 @@ def create_referral(
             detail="You must confirm that explicit consent has been obtained from the mother",
         )
 
+    values = data.model_dump(exclude={"consent_obtained", "interpreter_support"})
     referral = Referral(
         partner_id=current_partner.id,
-        mother_name=data.mother_name,
-        mother_phone=data.mother_phone,
-        mother_email=data.mother_email,
-        estimated_due_date=data.estimated_due_date,
-        referral_type=data.referral_type,
-        language_requirement=data.language_requirement,
-        additional_notes=data.additional_notes,
-        requires_interpreter=data.requires_interpreter,
+        interpreter_support=data.interpreter_support,
+        requires_interpreter=data.interpreter_support == "yes",
         consent_obtained=data.consent_obtained,
+        **values,
     )
+
+    # Public reference number; retry on the (very unlikely) collision.
+    for _ in range(5):
+        candidate = _generate_reference()
+        if not db.query(Referral.id).filter(Referral.reference_number == candidate).first():
+            referral.reference_number = candidate
+            break
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not generate a referral reference. Please try again.",
+        )
+
     db.add(referral)
     db.commit()
     db.refresh(referral)
 
-    # Send admin notification email in the background
+    # Admin notification (no personal details in the email body)
     background_tasks.add_task(
         send_referral_notification_email,
-        mother_name=referral.mother_name,
-        mother_phone=referral.mother_phone,
-        mother_email=referral.mother_email,
-        due_date=referral.estimated_due_date.isoformat() if referral.estimated_due_date else "",
+        reference_number=referral.reference_number,
         partner_name=current_partner.organisation_name,
         referral_type=referral.referral_type,
-        language_requirement=referral.language_requirement,
-        requires_interpreter=referral.requires_interpreter,
-        additional_notes=referral.additional_notes,
+        interpreter_support=referral.interpreter_support,
         db=db,
     )
 
@@ -144,9 +176,7 @@ def update_my_referral(
             detail="This referral can no longer be edited because it has been completed or declined.",
         )
 
-    updates = update.model_dump(exclude_unset=True)
-    for field, value in updates.items():
-        setattr(referral, field, value)
+    apply_referral_updates(referral, update.model_dump(exclude_unset=True))
 
     db.commit()
     db.refresh(referral)
