@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Self-contained server bundle for the Docker image (see Dockerfile).
+  output: "standalone",
   async rewrites() {
     // Server-side proxy target for /api requests. Read from API_PROXY_ORIGIN
     // (a server-only env var), NOT from NEXT_PUBLIC_API_URL — in same-origin

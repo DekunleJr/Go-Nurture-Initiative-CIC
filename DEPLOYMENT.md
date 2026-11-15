@@ -80,3 +80,20 @@ The frontend build must receive its `NEXT_PUBLIC_*` variables at build time.
 ## Rollback
 
 Application rollback can use the previous image/build. Database migrations must be assessed individually before downgrading; prefer a forward corrective migration for production data changes. The Phase 4 index migration is reversible with `alembic downgrade <previous-revision>` after confirming the target revision and maintenance window.
+
+## Krystal Cloud (single VM, Docker Compose)
+
+Krystal Cloud provides virtual machines, so the whole stack runs on one Ubuntu VM using the root `docker-compose.yml`: Caddy (automatic HTTPS) → Next.js frontend + FastAPI backend → PostgreSQL. Caddy serves everything from one domain (`/api/*` to the backend), so the auth cookie is first-party and no extra proxy setup is needed.
+
+1. Create an Ubuntu 24.04 VM in Krystal Cloud (2 vCPU / 4 GB RAM is comfortable) and add your SSH key. Open ports 22, 80 and 443 in the VM's firewall/security group.
+2. Point your domain's DNS A record at the VM's public IP.
+3. SSH in and install Docker: `curl -fsSL https://get.docker.com | sh`
+4. Copy the repo to the VM (`git clone <your repo>` or `scp -r`). Do not copy `venv`, `node_modules` or `.next`.
+5. `cp .env.production.example .env`, then fill in `DOMAIN`, `POSTGRES_PASSWORD`, `SECRET_KEY` (`openssl rand -hex 32`), admin credentials and optional email/Stripe values.
+6. `docker compose up -d --build` (first build takes several minutes; migrations run automatically).
+7. Check `docker compose ps`, `docker compose logs -f backend`, and `https://<domain>/api/health`.
+8. Stripe: add a webhook endpoint `https://<domain>/api/donations/webhook` and put its signing secret in `.env` as `STRIPE_WEBHOOK_SECRET`, then `docker compose up -d`.
+9. Backups: `docker compose exec db pg_dump -U gonurture gonurture > backup.sql` (schedule with cron; also enable Krystal VM snapshots).
+10. Update: `git pull && docker compose up -d --build`.
+
+Changing `DOMAIN` or any `NEXT_PUBLIC_*` value requires rebuilding the frontend (`docker compose up -d --build frontend`).
