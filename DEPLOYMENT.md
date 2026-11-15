@@ -1,99 +1,88 @@
-# Deployment Guide
+# Deployment Guide (Krystal cPanel hosting, Next.js + MySQL)
 
-## Components
+The site is now a single Next.js application (`go-nurture-frontend`). The REST API that used to be
+the Python/FastAPI backend lives inside it (`src/app/api/[...path]/route.ts` -> `src/server/`), and
+data is stored in MySQL via Drizzle ORM. `go-nurture-backend/` is the retired Python service, kept
+only as a reference for the port.
 
-- Frontend: Next.js application in `go-nurture-frontend`
-- Backend: FastAPI application in `go-nurture-backend`
-- Database: PostgreSQL with Alembic migrations
+## What runs where
 
-## Required configuration
+| Piece | Where |
+|---|---|
+| Pages + API | One Node.js process started by cPanel "Setup Node.js App" |
+| Database | MySQL created in cPanel "MySQL Databases" |
+| Schema | Applied automatically on every start from `drizzle/*.sql` (`src/instrumentation.ts`) |
+| Seed data | Admin user, community partners and email templates are created on first start |
 
-Backend variables are documented in [go-nurture-backend/.env.example](go-nurture-backend/.env.example). At minimum, production requires:
+## 1. Create the database (cPanel)
 
-- `DATABASE_URL`
-- `SECRET_KEY` with at least 32 random characters
-- `FRONTEND_URL` set to the deployed frontend origin
-- `ENVIRONMENT=production`
-- `DEBUG=False`
+1. cPanel > **MySQL Databases** > create a database (e.g. `gonurture`).
+2. Create a user with a strong password, then **add the user to the database with ALL PRIVILEGES**.
+3. Note the full names, which are prefixed with your account name: `account_gonurture`, `account_gnuser`.
+4. `DATABASE_URL` is `mysql://account_gnuser:PASSWORD@localhost:3306/account_gonurture`
+   (URL-encode special characters in the password, e.g. `@` -> `%40`).
 
-Frontend variables are documented in [go-nurture-frontend/.env.example](go-nurture-frontend/.env.example). Set `NEXT_PUBLIC_API_URL` to the API origin, or `/` when the API is reverse-proxied on the same origin.
+## 2. Build the upload package (your PC)
 
-## Auth cookie architecture (Vercel + Render)
+1. In `go-nurture-frontend`, edit `.env.production.local` and set `NEXT_PUBLIC_SITE_URL` to your real
+   `https://` domain. `NEXT_PUBLIC_API_URL` must stay `/`. Put `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+   in `.env.local` or `.env.production.local` if you take donations.
+   `NEXT_PUBLIC_*` values are baked in at build time, so changing them later needs a rebuild.
+2. Run `npm ci` then `npm run package:cpanel`.
+   It builds the app, refuses to continue if the old API URL is still baked in, and creates
+   `deploy/` and `deploy.zip` (about 10 MB).
 
-The session is an httpOnly JWT cookie (`access_token`) set by the API. Cookies
-are scoped to a registrable domain, and `*.vercel.app` / `*.onrender.com` are
-**different sites** to the browser: a cookie set by the API origin is
-third-party from the frontend's perspective, so Safari discards it (and Chrome
-is phasing third-party cookies out) — users appear to log in and are then
-immediately 401'd. CORS headers cannot change this; cookie storage is browser
-enforcement, independent of CORS.
+## 3. Create the Node.js app (cPanel)
 
-**Required production setup — same-origin proxy:**
+1. cPanel > **Setup Node.js App** > **Create Application**.
+   - Node.js version: **22** (minimum 20.9)
+   - Application mode: **Production**
+   - Application root: e.g. `gonurture` (a folder in your home directory, outside `public_html`)
+   - Application URL: your domain
+   - Application startup file: `app.js`
+2. Upload `deploy.zip` to the application root with **File Manager** and **Extract** it
+   (make sure hidden files such as `.next` are included).
+3. Add **Environment variables** in the same page (see `go-nurture-frontend/.env.example`):
+   `DATABASE_URL`, `SECRET_KEY` (32+ random chars), `ADMIN_EMAIL`, `ADMIN_PASSWORD`,
+   `NEXT_PUBLIC_SITE_URL`, and as needed `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `CONTACT_EMAIL`,
+   `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `CRON_SECRET`.
+4. Click **Restart**. Open `https://<domain>/api/health` -> `{"status":"healthy"}`.
+   The first start creates all tables. Check the app's log (`stderr.log` in the app root) for errors.
+5. Log in at `/portal/login` with `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 
-- Vercel (frontend): `NEXT_PUBLIC_API_URL=/` and
-  `API_PROXY_ORIGIN=https://<backend>.onrender.com`. The `next.config.ts`
-  rewrite forwards `/api/*` server-side to Render, so the `Set-Cookie` is
-  first-party on the Vercel origin and every browser stores it.
-- Render (backend): `ENVIRONMENT=production` (cookie becomes `Secure;
-  SameSite=None`, which is correct when proxied same-origin). Optionally
-  override flags explicitly with `COOKIE_SECURE` / `COOKIE_SAMESITE`.
-- `NEXT_PUBLIC_*` values are inlined at build time and the rewrite table is
-  built at build time — **redeploy the frontend** after changing either.
-- Alternative (only if you own a custom domain): serve frontend and API from
-  one registrable domain (e.g. `www.example.org` + `api.example.org`); the
-  cookie is then same-site and the proxy is unnecessary.
+Do not run `npm install` on the server: `node_modules` is already inside the package and has no
+native modules.
 
-Keep secrets in the hosting provider's secret manager. Do not commit `.env` or `.env.local` files.
+## 4. Stripe and email
 
-## Backend deployment
+- Stripe webhook endpoint: `https://<domain>/api/donations/webhook`, events `payment_intent.succeeded` and
+  `payment_intent.payment_failed`. Put the signing secret in `STRIPE_WEBHOOK_SECRET` and restart the app.
+- Failed emails are retried from the admin dashboard, or automatically if you add a cPanel **Cron Job**
+  every 10 minutes: `curl -s "https://<domain>/api/cron/email-queue?secret=YOUR_CRON_SECRET" > /dev/null`
 
-The backend Docker image runs migrations before starting the API:
+## 5. Updating the site
 
-```powershell
-docker build -t go-nurture-backend ./go-nurture-backend
-docker run --env-file ./go-nurture-backend/.env -e PORT=8000 -p 8000:8000 go-nurture-backend
-```
+Re-run `npm run package:cpanel`, upload and extract `deploy.zip` over the application root
+(your environment variables stay in cPanel), then **Restart** the app. New migrations apply on start.
 
-For a managed deployment, configure the service start command to provide the platform `PORT` value and ensure the database is reachable before startup.
+Schema changes: edit `src/server/db/schema.ts`, run `npm run db:generate`, commit the new `drizzle/*.sql` files.
 
-## Frontend deployment
+## 6. Backups
 
-```powershell
-cd go-nurture-frontend
-npm ci
-npm run build
-npm start
-```
+cPanel > **Backup** (or JetBackup if offered) covers the MySQL database. Also download a manual
+database export from **phpMyAdmin** before each release.
 
-The frontend build must receive its `NEXT_PUBLIC_*` variables at build time.
+## Local development
 
-## Release checklist
+1. Create a local MySQL database and copy `go-nurture-frontend/.env.example` to `.env.local`
+   (set `DATABASE_URL`, `SECRET_KEY`, `NEXT_PUBLIC_API_URL=/`).
+2. `npm install`, `npm run dev`. Migrations and seeding run when the dev server starts.
 
-1. Back up the production database.
-2. Deploy the backend image to staging.
-3. Run `alembic upgrade head` against staging and verify the API health endpoint.
-4. Verify login, referral submission, admin CRUD, facilitator reviews, contact submission, and donations.
-5. Promote the tested image and frontend build.
-6. Check `/api/health`, application logs, and error tracking.
-7. Keep the previous application version available for rollback.
+## Moving existing data from the old PostgreSQL database
 
-## Rollback
-
-Application rollback can use the previous image/build. Database migrations must be assessed individually before downgrading; prefer a forward corrective migration for production data changes. The Phase 4 index migration is reversible with `alembic downgrade <previous-revision>` after confirming the target revision and maintenance window.
-
-## Krystal Cloud (single VM, Docker Compose)
-
-Krystal Cloud provides virtual machines, so the whole stack runs on one Ubuntu VM using the root `docker-compose.yml`: Caddy (automatic HTTPS) → Next.js frontend + FastAPI backend → PostgreSQL. Caddy serves everything from one domain (`/api/*` to the backend), so the auth cookie is first-party and no extra proxy setup is needed.
-
-1. Create an Ubuntu 24.04 VM in Krystal Cloud (2 vCPU / 4 GB RAM is comfortable) and add your SSH key. Open ports 22, 80 and 443 in the VM's firewall/security group.
-2. Point your domain's DNS A record at the VM's public IP.
-3. SSH in and install Docker: `curl -fsSL https://get.docker.com | sh`
-4. Copy the repo to the VM (`git clone <your repo>` or `scp -r`). Do not copy `venv`, `node_modules` or `.next`.
-5. `cp .env.production.example .env`, then fill in `DOMAIN`, `POSTGRES_PASSWORD`, `SECRET_KEY` (`openssl rand -hex 32`), admin credentials and optional email/Stripe values.
-6. `docker compose up -d --build` (first build takes several minutes; migrations run automatically).
-7. Check `docker compose ps`, `docker compose logs -f backend`, and `https://<domain>/api/health`.
-8. Stripe: add a webhook endpoint `https://<domain>/api/donations/webhook` and put its signing secret in `.env` as `STRIPE_WEBHOOK_SECRET`, then `docker compose up -d`.
-9. Backups: `docker compose exec db pg_dump -U gonurture gonurture > backup.sql` (schedule with cron; also enable Krystal VM snapshots).
-10. Update: `git pull && docker compose up -d --build`.
-
-Changing `DOMAIN` or any `NEXT_PUBLIC_*` value requires rebuilding the frontend (`docker compose up -d --build frontend`).
+The new schema keeps the same tables, columns and UUID ids. Export each table from Postgres as CSV
+(or `INSERT` statements) and import into the matching MySQL table with phpMyAdmin, in this order:
+`partner_organisations`, `facilitators`, `venues`, `cohorts`, `referrals`, `session_reviews`,
+`contact_submissions`, `donations`, `email_logs`, `community_partners`, `email_templates`, `email_queue`.
+Convert booleans to 1/0, enum `donations.status` to lowercase values, and JSON columns as JSON text.
+Password hashes carry over unchanged (bcrypt).

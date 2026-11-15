@@ -1,30 +1,19 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Self-contained server bundle for the Docker image (see Dockerfile).
+  // Self-contained server bundle: `.next/standalone/server.js` runs the whole
+  // app (pages + the /api routes in src/server) with a minimal node_modules.
   output: "standalone",
-  async rewrites() {
-    // Server-side proxy target for /api requests. Read from API_PROXY_ORIGIN
-    // (a server-only env var), NOT from NEXT_PUBLIC_API_URL — in same-origin
-    // production setups NEXT_PUBLIC_API_URL is "/" and using it here would
-    // make the rewrite forward to itself. Env vars are resolved at build
-    // time for the rewrite table, so changing API_PROXY_ORIGIN requires a
-    // rebuild/redeploy.
-    //
-    // NOTE: this must stay in next.config.ts. Next.js 16 prefers a
-    // next.config.ts over next.config.js when both exist, so any logic in
-    // next.config.js would be silently ignored.
-    const origin = (process.env.API_PROXY_ORIGIN || "http://localhost:8000")
-      .replace(/\/$/, "")
-      .replace(/\/api$/, "");
-
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${origin}/api/:path*`,
-      },
-    ];
+  // The SQL migrations are read from ./drizzle at runtime, so make sure they
+  // are copied into the standalone output.
+  outputFileTracingIncludes: {
+    "/*": ["./drizzle/**/*"],
   },
+  // Shared hosting: skip the native `sharp` image optimizer (the build machine's
+  // binaries would not run on the Linux server). Images are served as-is.
+  images: { unoptimized: true },
+  // The API lives in this app now (src/app/api/[...path] -> src/server), so
+  // the old /api/* rewrite to a separate Python backend is gone.
 };
 
 export default nextConfig;
