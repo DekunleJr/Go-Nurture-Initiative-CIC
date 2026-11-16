@@ -50,6 +50,24 @@ cpSync(path.join(root, "drizzle"), path.join(out, "drizzle"), { recursive: true 
 // Never ship secrets or local env files.
 for (const f of [".env", ".env.local", ".env.production"]) rmSync(path.join(out, f), { force: true });
 
+// Everything the server needs is already inside ./node_modules (traced by Next),
+// so ship a minimal package.json with NO dependencies. Otherwise the host's
+// "Run NPM Install" button tries to download the whole project's dev tooling.
+writeFileSync(
+  path.join(out, "package.json"),
+  JSON.stringify(
+    {
+      name: "go-nurture",
+      version: "1.0.0",
+      private: true,
+      scripts: { start: "node server.js" },
+      engines: { node: ">=20.9.0" },
+    },
+    null,
+    2,
+  ) + "\n",
+);
+
 // Passenger (used by cPanel) starts the app via a plain startup file.
 writeFileSync(
   path.join(out, "app.js"),
